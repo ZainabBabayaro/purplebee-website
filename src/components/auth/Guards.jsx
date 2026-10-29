@@ -1,7 +1,9 @@
 import { Navigate, useLocation } from 'react-router-dom'
+import { useEffect, useState } from 'react'
 import { useAuth } from '../../context/AuthContext.jsx'
 
 // A small, brand-aligned loading state used by guards.
+// Only rendered after the client has mounted to avoid SSR hydration mismatch.
 function Loading() {
   return (
     <div className="flex min-h-[60vh] items-center justify-center bg-ivory pt-24">
@@ -10,11 +12,19 @@ function Loading() {
   )
 }
 
+function useMounted() {
+  const [mounted, setMounted] = useState(false)
+  useEffect(() => setMounted(true), [])
+  return mounted
+}
+
 // Requires a signed-in customer.
 export function ProtectedRoute({ children }) {
   const { user, loading } = useAuth()
   const location = useLocation()
-  if (loading) return <Loading />
+  const mounted = useMounted()
+  // During SSR / before hydration, render nothing so server and client match.
+  if (!mounted || loading) return null
   if (!user) {
     return <Navigate to="/account" state={{ from: location.pathname }} replace />
   }
@@ -25,7 +35,8 @@ export function ProtectedRoute({ children }) {
 // The actual data access is still gated by Firestore rules server-side.
 export function AdminRoute({ children }) {
   const { user, isAdmin, loading } = useAuth()
-  if (loading) return <Loading />
+  const mounted = useMounted()
+  if (!mounted || loading) return null
   if (!user || !isAdmin) return <Navigate to="/admin" replace />
   return children
 }

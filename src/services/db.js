@@ -51,6 +51,18 @@ async function fbGetInventory() {
   return snap.docs.map((d) => ({ id: d.id, ...d.data() }))
 }
 
+async function fbAddProduct(product) {
+  const { collection, doc, setDoc } = await import('firebase/firestore')
+  const id = product.slug || product.name.toLowerCase().replace(/\s+/g, '-')
+  await setDoc(doc(collection(db, 'inventory'), id), {
+    ...product,
+    id,
+    stock: product.stock ?? 0,
+    active: product.active !== false,
+  })
+  return { id }
+}
+
 async function fbUpdateProduct(id, patch) {
   const { doc, updateDoc } = await import('firebase/firestore')
   await updateDoc(doc(db, 'inventory', id), patch)
@@ -116,6 +128,7 @@ export const dataApi = isFirebaseConfigured
   ? {
       getInventory: fbGetInventory,
       getProduct: (id) => fbGetInventory().then((l) => l.find((p) => p.id === id) || null),
+      addProduct: fbAddProduct,
       updateProduct: fbUpdateProduct,
       seedInventory: fbSeedInventory,
       createOrder: fbCreateOrder,

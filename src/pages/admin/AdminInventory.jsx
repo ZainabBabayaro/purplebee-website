@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Save, Eye, EyeOff, AlertTriangle } from 'lucide-react'
+import { Plus, Save, Eye, EyeOff, AlertTriangle } from 'lucide-react'
 import { dataApi } from '../../services/db.js'
 import PlaceholderArt from '../../components/PlaceholderArt.jsx'
 import { getPalette } from '../../utils/images.js'
@@ -158,6 +158,49 @@ function ProductRow({ product: initial }) {
 
 export default function AdminInventory() {
   const [products, setProducts] = useState(null)
+  const [form, setForm] = useState({ name: '', price: '', stock: '' })
+  const [adding, setAdding] = useState(false)
+  const [addErr, setAddErr] = useState('')
+  const [addSaved, setAddSaved] = useState(false)
+
+  const handleAdd = async (e) => {
+    e.preventDefault()
+    setAddErr('')
+    setAddSaved(false)
+
+    const name = form.name.trim()
+    const price = parseFloat(form.price)
+    const stock = parseInt(form.stock, 10)
+
+    if (!name) { setAddErr('Product name is required.'); return }
+    if (Number.isNaN(price) || price < 0) { setAddErr('Enter a valid price.'); return }
+    if (Number.isNaN(stock) || stock < 0) { setAddErr('Enter a valid stock number.'); return }
+
+    setAdding(true)
+    try {
+      await dataApi.addProduct({
+        name,
+        slug: name.toLowerCase().replace(/\s+/g, '-'),
+        price,
+        stock,
+        active: true,
+        occasion: '',
+        collectionName: '',
+        summary: '',
+        description: '',
+        paletteKey: 'garden',
+      })
+      setForm({ name: '', price: '', stock: '' })
+      setAddSaved(true)
+      setTimeout(() => setAddSaved(false), 2500)
+      // Refresh inventory list
+      dataApi.getInventory().then(setProducts).catch(() => {})
+    } catch (e) {
+      setAddErr(e.message || 'Failed to add product.')
+    } finally {
+      setAdding(false)
+    }
+  }
 
   useEffect(() => {
     dataApi.getInventory().then(setProducts).catch(() => setProducts([]))
@@ -179,6 +222,60 @@ export default function AdminInventory() {
             ? `${products.length} products · ${active} active · ${outOfStock} out of stock`
             : 'Loading…'}
         </p>
+      </div>
+
+      {/* ---- Add product form ---- */}
+      <div className="mb-6 rounded-2xl border border-plum-800 bg-plum-900 p-6">
+        <div className="flex items-center gap-2 mb-3">
+          <Plus size={18} strokeWidth={1.7} />
+          <h2 className="text-sm font-medium text-ivory uppercase tracking-wide">Add product</h2>
+        </div>
+        <form onSubmit={handleAdd} className="grid grid-cols-1 md:grid-cols-4 gap-4 items-end" noValidate>
+          <div className="col-span-1 md:col-span-2">
+            <label className="block text-xs text-plum-400 mb-1">Product name</label>
+            <input
+              type="text"
+              autoFocus
+              value={form.name}
+              onChange={(e) => setForm((d) => ({ ...d, name: e.target.value }))}
+              placeholder="e.g. Iris"
+              className="w-full rounded-lg border border-plum-700 bg-plum-950 px-3 py-2 text-sm text-ivory focus:border-plum-400 focus:outline-none"
+            />
+          </div>
+          <div className="col-span-1 md:col-span-1">
+            <label className="block text-xs text-plum-400 mb-1">Price (£)</label>
+            <input
+              type="number"
+              min="0"
+              step="0.01"
+              value={form.price}
+              onChange={(e) => setForm((d) => ({ ...d, price: e.target.value }))}
+              placeholder="0.00"
+              className="w-full rounded-lg border border-plum-700 bg-plum-950 px-3 py-2 text-sm text-ivory focus:border-plum-400 focus:outline-none"
+            />
+          </div>
+          <div className="col-span-1 md:col-span-1">
+            <label className="block text-xs text-plum-400 mb-1">Stock</label>
+            <input
+              type="number"
+              min="0"
+              step="1"
+              value={form.stock}
+              onChange={(e) => setForm((d) => ({ ...d, stock: e.target.value }))}
+              placeholder="0"
+              className="w-full rounded-lg border border-plum-700 bg-plum-950 px-3 py-2 text-sm text-ivory focus:border-plum-400 focus:outline-none"
+            />
+          </div>
+          <button
+            type="submit"
+            disabled={adding}
+            className="w-full md:w-auto rounded-full bg-plum-500 px-4 py-2 text-sm font-medium text-ivory hover:bg-plum-400 disabled:opacity-60"
+          >
+            {adding ? 'Adding…' : 'Add product'}
+          </button>
+          {addErr && <p className="col-span-full mt-2 text-xs text-red-400">{addErr}</p>}
+          {addSaved && <p className="col-span-full mt-2 text-xs text-emerald-400">Added ✓</p>}
+        </form>
       </div>
 
       {products === null ? (

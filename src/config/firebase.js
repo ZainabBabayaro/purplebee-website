@@ -17,18 +17,18 @@ import { getFirestore } from 'firebase/firestore'
 
 // ⚠️ Replace these placeholder values with your Firebase project config.
 const firebaseConfig = {
-  apiKey: 'YOUR_API_KEY',
-  authDomain: 'purplebeecakes.firebaseapp.com',
-  projectId: 'purplebeecakes',
-  storageBucket: 'purplebeecakes.appspot.com',
-  messagingSenderId: 'YOUR_SENDER_ID',
-  appId: 'YOUR_APP_ID',
+  apiKey: 'AIzaSyB5Z5C9OD88304T9fc8sGiNGUHgU6mVj0k',
+  authDomain: 'purple-7a1cc.firebaseapp.com',
+  projectId: 'purple-7a1cc',
+  storageBucket: 'purple-7a1cc.firebasestorage.app',
+  messagingSenderId: '638260506206',
+  appId: '1:638260506206:web:05f3e4d433265144444ecf',
 }
 
 // Dev/UX admin allowlist (used by the local fallback and as a convenience in
 // the client). It does NOT grant any access on its own — Firestore rules are
 // the real gatekeeper. Replace with your owner email.
-export const ADMIN_EMAILS = ['owner@purplebeecakes.co.uk']
+export const ADMIN_EMAILS = ['bakale.mahmud@gmail.com']
 
 export const isFirebaseConfigured = !firebaseConfig.apiKey.startsWith('YOUR_')
 

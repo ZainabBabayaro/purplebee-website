@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Lock } from 'lucide-react'
 import SEO from '../../components/SEO.jsx'
@@ -13,11 +13,12 @@ export default function AdminLogin() {
   const [serverErr, setServerErr] = useState('')
   const [busy, setBusy] = useState(false)
 
-  // Already authenticated admin — redirect straight in.
-  if (!loading && user && isAdmin) {
-    navigate('/admin/dashboard', { replace: true })
-    return null
-  }
+  // Already authenticated admin — redirect straight in (after render, not during).
+  useEffect(() => {
+    if (!loading && user && isAdmin) {
+      navigate('/admin/dashboard', { replace: true })
+    }
+  }, [loading, user, isAdmin, navigate])
 
   const set = (k) => (e) => {
     setValues((v) => ({ ...v, [k]: e.target.value }))

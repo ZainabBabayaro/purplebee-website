@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useState } from 'react'
+import { createContext, useContext, useEffect, useRef, useState } from 'react'
 import { onAuthStateChanged, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, updateProfile } from 'firebase/auth'
 import { isFirebaseConfigured, auth, ADMIN_EMAILS } from '../config/firebase.js'
 import { dataApi } from '../services/db.js'
@@ -12,8 +12,12 @@ export function AuthProvider({ children }) {
   const [user, setUser] = useState(null)
   const [isAdmin, setIsAdmin] = useState(false)
   const [loading, setLoading] = useState(true)
+  const mounted = useRef(false)
 
+  // Hydration-safe: do not touch Firebase auth during SSR/prerender. Wait until
+  // the client has mounted so server HTML matches the initial client render.
   useEffect(() => {
+    mounted.current = true
     let unsub = () => {}
 
     if (isFirebaseConfigured) {
@@ -49,7 +53,10 @@ export function AuthProvider({ children }) {
       unsub = localdb.subscribe(apply)
     }
 
-    return () => unsub()
+    return () => {
+      mounted.current = false
+      unsub()
+    }
   }, [])
 
   const signup = async ({ email, password, displayName }) => {
