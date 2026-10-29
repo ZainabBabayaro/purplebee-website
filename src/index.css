@@ -1,0 +1,297 @@
+@import "tailwindcss";
+
+/* =========================================================================
+   Purple Bee Cakes — Design System
+   Tailwind v4 theme tokens. Custom colours, typography and motion live here so
+   the entire site draws on a single source of truth.
+   ========================================================================= */
+@theme {
+  /* Type families */
+  --font-display: "Fraunces", Georgia, "Times New Roman", serif;
+  --font-sans: "Inter", ui-sans-serif, system-ui, -apple-system, sans-serif;
+
+  /* Brand purple — a refined iris accent, used deliberately not everywhere */
+  --color-plum-50: #f6f2f9;
+  --color-plum-100: #ece3f1;
+  --color-plum-200: #d9c8e3;
+  --color-plum-300: #bda5cd;
+  --color-plum-400: #9d7eb2;
+  --color-plum-500: #7e5f96;
+  --color-plum-600: #6a4e8f;
+  --color-plum-700: #563f74;
+  --color-plum-800: #433259;
+  --color-plum-900: #372a4a;
+
+  /* Warm neutrals — ivory grounds the whole site */
+  --color-ivory: #fbf7f1;
+  --color-cream: #f5ece0;
+  --color-sand: #efe5d4;
+  --color-linen: #e9decb;
+
+  /* Text */
+  --color-charcoal: #2b2622;
+  --color-ink: #2f2a24;
+  --color-stone: #7a7065;
+  --color-stone-light: #a89e90;
+  --color-line: #e6dccd;
+
+  /* Restrained complementary accent — muted brass / honey, sparing use */
+  --color-honey-400: #cdb079;
+  --color-honey-500: #b8995a;
+  --color-honey-600: #a0824a;
+
+  /* Motion */
+  --ease-soft: cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/* =========================================================================
+   Base
+   ========================================================================= */
+@layer base {
+  :root {
+    color-scheme: light;
+  }
+
+  html {
+    scroll-behavior: smooth;
+    -webkit-text-size-adjust: 100%;
+  }
+
+  body {
+    font-family: var(--font-sans);
+    background-color: var(--color-ivory);
+    color: var(--color-charcoal);
+    font-weight: 400;
+    line-height: 1.65;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+  }
+
+  h1, h2, h3, h4 {
+    font-family: var(--font-display);
+    font-weight: 500;
+    line-height: 1.1;
+    letter-spacing: -0.01em;
+    color: var(--color-ink);
+  }
+
+  ::selection {
+    background-color: var(--color-plum-200);
+    color: var(--color-plum-900);
+  }
+
+  /* Visible, accessible focus ring */
+  :where(a, button, input, textarea, select, [tabindex]):focus-visible {
+    outline: 2px solid var(--color-plum-500);
+    outline-offset: 3px;
+    border-radius: 2px;
+  }
+
+  img {
+    max-width: 100%;
+    display: block;
+  }
+}
+
+/* =========================================================================
+   Reusable component utilities
+   ========================================================================= */
+@layer components {
+  .container-px {
+    padding-inline: 1.25rem;
+  }
+  @media (min-width: 768px) {
+    .container-px {
+      padding-inline: 2rem;
+    }
+  }
+
+  /* Editorial eyebrow label */
+  .eyebrow {
+    font-family: var(--font-sans);
+    font-size: 0.72rem;
+    font-weight: 500;
+    letter-spacing: 0.28em;
+    text-transform: uppercase;
+    color: var(--color-plum-600);
+  }
+
+  /* Thin gold rule */
+  .rule-gold {
+    height: 1px;
+    width: 2.5rem;
+    background: linear-gradient(90deg, var(--color-honey-500), transparent);
+  }
+
+  /* Buttons */
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    font-family: var(--font-sans);
+    font-weight: 500;
+    font-size: 0.9rem;
+    letter-spacing: 0.04em;
+    padding: 0.85rem 1.85rem;
+    border-radius: 999px;
+    transition: background-color 0.4s var(--ease-soft), color 0.4s var(--ease-soft),
+      border-color 0.4s var(--ease-soft), transform 0.4s var(--ease-soft);
+  }
+  .btn:active {
+    transform: translateY(1px);
+  }
+
+  .btn-primary {
+    background-color: var(--color-plum-600);
+    color: var(--color-ivory);
+  }
+  .btn-primary:hover {
+    background-color: var(--color-plum-700);
+  }
+
+  .btn-outline {
+    border: 1px solid var(--color-plum-300);
+    color: var(--color-plum-700);
+    background-color: transparent;
+  }
+  .btn-outline:hover {
+    background-color: var(--color-plum-50);
+  }
+
+  .btn-ghost {
+    color: var(--color-ink);
+    background-color: transparent;
+    border-bottom: 1px solid var(--color-honey-500);
+    border-radius: 0;
+    padding: 0.25rem 0;
+    padding-bottom: 0.3rem;
+  }
+  .btn-ghost:hover {
+    color: var(--color-plum-600);
+  }
+
+  /* Link with animated underline */
+  .link-underline {
+    position: relative;
+  }
+  .link-underline::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    bottom: -2px;
+    height: 1px;
+    width: 100%;
+    background-color: currentColor;
+    transform: scaleX(0);
+    transform-origin: left;
+    transition: transform 0.45s var(--ease-soft);
+  }
+  .link-underline:hover::after {
+    transform: scaleX(1);
+  }
+
+  /* Section vertical rhythm */
+  .section-y {
+    padding-block: 5rem;
+  }
+  @media (min-width: 768px) {
+    .section-y {
+      padding-block: 7.5rem;
+    }
+  }
+}
+
+/* =========================================================================
+   Scroll reveal — progressive enhancement only.
+   Content is visible by default. The hiding/animation only applies when the
+   `js` class is on <html> (set by an inline script in index.html), so the page
+   is fully readable without JavaScript and for non-animated crawlers.
+   ========================================================================= */
+html.js .reveal {
+  opacity: 0;
+  transform: translateY(24px);
+  transition: opacity 0.8s var(--ease-soft), transform 0.8s var(--ease-soft);
+  will-change: opacity, transform;
+}
+html.js .reveal.is-visible {
+  opacity: 1;
+  transform: none;
+}
+
+/* Respect reduced-motion: disable transforms and show content immediately */
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+  html.js .reveal {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+  * {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+}
+
+/* =========================================================================
+   Blog / Article prose
+   Scoped under .prose-article to avoid global bleeding.
+   ========================================================================= */
+.prose-article {
+  /* First paragraph lead-in */
+  & > p:first-of-type {
+    font-size: 1.18rem;
+    color: var(--color-ink);
+    line-height: 1.75;
+  }
+
+  /* Drop-cap on first paragraph */
+  & > p:first-of-type::first-letter {
+    float: left;
+    font-family: var(--font-display);
+    font-size: 4.2rem;
+    font-weight: 500;
+    line-height: 0.82;
+    margin-right: 0.1em;
+    margin-top: 0.05em;
+    color: var(--color-plum-600);
+  }
+}
+
+/* Smooth scroll-to-heading offset on articles */
+.scroll-mt-28 {
+  scroll-margin-top: 7rem;
+}
+
+/* Subtle float for decorative imagery */
+@keyframes floaty {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
+}
+.animate-floaty {
+  animation: floaty 7s ease-in-out infinite;
+}
+
+/* Hero full-bleed sliding background.
+   The track is wider than the viewport; a slow ease-in-out alternate pan
+   reveals more of the panoramic scene. Purely decorative. */
+@keyframes hero-pan {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-28.57%); }
+}
+.hero-bg-track {
+  will-change: transform;
+  animation: hero-pan 30s ease-in-out infinite alternate;
+}
+@media (prefers-reduced-motion: reduce) {
+  .hero-bg-track {
+    animation: none;
+  }
+  .animate-floaty {
+    animation: none;
+  }
+}

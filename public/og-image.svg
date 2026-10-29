@@ -1,0 +1,49 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630" role="img" aria-label="Purple Bee Cakes — bespoke cake design studio">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#fbf7f1" />
+      <stop offset="100%" stop-color="#f3ecdf" />
+    </linearGradient>
+    <radialGradient id="glow" cx="78%" cy="22%" r="55%">
+      <stop offset="0%" stop-color="#ece3f1" />
+      <stop offset="100%" stop-color="#ece3f1" stop-opacity="0" />
+    </radialGradient>
+  </defs>
+
+  <rect width="1200" height="630" fill="url(#bg)" />
+  <rect width="1200" height="630" fill="url(#glow)" />
+
+  <!-- decorative cake motif -->
+  <g transform="translate(820 250)">
+    <ellipse cx="0" cy="250" rx="230" ry="22" fill="#e9decb" />
+    <rect x="-215" y="180" width="430" height="70" rx="12" fill="#ffffff" />
+    <rect x="-185" y="110" width="370" height="70" rx="12" fill="#f3eaf2" />
+    <rect x="-150" y="40" width="300" height="70" rx="12" fill="#ece3f1" />
+    <g transform="translate(110 30)">
+      <circle r="9" fill="#bda5cd" />
+      <circle r="4" fill="#c9a96a" />
+    </g>
+  </g>
+
+  <!-- brand mark -->
+  <g transform="translate(90 96)">
+    <rect width="56" height="56" rx="14" fill="#6a4e8f" />
+    <text x="28" y="37" font-family="Georgia, serif" font-size="22" font-weight="600" fill="#fbf7f1" text-anchor="middle">PB</text>
+  </g>
+  <text x="160" y="120" font-family="Inter, sans-serif" font-size="20" font-weight="600" letter-spacing="3" fill="#7a7065">PURPLE BEE CAKES</text>
+
+  <!-- headline -->
+  <text x="90" y="280" font-family="Georgia, 'Times New Roman', serif" font-size="76" font-weight="500" fill="#2f2a24">Considered cakes,</text>
+  <text x="90" y="368" font-family="Georgia, 'Times New Roman', serif" font-size="76" font-weight="500" fill="#2f2a24">made to be <tspan font-style="italic" fill="#6a4e8f">remembered.</tspan></text>
+
+  <!-- tagline -->
+  <text x="90" y="440" font-family="Inter, sans-serif" font-size="26" fill="#7a7065">Bespoke cake design studio</text>
+
+  <!-- bee -->
+  <g transform="translate(96 500)" fill="#b8995a">
+    <ellipse cx="0" cy="0" rx="11" ry="7" />
+    <ellipse cx="-7" cy="-4" rx="6" ry="3.4" opacity="0.5" transform="rotate(-25 -7 -4)" />
+    <ellipse cx="7" cy="-4" rx="6" ry="3.4" opacity="0.5" transform="rotate(25 7 -4)" />
+  </g>
+  <text x="124" y="506" font-family="Inter, sans-serif" font-size="18" fill="#a0824a">purplebeecakes.co.uk</text>
+</svg>

@@ -1,0 +1,71 @@
+// ============================================================================
+// Firestore Security Rules — Purple Bee Cakes
+// ============================================================================
+// Deploy: firebase deploy --only firestore:rules
+//
+// Security model:
+//   - customers can read active inventory (public catalog)
+//   - authenticated customers can create and read their OWN orders
+//   - admins (in the `admins` collection) can read/write all orders + inventory
+//   - nobody can write to inventory except admins
+//   - the `admins` collection is unreadable by all (prevents enumeration)
+// ============================================================================
+
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ---- Helpers -----------------------------------------------------------
+    function isSignedIn() {
+      return request.auth != null;
+    }
+    function isAdmin() {
+      // Admin status is stored in admins/{uid}.isAdmin so it is controlled
+      // server-side and cannot be spoofed from the client.
+      return isSignedIn()
+        && exists(/databases/$(database)/documents/admins/$(request.auth.uid))
+        && get(/databases/$(database)/documents/admins/$(request.auth.uid)).data.isAdmin == true;
+    }
+    function isOwner(uid) {
+      return isSignedIn() && request.auth.uid == uid;
+    }
+
+    // ---- Inventory ---------------------------------------------------------
+    // Public read so the store catalog loads without authentication.
+    // Only admins can create, update or delete products.
+    match /inventory/{productId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // ---- Orders ------------------------------------------------------------
+    // Customers can create orders for themselves.
+    // Customers can only read their own orders.
+    // Admins can read and update any order (e.g. change status).
+    // Nobody (not even admins) can delete orders — soft-cancel via status only.
+    match /orders/{orderId} {
+      allow create: if isSignedIn()
+        && request.resource.data.uid == request.auth.uid
+        && request.resource.data.keys().hasAll(['uid', 'items', 'total', 'status', 'createdAt'])
+        && request.resource.data.status == 'new';
+
+      // Guest orders (uid == 'guest') are admin-only readable.
+      allow read: if isAdmin()
+        || (isSignedIn() && resource.data.uid == request.auth.uid);
+
+      // Customers cannot update orders after placement.
+      // Admins can update any field.
+      allow update: if isAdmin();
+
+      allow delete: if false; // use status: 'cancelled' instead
+    }
+
+    // ---- Admins collection -------------------------------------------------
+    // Completely unreadable from the client (prevents probing who is admin).
+    // Only set via Firebase Console or trusted server-side code.
+    match /admins/{uid} {
+      allow read, write: if false;
+    }
+  }
+}
