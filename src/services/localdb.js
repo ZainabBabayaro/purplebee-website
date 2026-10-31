@@ -11,7 +11,7 @@ import { cakes } from '../data/cakes.js'
 import { ADMIN_EMAILS } from '../config/firebase.js'
 
 const KEYS = {
-  inv: 'pb_inventory',
+  inv: 'pb_inventory_v2', // bumped to v2 — forces re-seed with Naira prices
   orders: 'pb_orders',
   users: 'pb_users',
   session: 'pb_session',
