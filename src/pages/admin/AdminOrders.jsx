@@ -2,9 +2,10 @@ import { useEffect, useState } from 'react'
 import { ChevronDown, ChevronUp, Search } from 'lucide-react'
 import { dataApi, STATUS_FLOW, STATUS_LABEL } from '../../services/db.js'
 
-function money(n) { return `£${Number(n).toFixed(2)}` }
+function money(n) { return `₦${Number(n).toLocaleString('en-NG', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` }
 
 const STATUS_COLORS = {
+  pending_payment: 'bg-yellow-900/40 text-yellow-300 border-yellow-700/30',
   new: 'bg-sky-900/40 text-sky-300 border-sky-700/30',
   confirmed: 'bg-plum-700/60 text-plum-200 border-plum-600/30',
   baking: 'bg-amber-900/40 text-amber-300 border-amber-700/30',

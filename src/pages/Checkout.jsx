@@ -9,8 +9,12 @@ import { useAuth } from '../context/AuthContext.jsx'
 import { dataApi } from '../services/db.js'
 import PlaceholderArt from '../components/PlaceholderArt.jsx'
 import { getPalette } from '../utils/images.js'
+import { site } from '../data/site.js'
 
-function money(n) { return `£${Number(n).toFixed(2)}` }
+// ⚠️ Replace with your Paystack PUBLIC key (pk_live_... or pk_test_...)
+const PAYSTACK_PUBLIC_KEY = 'pk_test_YOUR_PAYSTACK_PUBLIC_KEY'
+
+function money(n) { return `₦${Number(n).toLocaleString('en-NG', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` }
 
 const DELIVERY_OPTIONS = [
   { value: 'collection', label: 'Collection (free)' },
@@ -76,6 +80,8 @@ export default function Checkout() {
     setBusy(true)
     setServerErr('')
     try {
+      // Step 1 — Save the order to Firestore with status 'pending_payment'.
+      // The webhook will update it to 'confirmed' once Paystack confirms payment.
       const order = {
         uid: user?.uid || 'guest',
         customerName: values.name,
@@ -87,14 +93,47 @@ export default function Checkout() {
         notes: values.notes,
         items: items.map((i) => ({ id: i.id, name: i.name, price: i.price, qty: i.qty })),
         total,
+        status: 'pending_payment',
       }
-      const { id } = await dataApi.createOrder(order)
-      clear()
-      navigate('/order-confirmation', { state: { orderId: id, name: values.name } })
+      const { id: orderId } = await dataApi.createOrder(order)
+
+      // Step 2 — Open Paystack popup with the order ID in metadata.
+      if (PAYSTACK_PUBLIC_KEY.startsWith('pk_test_YOUR') || !window.PaystackPop) {
+        // Paystack not configured — skip payment and go straight to confirmation.
+        clear()
+        navigate('/order-confirmation', { state: { orderId, name: values.name } })
+        return
+      }
+
+      const handler = window.PaystackPop.setup({
+        key: PAYSTACK_PUBLIC_KEY,
+        email: values.email,
+        amount: Math.round(total * 100), // Paystack uses kobo (smallest unit)
+        currency: 'NGN',
+        ref: `PBC-${orderId}-${Date.now()}`,
+        metadata: {
+          orderId,
+          customerName: values.name,
+          custom_fields: [
+            { display_name: 'Order ID', variable_name: 'order_id', value: orderId },
+            { display_name: 'Customer', variable_name: 'customer', value: values.name },
+          ],
+        },
+        callback: (response) => {
+          // Payment successful — clear cart and redirect.
+          clear()
+          navigate('/order-confirmation', { state: { orderId, name: values.name, paystackRef: response.reference } })
+        },
+        onClose: () => {
+          // Customer closed the popup without paying — order stays as pending_payment.
+          setBusy(false)
+          setServerErr('Payment was not completed. Your order has been saved — you can try again.')
+        },
+      })
+      handler.openIframe()
     } catch (err) {
-      setServerErr(err.message || 'There was a problem placing your order.')
-    } finally {
       setBusy(false)
+      setServerErr(err.message || 'There was a problem placing your order.')
     }
   }
 

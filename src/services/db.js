@@ -15,6 +15,7 @@ import { localdb } from './localdb.js'
 // Re-export auth for convenience.
 export { auth, isFirebaseConfigured }
 export const STATUS = {
+  PENDING: 'pending_payment',
   NEW: 'new',
   CONFIRMED: 'confirmed',
   BAKING: 'baking',
@@ -23,6 +24,7 @@ export const STATUS = {
   CANCELLED: 'cancelled',
 }
 export const STATUS_FLOW = [
+  STATUS.PENDING,
   STATUS.NEW,
   STATUS.CONFIRMED,
   STATUS.BAKING,
@@ -31,6 +33,7 @@ export const STATUS_FLOW = [
   STATUS.CANCELLED,
 ]
 export const STATUS_LABEL = {
+  pending_payment: 'Awaiting payment',
   new: 'New',
   confirmed: 'Confirmed',
   baking: 'In production',
