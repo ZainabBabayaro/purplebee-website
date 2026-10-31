@@ -4,14 +4,14 @@ import PlaceholderArt from './PlaceholderArt.jsx'
 // ============================================================================
 // OptimizedImage
 // ----------------------------------------------------------------------------
-// A single image component used across the site. When a real `src` is provided
-// it renders a responsive, lazy-loaded <img> with proper alt text. When no src
-// is given it falls back to the art-directed PlaceholderArt so the layout never
-// breaks during development. Supports an explicit aspect ratio for CLS control.
+// When a real `src` (or `imageUrl`) is provided it renders a responsive,
+// lazy-loaded <img>. Otherwise falls back to PlaceholderArt.
+// Accepts an explicit aspect ratio for CLS control.
 // ============================================================================
 
 export default function OptimizedImage({
   src,
+  imageUrl,       // alias — either prop works
   alt = '',
   paletteKey = 'garden',
   seed = 'purple-bee',
@@ -22,10 +22,10 @@ export default function OptimizedImage({
   sizes,
 }) {
   const palette = getPalette(paletteKey)
-
+  const resolvedSrc = src || imageUrl || null
   const wrapperStyle = { aspectRatio: aspect }
 
-  if (!src) {
+  if (!resolvedSrc) {
     return (
       <div
         className={`relative overflow-hidden bg-cream ${className}`}
@@ -44,7 +44,7 @@ export default function OptimizedImage({
   return (
     <div className={`relative overflow-hidden ${className}`} style={wrapperStyle}>
       <img
-        src={src}
+        src={resolvedSrc}
         alt={alt}
         loading={priority ? 'eager' : 'lazy'}
         decoding="async"

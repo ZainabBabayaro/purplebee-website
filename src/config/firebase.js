@@ -1,46 +1,37 @@
-// ============================================================================
-// Firebase configuration
-// ----------------------------------------------------------------------------
-// To go live, create a Firebase project (Authentication + Firestore) in the
-// Firebase console and paste your config below. While the values remain the
-// "YOUR_*" placeholders, the app automatically uses a local localStorage-based
-// fallback (see services/localdb.js) so the store and admin are fully usable
-// for development without a project.
-//
-// SECURITY: client-side config is public by design. Real security is enforced
-// by Firestore Security Rules — deploy firestore.rules (in the project root).
-// ============================================================================
-
 import { initializeApp } from 'firebase/app'
 import { getAuth } from 'firebase/auth'
 import { getFirestore } from 'firebase/firestore'
+import { getAnalytics, isSupported } from 'firebase/analytics'
 
-// ⚠️ Replace these placeholder values with your Firebase project config.
 const firebaseConfig = {
-  apiKey: 'AIzaSyB5Z5C9OD88304T9fc8sGiNGUHgU6mVj0k',
-  authDomain: 'purple-7a1cc.firebaseapp.com',
-  projectId: 'purple-7a1cc',
-  storageBucket: 'purple-7a1cc.firebasestorage.app',
-  messagingSenderId: '638260506206',
-  appId: '1:638260506206:web:05f3e4d433265144444ecf',
+  apiKey: 'AIzaSyDbKz_wX4OWf-MpL6wqFJF6BeQeWBVlwvM',
+  authDomain: 'purplebeecakes01.firebaseapp.com',
+  projectId: 'purplebeecakes01',
+  storageBucket: 'purplebeecakes01.firebasestorage.app',
+  messagingSenderId: '754389835205',
+  appId: '1:754389835205:web:4b7747d2f98094df55bfac',
+  measurementId: 'G-1B80EYYGTP',
 }
 
-// Dev/UX admin allowlist (used by the local fallback and as a convenience in
-// the client). It does NOT grant any access on its own — Firestore rules are
-// the real gatekeeper. Replace with your owner email.
-export const ADMIN_EMAILS = ['bakale.mahmud@gmail.com']
+// Admin emails — add your owner email here.
+// This is a client-side convenience check only.
+// Real admin access is enforced by Firestore security rules (admins/{uid}).
+export const ADMIN_EMAILS = ['purplebeecakess@gmail.com']
 
-export const isFirebaseConfigured = !firebaseConfig.apiKey.startsWith('YOUR_')
+export const isFirebaseConfigured = true
 
-let auth = null
-let db = null
+// Only initialise on the client (not during SSR/prerender).
+let app, auth, db
 
-// Only initialise Firebase on the client (never during SSR/prerender).
-if (isFirebaseConfigured && typeof window !== 'undefined') {
-  const app = initializeApp(firebaseConfig)
+if (typeof window !== 'undefined') {
+  app = initializeApp(firebaseConfig)
   auth = getAuth(app)
   db = getFirestore(app)
+
+  // Analytics only loads in browsers that support it (blocks SSR + some privacy modes).
+  isSupported().then((supported) => {
+    if (supported) getAnalytics(app)
+  })
 }
 
-export { auth, db }
-export { firebaseConfig }
+export { app, auth, db }

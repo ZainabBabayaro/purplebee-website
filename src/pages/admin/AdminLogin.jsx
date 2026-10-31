@@ -73,7 +73,7 @@ export default function AdminLogin() {
                 onChange={set('email')}
                 aria-invalid={errors.email ? 'true' : undefined}
                 className="mt-2 w-full rounded-xl border border-plum-700 bg-plum-900 px-4 py-3 text-ivory placeholder:text-plum-500 focus:border-plum-400 focus:outline-none"
-                placeholder="you@purplebeecakes.co.uk"
+                placeholder="you@purplebeecakes.com"
               />
               {errors.email && <p className="mt-1 text-xs text-red-400">{errors.email}</p>}
             </div>

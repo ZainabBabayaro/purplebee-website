@@ -15,6 +15,7 @@ const KEYS = {
   orders: 'pb_orders',
   users: 'pb_users',
   session: 'pb_session',
+  posts: 'pb_posts',
 }
 
 const listeners = new Set()
@@ -65,6 +66,15 @@ export const localdb = {
   isLocal: true,
 
   // ---- Inventory ----
+  async addProduct(product) {
+    const inv = seedInventory()
+    const id = product.slug || product.name.toLowerCase().replace(/[^a-z0-9]+/g, '-')
+    if (inv.find((p) => p.id === id)) throw new Error('A product with this name already exists.')
+    const full = { ...product, id, active: product.active !== false }
+    inv.push(full)
+    write(KEYS.inv, inv)
+    return { id }
+  },
   async getInventory() {
     return seedInventory()
   },
@@ -76,6 +86,35 @@ export const localdb = {
     const p = inv.find((x) => x.id === id)
     if (p) Object.assign(p, patch)
     write(KEYS.inv, inv)
+  },
+
+  // ---- Blog posts ----
+  async getPosts() {
+    return read(KEYS.posts, [])
+  },
+  async getPost(slug) {
+    return read(KEYS.posts, []).find((p) => p.slug === slug) || null
+  },
+  async addPost(post) {
+    const posts = read(KEYS.posts, [])
+    if (posts.find((p) => p.slug === post.slug)) throw new Error('A post with this slug already exists.')
+    const now = new Date().toISOString()
+    const full = { ...post, createdAt: now, updatedAt: now }
+    posts.unshift(full)
+    write(KEYS.posts, posts)
+    return { slug: post.slug }
+  },
+  async updatePost(slug, patch) {
+    const posts = read(KEYS.posts, [])
+    const i = posts.findIndex((p) => p.slug === slug)
+    if (i !== -1) {
+      posts[i] = { ...posts[i], ...patch, updatedAt: new Date().toISOString() }
+      write(KEYS.posts, posts)
+    }
+  },
+  async deletePost(slug) {
+    const posts = read(KEYS.posts, []).filter((p) => p.slug !== slug)
+    write(KEYS.posts, posts)
   },
 
   // ---- Orders ----

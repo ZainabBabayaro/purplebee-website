@@ -32,12 +32,22 @@ function StoreCard({ product }) {
   return (
     <div className="group flex flex-col rounded-2xl border border-line bg-ivory overflow-hidden transition-shadow hover:shadow-lg">
       <div className="relative overflow-hidden bg-cream aspect-[4/4]">
-        <PlaceholderArt
-          seed={`cake-${product.slug}`}
-          palette={getPalette(product.paletteKey)}
-          className="h-full w-full transition-transform duration-700 group-hover:scale-[1.04]"
-          label={`${product.name} illustration`}
-        />
+        {product.imageUrl ? (
+          <img
+            src={product.imageUrl}
+            alt={product.name}
+            className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-[1.04]"
+            loading="lazy"
+            decoding="async"
+          />
+        ) : (
+          <PlaceholderArt
+            seed={`cake-${product.slug}`}
+            palette={getPalette(product.paletteKey)}
+            className="h-full w-full transition-transform duration-700 group-hover:scale-[1.04]"
+            label={`${product.name} illustration`}
+          />
+        )}
         {outOfStock && (
           <div className="absolute inset-0 flex items-center justify-center bg-ivory/70 backdrop-blur-sm">
             <span className="rounded-full bg-stone/20 px-4 py-1.5 text-xs font-medium uppercase tracking-wide text-stone">
