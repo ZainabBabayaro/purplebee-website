@@ -6,6 +6,7 @@ import Breadcrumbs from '../components/Breadcrumbs.jsx'
 import Reveal from '../components/Reveal.jsx'
 import OptimizedImage from '../components/OptimizedImage.jsx'
 import CTASection from '../components/CTASection.jsx'
+import CommentSection from '../components/CommentSection.jsx'
 import { getArticleBySlug, getRelatedArticles, journal } from '../data/journal.js'
 import { dataApi } from '../services/db.js'
 import { site } from '../data/site.js'
@@ -394,6 +395,9 @@ export default function JournalArticle() {
                   Back to the blog
                 </Link>
               </div>
+
+              {/* Comments */}
+              <CommentSection postSlug={article.slug} />
             </div>
 
             {/* Sidebar: ToC + enquiry CTA */}

@@ -31,6 +31,7 @@ import AdminOrders from './pages/admin/AdminOrders.jsx'
 import AdminInventory from './pages/admin/AdminInventory.jsx'
 import AdminBlog from './pages/admin/AdminBlog.jsx'
 import AdminBlogEditor from './pages/admin/AdminBlogEditor.jsx'
+import AdminComments from './pages/admin/AdminComments.jsx'
 
 export default function App() {
   return (
@@ -76,6 +77,7 @@ export default function App() {
           <Route path="blog" element={<AdminBlog />} />
           <Route path="blog/new" element={<AdminBlogEditor />} />
           <Route path="blog/:slug" element={<AdminBlogEditor />} />
+          <Route path="comments" element={<AdminComments />} />
         </Route>
       </Routes>
     </>

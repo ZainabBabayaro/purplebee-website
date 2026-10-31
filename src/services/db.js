@@ -170,6 +170,52 @@ async function fbDeletePost(slug) {
   await deleteDoc(doc(db, 'posts', slug))
 }
 
+// ---- Comments --------------------------------------------------------------
+async function fbGetComments(postSlug, adminMode = false) {
+  const { collection, getDocs, query, where, orderBy } = await import('firebase/firestore')
+  const col = collection(db, 'comments')
+  try {
+    const q = adminMode
+      ? query(col, where('postSlug', '==', postSlug), orderBy('createdAt', 'asc'))
+      : query(col, where('postSlug', '==', postSlug), where('approved', '==', true), orderBy('createdAt', 'asc'))
+    const snap = await getDocs(q)
+    return snap.docs.map((d) => ({ id: d.id, ...d.data() }))
+  } catch {
+    // Fallback if composite index not ready
+    const snap = await getDocs(query(col, where('postSlug', '==', postSlug)))
+    const all = snap.docs.map((d) => ({ id: d.id, ...d.data() }))
+    return adminMode
+      ? all.sort((a, b) => (a.createdAt || '').localeCompare(b.createdAt || ''))
+      : all.filter((c) => c.approved).sort((a, b) => (a.createdAt || '').localeCompare(b.createdAt || ''))
+  }
+}
+
+async function fbAddComment(comment) {
+  const { collection, addDoc } = await import('firebase/firestore')
+  const ref = await addDoc(collection(db, 'comments'), {
+    ...comment,
+    approved: false, // all comments require moderation
+    createdAt: new Date().toISOString(),
+  })
+  return { id: ref.id }
+}
+
+async function fbApproveComment(id, approved) {
+  const { doc, updateDoc } = await import('firebase/firestore')
+  await updateDoc(doc(db, 'comments', id), { approved })
+}
+
+async function fbDeleteComment(id) {
+  const { doc, deleteDoc } = await import('firebase/firestore')
+  await deleteDoc(doc(db, 'comments', id))
+}
+
+async function fbGetAllComments(adminMode = false) {
+  const { collection, getDocs, query, orderBy } = await import('firebase/firestore')
+  const snap = await getDocs(query(collection(db, 'comments'), orderBy('createdAt', 'desc')))
+  return snap.docs.map((d) => ({ id: d.id, ...d.data() }))
+}
+
 // Upload an image file to Firebase Storage and return the public download URL.
 // The image is stored at products/{productId}/{filename}.
 async function fbUploadProductImage(productId, file) {
@@ -218,6 +264,11 @@ export const dataApi = isFirebaseConfigured
       addPost: fbAddPost,
       updatePost: fbUpdatePost,
       deletePost: fbDeletePost,
+      getComments: fbGetComments,
+      addComment: fbAddComment,
+      approveComment: fbApproveComment,
+      deleteComment: fbDeleteComment,
+      getAllComments: fbGetAllComments,
       subscribe: () => () => {},
     }
   : {
@@ -237,5 +288,10 @@ export const dataApi = isFirebaseConfigured
       addPost: local.addPost,
       updatePost: local.updatePost,
       deletePost: local.deletePost,
+      getComments: local.getComments,
+      addComment: local.addComment,
+      approveComment: local.approveComment,
+      deleteComment: local.deleteComment,
+      getAllComments: local.getAllComments,
       subscribe: local.subscribe,
     }
