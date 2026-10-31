@@ -126,11 +126,22 @@ async function fbIsAdmin(uid) {
 async function fbGetPosts(adminMode = false) {
   const { collection, getDocs, query, where, orderBy } = await import('firebase/firestore')
   const col = collection(db, 'posts')
-  const q = adminMode
-    ? query(col, orderBy('createdAt', 'desc'))
-    : query(col, where('published', '==', true), orderBy('createdAt', 'desc'))
-  const snap = await getDocs(q)
-  return snap.docs.map((d) => ({ ...d.data(), slug: d.id }))
+  try {
+    const q = adminMode
+      ? query(col, orderBy('createdAt', 'desc'))
+      : query(col, where('published', '==', true), orderBy('createdAt', 'desc'))
+    const snap = await getDocs(q)
+    return snap.docs.map((d) => ({ ...d.data(), slug: d.id }))
+  } catch {
+    // Composite index may not exist yet — fall back to fetching all and filtering client-side.
+    const snap = await getDocs(col)
+    const all = snap.docs.map((d) => ({ ...d.data(), slug: d.id }))
+    return adminMode
+      ? all.sort((a, b) => (b.createdAt || '').localeCompare(a.createdAt || ''))
+      : all
+          .filter((p) => p.published === true)
+          .sort((a, b) => (b.createdAt || '').localeCompare(a.createdAt || ''))
+  }
 }
 
 async function fbGetPost(slug) {
