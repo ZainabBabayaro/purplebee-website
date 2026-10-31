@@ -1,8 +1,66 @@
-import { useEffect, useState } from 'react'
-import { Plus, Save, Eye, EyeOff, AlertTriangle } from 'lucide-react'
+import { useEffect, useRef, useState } from 'react'
+import { Plus, Save, Eye, EyeOff, AlertTriangle, ImagePlus } from 'lucide-react'
 import { dataApi } from '../../services/db.js'
 import PlaceholderArt from '../../components/PlaceholderArt.jsx'
 import { getPalette } from '../../utils/images.js'
+
+/** Read a File and resolve with a base64 data-URL string. */
+function fileToBase64(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader()
+    reader.onload = () => resolve(reader.result)
+    reader.onerror = reject
+    reader.readAsDataURL(file)
+  })
+}
+
+/** Tiny image picker button used in both the add-form and the edit row. */
+function ImagePicker({ value, onChange }) {
+  const inputRef = useRef(null)
+
+  const handleFile = async (e) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+    if (!file.type.startsWith('image/')) return
+    const b64 = await fileToBase64(file)
+    onChange(b64)
+    // Reset so picking the same file again still fires onChange
+    e.target.value = ''
+  }
+
+  return (
+    <div className="flex flex-col items-center gap-2">
+      {/* Preview */}
+      <div
+        className="h-16 w-16 shrink-0 overflow-hidden rounded-xl border border-plum-700 bg-plum-800 cursor-pointer"
+        onClick={() => inputRef.current?.click()}
+        title="Click to upload image"
+      >
+        {value ? (
+          <img src={value} alt="Product preview" className="h-full w-full object-cover" />
+        ) : (
+          <div className="flex h-full w-full items-center justify-center text-plum-500">
+            <ImagePlus size={22} strokeWidth={1.5} />
+          </div>
+        )}
+      </div>
+      <button
+        type="button"
+        onClick={() => inputRef.current?.click()}
+        className="text-xs text-plum-400 hover:text-ivory"
+      >
+        {value ? 'Change' : 'Add image'}
+      </button>
+      <input
+        ref={inputRef}
+        type="file"
+        accept="image/*"
+        className="hidden"
+        onChange={handleFile}
+      />
+    </div>
+  )
+}
 
 function money(n) { return `£${Number(n).toFixed(2)}` }
 
@@ -52,12 +110,16 @@ function ProductRow({ product: initial }) {
       <td className="px-4 py-4">
         <div className="flex items-center gap-3">
           <div className="h-12 w-12 shrink-0 overflow-hidden rounded-lg bg-plum-800">
-            <PlaceholderArt
-              seed={`cake-${p.slug}`}
-              palette={getPalette(p.paletteKey)}
-              className="h-full w-full"
-              label={p.name}
-            />
+            {p.image ? (
+              <img src={p.image} alt={p.name} className="h-full w-full object-cover" />
+            ) : (
+              <PlaceholderArt
+                seed={`cake-${p.slug}`}
+                palette={getPalette(p.paletteKey)}
+                className="h-full w-full"
+                label={p.name}
+              />
+            )}
           </div>
           <div>
             <p className="font-medium text-ivory">{p.name}</p>
@@ -159,6 +221,7 @@ function ProductRow({ product: initial }) {
 export default function AdminInventory() {
   const [products, setProducts] = useState(null)
   const [form, setForm] = useState({ name: '', price: '', stock: '' })
+  const [formImage, setFormImage] = useState('')
   const [adding, setAdding] = useState(false)
   const [addErr, setAddErr] = useState('')
   const [addSaved, setAddSaved] = useState(false)
@@ -189,8 +252,10 @@ export default function AdminInventory() {
         summary: '',
         description: '',
         paletteKey: 'garden',
+        ...(formImage ? { image: formImage } : {}),
       })
       setForm({ name: '', price: '', stock: '' })
+      setFormImage('')
       setAddSaved(true)
       setTimeout(() => setAddSaved(false), 2500)
       // Refresh inventory list
