@@ -32,9 +32,9 @@ function StoreCard({ product }) {
   return (
     <div className="group flex flex-col rounded-2xl border border-line bg-ivory overflow-hidden transition-shadow hover:shadow-lg">
       <div className="relative overflow-hidden bg-cream aspect-[4/4]">
-        {product.imageUrl ? (
+        {product.image ? (
           <img
-            src={product.imageUrl}
+            src={product.image}
             alt={product.name}
             className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-[1.04]"
             loading="lazy"

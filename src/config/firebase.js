@@ -4,6 +4,7 @@ import { getFirestore } from 'firebase/firestore'
 import { getAnalytics, isSupported } from 'firebase/analytics'
 
 const firebaseConfig = {
+<<<<<<< HEAD
   apiKey: 'AIzaSyDbKz_wX4OWf-MpL6wqFJF6BeQeWBVlwvM',
   authDomain: 'purplebeecakes01.firebaseapp.com',
   projectId: 'purplebeecakes01',
@@ -16,6 +17,20 @@ const firebaseConfig = {
 // Admin emails — add your owner email here.
 // This is a client-side convenience check only.
 // Real admin access is enforced by Firestore security rules (admins/{uid}).
+=======
+  apiKey: "AIzaSyDbKz_wX4OWf-MpL6wqFJF6BeQeWBVlwvM",
+  authDomain: "purplebeecakes01.firebaseapp.com",
+  projectId: "purplebeecakes01",
+  storageBucket: "purplebeecakes01.firebasestorage.app",
+  messagingSenderId: "754389835205",
+  appId: "1:754389835205:web:4b7747d2f98094df55bfac",
+  measurementId: "G-1B80EYYGTP"
+};
+
+// Dev/UX admin allowlist (used by the local fallback and as a convenience in
+// the client). It does NOT grant any access on its own — Firestore rules are
+// the real gatekeeper. Replace with your owner email.
+>>>>>>> 5a59f67 (firebase setup image)
 export const ADMIN_EMAILS = ['purplebeecakess@gmail.com']
 
 export const isFirebaseConfigured = true
@@ -34,4 +49,9 @@ if (typeof window !== 'undefined') {
   })
 }
 
+<<<<<<< HEAD
 export { app, auth, db }
+=======
+export { auth, db }
+export { firebaseConfig }
+>>>>>>> 5a59f67 (firebase setup image)
