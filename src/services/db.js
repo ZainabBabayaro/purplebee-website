@@ -7,13 +7,26 @@
 
 import {
   isFirebaseConfigured,
-  db,
-  auth,
+  initFirebase,
 } from '../config/firebase.js'
 import { localdb } from './localdb.js'
 
-// Re-export auth for convenience.
-export { auth, isFirebaseConfigured }
+// Re-export for convenience.
+export { isFirebaseConfigured }
+
+// Helper: ensures Firebase is ready before any Firestore/Auth call.
+// Returns { db, auth } from the lazily-initialised firebase module.
+async function getFirebase() {
+  await initFirebase()
+  const { db, auth } = await import('../config/firebase.js')
+  return { db, auth }
+}
+
+// Re-export auth as a getter so components can await it.
+export async function getAuth() {
+  const { auth } = await getFirebase()
+  return auth
+}
 export const STATUS = {
   PENDING: 'pending_payment',
   NEW: 'new',
@@ -47,6 +60,7 @@ const local = localdb
 
 // ---- Firebase implementation ----------------------------------------------
 async function fbGetInventory() {
+  const { db } = await getFirebase()
   const { collection, getDocs } = await import('firebase/firestore')
   const snap = await getDocs(collection(db, 'inventory'))
   if (snap.empty) return []
@@ -54,34 +68,30 @@ async function fbGetInventory() {
 }
 
 async function fbAddProduct(product) {
+  const { db } = await getFirebase()
   const { collection, doc, setDoc } = await import('firebase/firestore')
   const id = product.slug || product.name.toLowerCase().replace(/\s+/g, '-')
   await setDoc(doc(collection(db, 'inventory'), id), {
-    ...product,
-    id,
-    stock: product.stock ?? 0,
-    active: product.active !== false,
+    ...product, id, stock: product.stock ?? 0, active: product.active !== false,
   })
   return { id }
 }
 
 async function fbUpdateProduct(id, patch) {
+  const { db } = await getFirebase()
   const { doc, updateDoc } = await import('firebase/firestore')
   await updateDoc(doc(db, 'inventory', id), patch)
 }
 
 async function fbSeedInventory(items) {
+  const { db } = await getFirebase()
   const { collection, doc, setDoc } = await import('firebase/firestore')
   await Promise.all(items.map((it) => setDoc(doc(collection(db, 'inventory'), it.id), it)))
 }
 
 async function fbCreateOrder(order) {
-  const {
-    collection,
-    doc,
-    runTransaction,
-    increment,
-  } = await import('firebase/firestore')
+  const { db } = await getFirebase()
+  const { collection, doc, runTransaction, increment } = await import('firebase/firestore')
   const orderRef = doc(collection(db, 'orders'))
   await runTransaction(db, async (tx) => {
     const refs = order.items.map((i) => doc(db, 'inventory', i.id))
@@ -94,39 +104,41 @@ async function fbCreateOrder(order) {
       }
       tx.update(refs[i], { stock: increment(-item.qty) })
     }
-    tx.set(orderRef, { ...order, id: orderRef.id, status: 'new', createdAt: new Date().toISOString() })
+    tx.set(orderRef, { ...order, id: orderRef.id, status: order.status || 'new', createdAt: new Date().toISOString() })
   })
   return { id: orderRef.id }
 }
 
 async function fbGetMyOrders(uid) {
+  const { db } = await getFirebase()
   const { collection, query, where, getDocs, orderBy } = await import('firebase/firestore')
-  const snap = await getDocs(
-    query(collection(db, 'orders'), where('uid', '==', uid), orderBy('createdAt', 'desc')),
-  )
+  const snap = await getDocs(query(collection(db, 'orders'), where('uid', '==', uid), orderBy('createdAt', 'desc')))
   return snap.docs.map((d) => ({ id: d.id, ...d.data() }))
 }
 
 async function fbGetAllOrders() {
+  const { db } = await getFirebase()
   const { collection, getDocs, orderBy, query } = await import('firebase/firestore')
   const snap = await getDocs(query(collection(db, 'orders'), orderBy('createdAt', 'desc')))
   return snap.docs.map((d) => ({ id: d.id, ...d.data() }))
 }
 
 async function fbUpdateOrderStatus(id, status) {
+  const { db } = await getFirebase()
   const { doc, updateDoc } = await import('firebase/firestore')
   await updateDoc(doc(db, 'orders', id), { status })
 }
 
 async function fbIsAdmin(uid) {
+  const { db } = await getFirebase()
   const { doc, getDoc } = await import('firebase/firestore')
   if (!uid) return false
   const snap = await getDoc(doc(db, 'admins', uid))
   return snap.exists() && snap.data()?.isAdmin === true
 }
 
-// ---- Blog posts --------------------------------------------------------
 async function fbGetPosts(adminMode = false) {
+  const { db } = await getFirebase()
   const { collection, getDocs, query, where, orderBy } = await import('firebase/firestore')
   const col = collection(db, 'posts')
   try {
@@ -136,24 +148,23 @@ async function fbGetPosts(adminMode = false) {
     const snap = await getDocs(q)
     return snap.docs.map((d) => ({ ...d.data(), slug: d.id }))
   } catch {
-    // Composite index may not exist yet — fall back to fetching all and filtering client-side.
     const snap = await getDocs(col)
     const all = snap.docs.map((d) => ({ ...d.data(), slug: d.id }))
     return adminMode
       ? all.sort((a, b) => (b.createdAt || '').localeCompare(a.createdAt || ''))
-      : all
-          .filter((p) => p.published === true)
-          .sort((a, b) => (b.createdAt || '').localeCompare(a.createdAt || ''))
+      : all.filter((p) => p.published === true).sort((a, b) => (b.createdAt || '').localeCompare(a.createdAt || ''))
   }
 }
 
 async function fbGetPost(slug) {
+  const { db } = await getFirebase()
   const { doc, getDoc } = await import('firebase/firestore')
   const snap = await getDoc(doc(db, 'posts', slug))
   return snap.exists() ? { ...snap.data(), slug: snap.id } : null
 }
 
 async function fbAddPost(post) {
+  const { db } = await getFirebase()
   const { doc, setDoc } = await import('firebase/firestore')
   const now = new Date().toISOString()
   await setDoc(doc(db, 'posts', post.slug), { ...post, createdAt: now, updatedAt: now })
@@ -161,17 +172,19 @@ async function fbAddPost(post) {
 }
 
 async function fbUpdatePost(slug, patch) {
+  const { db } = await getFirebase()
   const { doc, updateDoc } = await import('firebase/firestore')
   await updateDoc(doc(db, 'posts', slug), { ...patch, updatedAt: new Date().toISOString() })
 }
 
 async function fbDeletePost(slug) {
+  const { db } = await getFirebase()
   const { doc, deleteDoc } = await import('firebase/firestore')
   await deleteDoc(doc(db, 'posts', slug))
 }
 
-// ---- Comments --------------------------------------------------------------
 async function fbGetComments(postSlug, adminMode = false) {
+  const { db } = await getFirebase()
   const { collection, getDocs, query, where, orderBy } = await import('firebase/firestore')
   const col = collection(db, 'comments')
   try {
@@ -181,7 +194,6 @@ async function fbGetComments(postSlug, adminMode = false) {
     const snap = await getDocs(q)
     return snap.docs.map((d) => ({ id: d.id, ...d.data() }))
   } catch {
-    // Fallback if composite index not ready
     const snap = await getDocs(query(col, where('postSlug', '==', postSlug)))
     const all = snap.docs.map((d) => ({ id: d.id, ...d.data() }))
     return adminMode
@@ -191,42 +203,39 @@ async function fbGetComments(postSlug, adminMode = false) {
 }
 
 async function fbAddComment(comment) {
+  const { db } = await getFirebase()
   const { collection, addDoc } = await import('firebase/firestore')
-  const ref = await addDoc(collection(db, 'comments'), {
-    ...comment,
-    approved: false, // all comments require moderation
-    createdAt: new Date().toISOString(),
-  })
+  const ref = await addDoc(collection(db, 'comments'), { ...comment, approved: false, createdAt: new Date().toISOString() })
   return { id: ref.id }
 }
 
 async function fbApproveComment(id, approved) {
+  const { db } = await getFirebase()
   const { doc, updateDoc } = await import('firebase/firestore')
   await updateDoc(doc(db, 'comments', id), { approved })
 }
 
 async function fbDeleteComment(id) {
+  const { db } = await getFirebase()
   const { doc, deleteDoc } = await import('firebase/firestore')
   await deleteDoc(doc(db, 'comments', id))
 }
 
-async function fbGetAllComments(adminMode = false) {
+async function fbGetAllComments() {
+  const { db } = await getFirebase()
   const { collection, getDocs, query, orderBy } = await import('firebase/firestore')
   const snap = await getDocs(query(collection(db, 'comments'), orderBy('createdAt', 'desc')))
   return snap.docs.map((d) => ({ id: d.id, ...d.data() }))
 }
 
-// Upload an image file to Firebase Storage and return the public download URL.
-// The image is stored at products/{productId}/{filename}.
 async function fbUploadProductImage(productId, file) {
+  const { app } = await getFirebase()
   const { getStorage, ref, uploadBytes, getDownloadURL } = await import('firebase/storage')
-  const { app } = await import('../config/firebase.js')
   const storage = getStorage(app)
   const ext = file.name.split('.').pop()
   const storageRef = ref(storage, `products/${productId}/${Date.now()}.${ext}`)
   const snap = await uploadBytes(storageRef, file)
   const url = await getDownloadURL(snap.ref)
-  // Save the URL back to the product document.
   await fbUpdateProduct(productId, { imageUrl: url })
   return url
 }

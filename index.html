@@ -6,19 +6,35 @@
     <script>document.documentElement.classList.add('js')</script>
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="theme-color" content="#6a4e8f" />
+
+    <!-- DNS prefetch for fonts — faster connection without blocking render -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+
+    <!--
+      Fonts load non-blocking via print media trick.
+      The onload switches it to 'all' after the CSS arrives so it never
+      delays First Contentful Paint. The <noscript> fallback handles no-JS.
+      Reduced to only the weights actually used (300 removed, fewer variants).
+    -->
     <link
-      href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,400;1,9..144,500&family=Inter:wght@300;400;500;600;700&display=swap"
       rel="stylesheet"
+      media="print"
+      onload="this.media='all'"
+      href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,400&family=Inter:wght@400;500;600&display=swap"
     />
+    <noscript>
+      <link
+        rel="stylesheet"
+        href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,400&family=Inter:wght@400;500;600&display=swap"
+      />
+    </noscript>
+
     <title>Purple Bee Cakes — Bespoke Cake Design Studio</title>
     <meta
       name="description"
       content="Purple Bee Cakes is a cake design studio crafting bespoke celebration and wedding cakes. Thoughtfully designed, beautifully made, for the moments that matter."
     />
-    <!-- Paystack inline script — loads the payment popup -->
-    <script src="https://js.paystack.co/v1/inline.js"></script>
     <!--app-head-->
   </head>
   <body>
