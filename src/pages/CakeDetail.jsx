@@ -61,9 +61,10 @@ export default function CakeDetail() {
             <Reveal>
               <div className="overflow-hidden rounded-2xl shadow-[0_30px_70px_-35px_rgba(55,42,74,0.4)] md:sticky md:top-28">
                 <OptimizedImage
+                  src={cake.image}
                   seed={`cake-${slug}`}
                   paletteKey={cake.paletteKey}
-                  alt={`${cake.name} cake — ${cake.summary}, development placeholder illustration`}
+                  alt={`${cake.name} cake — ${cake.summary}`}
                   aspect="4 / 5"
                 />
               </div>
@@ -142,6 +143,7 @@ export default function CakeDetail() {
                 <Link to={`/cakes/${c.slug}`} className="group block">
                   <div className="overflow-hidden rounded-xl bg-ivory">
                     <OptimizedImage
+                      src={c.image}
                       seed={`cake-${c.slug}`}
                       paletteKey={c.paletteKey}
                       alt={`${c.name} — ${c.summary}`}

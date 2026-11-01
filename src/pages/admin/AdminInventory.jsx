@@ -4,7 +4,7 @@ import { dataApi } from '../../services/db.js'
 import PlaceholderArt from '../../components/PlaceholderArt.jsx'
 import { getPalette } from '../../utils/images.js'
 
-function money(n) { return `£${Number(n).toFixed(2)}` }
+function money(n) { return `₦${Number(n).toLocaleString('en-NG', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` }
 
 // ── Image upload cell ────────────────────────────────────────────────────────
 function ImageCell({ product, onImageSaved }) {
@@ -159,7 +159,7 @@ function ProductRow({ product: initial, onImageSaved }) {
       <td className="px-4 py-4">
         {editing ? (
           <div className="flex items-center">
-            <span className="mr-1 text-plum-400">£</span>
+            <span className="mr-1 text-plum-400">₦</span>
             <input
               type="number" min="0" step="0.01"
               value={draft.price}
@@ -320,7 +320,7 @@ export default function AdminInventory() {
               className="w-full rounded-lg border border-plum-700 bg-plum-950 px-3 py-2 text-sm text-ivory focus:border-plum-400 focus:outline-none" />
           </div>
           <div>
-            <label className="mb-1 block text-xs text-plum-400">Price (£)</label>
+            <label className="mb-1 block text-xs text-plum-400">Price (₦)</label>
             <input type="number" min="0" step="0.01" value={form.price} onChange={(e) => setForm((d) => ({ ...d, price: e.target.value }))}
               placeholder="0.00"
               className="w-full rounded-lg border border-plum-700 bg-plum-950 px-3 py-2 text-sm text-ivory focus:border-plum-400 focus:outline-none" />

@@ -29,6 +29,7 @@ const rawCakes = [
   {
     slug: 'iris',
     name: 'Iris',
+    image: '/images/cakes/ivory-gold-cascade-cake.jpg', 
     collectionSlug: 'romantic-garden',
     collectionName: 'Romantic Garden',
     occasion: 'Wedding',
@@ -42,6 +43,7 @@ const rawCakes = [
   {
     slug: 'wisteria',
     name: 'Wisteria',
+    image: '/images/cakes/sculptural-sage-and-gold-wedding-cake.jpg', 
     collectionSlug: 'romantic-garden',
     collectionName: 'Romantic Garden',
     occasion: 'Birthday',
@@ -55,6 +57,7 @@ const rawCakes = [
   {
     slug: 'marguerite',
     name: 'Marguerite',
+    image: '/images/cakes/elegant-burgundy-and-gold-cascade-cake.jpg', 
     collectionSlug: 'romantic-garden',
     collectionName: 'Romantic Garden',
     occasion: 'Celebration',
@@ -68,6 +71,7 @@ const rawCakes = [
   {
     slug: 'pillar',
     name: 'Pillar',
+    image: '/images/cakes/sculptural-gold-accented-celebration-cake.jpg', 
     collectionSlug: 'modern-sculptural',
     collectionName: 'Modern Sculptural',
     occasion: 'Birthday',
@@ -81,6 +85,7 @@ const rawCakes = [
   {
     slug: 'atrium',
     name: 'Atrium',
+    image: '/images/cakes/sculptural-ivory-and-berry-ruffle-cake.jpg', 
     collectionSlug: 'modern-sculptural',
     collectionName: 'Modern Sculptural',
     occasion: 'Wedding',
@@ -94,6 +99,7 @@ const rawCakes = [
   {
     slug: 'slate-and-honey',
     name: 'Slate & Honey',
+    image: '/images/cakes/romantic-blush-sugar-flower-cake.jpg', 
     collectionSlug: 'modern-sculptural',
     collectionName: 'Modern Sculptural',
     occasion: 'Celebration',
@@ -107,6 +113,7 @@ const rawCakes = [
   {
     slug: 'watercolour',
     name: 'Watercolour',
+    image: '/images/cakes/midnight-gold-spiral-crystal-cake.jpg', 
     collectionSlug: 'painterly-colour',
     collectionName: 'Painterly Colour',
     occasion: 'Birthday',
@@ -120,6 +127,7 @@ const rawCakes = [
   {
     slug: 'persimmon',
     name: 'Persimmon',
+    image: '/images/cakes/sculptural-blush-ruffle-cake.jpg', 
     collectionSlug: 'painterly-colour',
     collectionName: 'Painterly Colour',
     occasion: 'Celebration',
@@ -130,32 +138,32 @@ const rawCakes = [
     featured: false,
     development: true,
   },
-  {
-    slug: 'linen',
-    name: 'Linen',
-    collectionSlug: 'quiet-luxury',
-    collectionName: 'Quiet Luxury',
-    occasion: 'Wedding',
-    summary: 'A textured natural-white surface with a softly draped feel.',
-    description:
-      'Linen is finished so the surface reads like folded cloth — natural, soft and full of quiet texture. There is no colour to speak of, which is precisely the pleasure: the whole design lives in the way the light moves across its surface.',
-    paletteKey: 'quiet',
-    featured: true,
-    development: true,
-  },
-  {
-    slug: 'alabaster',
-    name: 'Alabaster',
-    collectionSlug: 'quiet-luxury',
-    collectionName: 'Quiet Luxury',
-    occasion: 'Celebration',
-    summary: 'A stencilled, low-relief pattern across a pale, calm ground.',
-    description:
-      'Alabaster takes a subtle repeat pattern and lays it low across the surface, so it reveals itself slowly rather than announcing itself. It is a cake for someone who would rather be elegant than loud, and it rewards a closer look.',
-    paletteKey: 'quiet',
-    featured: false,
-    development: true,
-  },
+  // {
+  //   slug: 'linen',
+  //   name: 'Linen',
+  //   collectionSlug: 'quiet-luxury',
+  //   collectionName: 'Quiet Luxury',
+  //   occasion: 'Wedding',
+  //   summary: 'A textured natural-white surface with a softly draped feel.',
+  //   description:
+  //     'Linen is finished so the surface reads like folded cloth — natural, soft and full of quiet texture. There is no colour to speak of, which is precisely the pleasure: the whole design lives in the way the light moves across its surface.',
+  //   paletteKey: 'quiet',
+  //   featured: true,
+  //   development: true,
+  // },
+  // {
+  //   slug: 'alabaster',
+  //   name: 'Alabaster',
+  //   collectionSlug: 'quiet-luxury',
+  //   collectionName: 'Quiet Luxury',
+  //   occasion: 'Celebration',
+  //   summary: 'A stencilled, low-relief pattern across a pale, calm ground.',
+  //   description:
+  //     'Alabaster takes a subtle repeat pattern and lays it low across the surface, so it reveals itself slowly rather than announcing itself. It is a cake for someone who would rather be elegant than loud, and it rewards a closer look.',
+  //   paletteKey: 'quiet',
+  //   featured: false,
+  //   development: true,
+  // },
 ]
 
 // ---------------------------------------------------------------------------
@@ -164,16 +172,16 @@ const rawCakes = [
 // back the store catalog (Firestore in production, local fallback in dev).
 // ---------------------------------------------------------------------------
 const storeMeta = {
-  iris: { price: 180, stock: 6 },
-  wisteria: { price: 120, stock: 8 },
-  marguerite: { price: 95, stock: 10 },
-  pillar: { price: 110, stock: 8 },
-  atrium: { price: 220, stock: 4 },
-  'slate-and-honey': { price: 130, stock: 7 },
-  watercolour: { price: 140, stock: 9 },
-  persimmon: { price: 115, stock: 8 },
-  linen: { price: 200, stock: 5 },
-  alabaster: { price: 150, stock: 7 },
+  iris:             { price: 280000, stock: 6 },
+  wisteria:         { price: 185000, stock: 8 },
+  marguerite:       { price: 145000, stock: 10 },
+  pillar:           { price: 170000, stock: 8 },
+  atrium:           { price: 340000, stock: 4 },
+  'slate-and-honey':{ price: 200000, stock: 7 },
+  watercolour:      { price: 215000, stock: 9 },
+  persimmon:        { price: 175000, stock: 8 },
+  linen:            { price: 310000, stock: 5 },
+  alabaster:        { price: 230000, stock: 7 },
 }
 
 export const cakes = rawCakes.map((c) => ({
@@ -181,6 +189,9 @@ export const cakes = rawCakes.map((c) => ({
   price: storeMeta[c.slug]?.price ?? 90,
   stock: storeMeta[c.slug]?.stock ?? 10,
   active: true,
+  // ⚠️ Add your real photo paths here, e.g. image: '/images/cakes/iris.webp'
+  // Leave empty ('') to show the illustrated placeholder.
+  image: c.image || '',
 }))
 
 export const getCakeBySlug = (slug) => cakes.find((c) => c.slug === slug)

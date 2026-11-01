@@ -6,7 +6,7 @@ import PlaceholderArt from './PlaceholderArt.jsx'
 import { getPalette } from '../utils/images.js'
 
 function money(n) {
-  return `£${Number(n).toFixed(2)}`
+  return `₦${Number(n).toLocaleString('en-NG', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
 }
 
 // Slide-in cart drawer. Opens automatically when an item is added.

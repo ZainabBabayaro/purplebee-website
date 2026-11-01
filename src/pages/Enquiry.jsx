@@ -21,10 +21,10 @@ const occasions = [
 ]
 
 const budgets = [
-  { value: 'under-150', label: 'Under £150' },
-  { value: '150-300', label: '£150 – £300' },
-  { value: '300-500', label: '£300 – £500' },
-  { value: '500-plus', label: '£500+' },
+  { value: 'under-50000', label: 'Under ₦50,000' },
+  { value: '50000-100000', label: '₦50,000 – ₦100,000' },
+  { value: '100000-200000', label: '₦100,000 – ₦200,000' },
+  { value: '200000-plus', label: '₦200,000+' },
   { value: 'unsure', label: 'Not sure yet' },
 ]
 

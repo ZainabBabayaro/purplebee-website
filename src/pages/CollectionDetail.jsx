@@ -80,6 +80,7 @@ export default function CollectionDetail() {
                   <Link to={`/cakes/${cake.slug}`} className="group block">
                     <div className="overflow-hidden rounded-xl bg-cream">
                       <OptimizedImage
+                        src={cake.image}
                         seed={`cake-${cake.slug}`}
                         paletteKey={cake.paletteKey}
                         alt={`${cake.name} — ${cake.summary}`}
