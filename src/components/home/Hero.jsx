@@ -1,47 +1,39 @@
 import { Link } from 'react-router-dom'
 import { ArrowRight } from 'lucide-react'
-import HeroBackground from './HeroBackground.jsx'
 import Reveal from '../Reveal.jsx'
 
-// Hero — full-bleed, full-width sliding background with the headline overlaid.
-// The background is a wider-than-viewport panoramic scene that pans slowly
-// (see .hero-bg-track in index.css); a dark scrim keeps the copy legible.
+// Hero — full cake left, three detail shots mosaic right.
+// All four images are real photography of the same cake.
 export default function Hero() {
   return (
-    <section className="relative flex min-h-[92vh] items-center overflow-hidden bg-plum-900 pt-28 pb-20 md:pt-32">
-      {/* Sliding full-width background */}
-      <div className="absolute inset-0 overflow-hidden" aria-hidden="true">
-        <div className="hero-bg-track absolute inset-y-0 left-0 h-full w-[140%]">
-          <HeroBackground />
-        </div>
-      </div>
-
-      {/* Legibility scrims */}
+    <section className="relative overflow-hidden bg-ivory pt-28 md:pt-36">
+      {/* Soft background washes */}
       <div
-        className="absolute inset-0 bg-gradient-to-r from-ink/80 via-ink/45 to-ink/10"
+        className="pointer-events-none absolute -right-32 -top-32 h-[36rem] w-[36rem] rounded-full bg-plum-100/50 blur-3xl"
         aria-hidden="true"
       />
       <div
-        className="absolute inset-x-0 bottom-0 h-1/3 bg-gradient-to-t from-ink/70 to-transparent"
+        className="pointer-events-none absolute -left-40 bottom-0 h-[28rem] w-[28rem] rounded-full bg-cream/70 blur-3xl"
         aria-hidden="true"
       />
 
-      {/* Content */}
-      <div className="relative z-10 mx-auto w-full max-w-7xl px-5 md:px-8">
-        <div className="max-w-2xl">
+      <div className="relative mx-auto grid max-w-7xl items-center gap-10 px-5 pb-20 md:grid-cols-12 md:gap-8 md:px-8 md:pb-28">
+
+        {/* ── Text ── */}
+        <div className="md:col-span-5 md:pr-6">
           <Reveal>
-            <p className="eyebrow text-plum-200">Bespoke cake design studio</p>
+            <p className="eyebrow">Bespoke cake design studio</p>
           </Reveal>
           <Reveal delay={80}>
-            <h1 className="mt-6 font-display text-[2.7rem] font-medium leading-[1.05] tracking-[-0.02em] text-ivory sm:text-6xl md:text-[4.3rem]">
+            <h1 className="mt-6 font-display text-[2.6rem] font-medium leading-[1.04] tracking-[-0.02em] text-ink sm:text-6xl md:text-[4rem]">
               Considered cakes,
               <br />
               made to be{' '}
-              <span className="italic text-honey-400">remembered.</span>
+              <span className="italic text-plum-600">remembered.</span>
             </h1>
           </Reveal>
           <Reveal delay={160}>
-            <p className="mt-7 max-w-md text-pretty text-lg leading-relaxed text-plum-100">
+            <p className="mt-7 max-w-md text-pretty text-lg leading-relaxed text-stone">
               A studio pairing thoughtful design with flavour made from scratch —
               for the celebrations that deserve something personal.
             </p>
@@ -52,23 +44,65 @@ export default function Hero() {
                 Explore our cakes
                 <ArrowRight size={17} strokeWidth={1.8} />
               </Link>
-              <Link
-                to="/our-story"
-                className="btn border border-ivory/40 text-ivory hover:bg-ivory/10"
-              >
+              <Link to="/our-story" className="btn btn-ghost">
                 Our story
               </Link>
             </div>
           </Reveal>
+          <Reveal delay={320}>
+            <p className="mt-10 text-xs uppercase tracking-[0.2em] text-stone-light">
+              Bespoke celebration &amp; wedding cakes
+            </p>
+          </Reveal>
         </div>
-      </div>
 
-      {/* Subtle scroll cue */}
-      <div
-        className="absolute inset-x-0 bottom-6 flex justify-center text-ivory/70"
-        aria-hidden="true"
-      >
-        <span className="h-10 w-px bg-ivory/40" />
+        {/* ── Image mosaic ── */}
+        <Reveal delay={160} className="md:col-span-7">
+          <div className="grid grid-cols-12 grid-rows-2 gap-3 md:gap-4">
+
+            {/* Main full-cake image — spans 7 cols, both rows */}
+            <div className="col-span-7 row-span-2 overflow-hidden rounded-2xl shadow-[0_24px_50px_-20px_rgba(55,42,74,0.35)]">
+              <img
+                src="/images/hero/img-6550-2.jpg"
+                alt="Three-tier wedding cake with crimson lace texture, hand-crafted sugar flowers in sage and burgundy, and gold leaf detail"
+                width={880}
+                height={1120}
+                fetchPriority="high"
+                loading="eager"
+                decoding="async"
+                className="h-full w-full object-cover"
+              />
+            </div>
+
+            {/* Detail 1 — lace embossing on top tier */}
+            <div className="col-span-5 row-span-1 overflow-hidden rounded-xl shadow-md">
+              <img
+                src="/images/hero/img-6565.jpg"
+                alt="Close-up of ivory lace embossing on the top tier with crimson sugar flowers"
+                width={540}
+                height={480}
+                loading="lazy"
+                decoding="async"
+                className="h-full w-full object-cover object-top"
+              />
+            </div>
+
+            {/* Detail 2 — sugar flowers and lace collar */}
+            <div className="col-span-5 row-span-1 overflow-hidden rounded-xl shadow-md">
+              <img
+                src="/images/hero/img-6564.jpg"
+                alt="Hand-crafted sage and burgundy sugar flowers with delicate lace collar detail"
+                width={540}
+                height={480}
+                loading="lazy"
+                decoding="async"
+                className="h-full w-full object-cover object-center"
+              />
+            </div>
+
+          </div>
+        </Reveal>
+
       </div>
     </section>
   )
