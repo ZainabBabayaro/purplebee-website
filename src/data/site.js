@@ -16,12 +16,16 @@ export const site = {
     'Purple Bee Cakes is a cake design studio crafting bespoke celebration and wedding cakes. Each cake is designed around the occasion, made with considered flavour and a love for the finer details, for the moments that matter most.',
 
   // ⚠️ PLACEHOLDER — replace with the live domain before deployment.
-  url: 'https://www.purplebeecakes.co.uk',
+  url: 'https://www.purplebeecakes.com',
 
   contact: {
     // ⚠️ PLACEHOLDERS — confirm real details before launch.
-    email: 'hello@purplebeecakes.co.uk',
+    email: 'hello@purplebeecakes.com',
     phone: '',
+    // ⚠️ Replace with your real WhatsApp number in full international format,
+    // no spaces or symbols — e.g. '447911123456' for a UK +44 number.
+    whatsapp: '2349114933281',
+    whatsappMessage: 'Hi! I\'d love to find out more about ordering a cake from Purple Bee Cakes.',
     // Hours intentionally omitted until confirmed.
   },
 

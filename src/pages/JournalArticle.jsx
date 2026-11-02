@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { ArrowLeft, ArrowRight, Link2, Twitter, Tag } from 'lucide-react'
 import SEO, { articleLd, breadcrumbLd } from '../components/SEO.jsx'
@@ -7,6 +7,7 @@ import Reveal from '../components/Reveal.jsx'
 import OptimizedImage from '../components/OptimizedImage.jsx'
 import CTASection from '../components/CTASection.jsx'
 import { getArticleBySlug, getRelatedArticles, journal } from '../data/journal.js'
+import { dataApi } from '../services/db.js'
 import { site } from '../data/site.js'
 
 // ── helpers ─────────────────────────────────────────────────────────────────
@@ -256,7 +257,15 @@ function RelatedCard({ article, index }) {
 // ── Page ─────────────────────────────────────────────────────────────────────
 export default function JournalArticle() {
   const { slug } = useParams()
-  const article = getArticleBySlug(slug)
+  // Seed from static data immediately (works during SSG/prerender).
+  // After hydration, try to load the live version from Firestore.
+  const [article, setArticle] = useState(() => getArticleBySlug(slug) || null)
+
+  useEffect(() => {
+    dataApi.getPost(slug)
+      .then((live) => { if (live) setArticle(live) })
+      .catch(() => {}) // static fallback stays if Firestore fails
+  }, [slug])
 
   if (!article) {
     return (

@@ -29,6 +29,8 @@ import AdminLayout from './pages/admin/AdminLayout.jsx'
 import AdminDashboard from './pages/admin/AdminDashboard.jsx'
 import AdminOrders from './pages/admin/AdminOrders.jsx'
 import AdminInventory from './pages/admin/AdminInventory.jsx'
+import AdminBlog from './pages/admin/AdminBlog.jsx'
+import AdminBlogEditor from './pages/admin/AdminBlogEditor.jsx'
 
 export default function App() {
   return (
@@ -71,6 +73,9 @@ export default function App() {
           <Route path="dashboard" element={<AdminDashboard />} />
           <Route path="orders" element={<AdminOrders />} />
           <Route path="inventory" element={<AdminInventory />} />
+          <Route path="blog" element={<AdminBlog />} />
+          <Route path="blog/new" element={<AdminBlogEditor />} />
+          <Route path="blog/:slug" element={<AdminBlogEditor />} />
         </Route>
       </Routes>
     </>

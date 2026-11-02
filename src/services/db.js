@@ -15,8 +15,8 @@ import { localdb } from './localdb.js'
 
 // Re-export auth for convenience.
 export { auth, isFirebaseConfigured }
-
 export const STATUS = {
+  PENDING: 'pending_payment',
   NEW: 'new',
   CONFIRMED: 'confirmed',
   BAKING: 'baking',
@@ -25,6 +25,7 @@ export const STATUS = {
   CANCELLED: 'cancelled',
 }
 export const STATUS_FLOW = [
+  STATUS.PENDING,
   STATUS.NEW,
   STATUS.CONFIRMED,
   STATUS.BAKING,
@@ -33,6 +34,7 @@ export const STATUS_FLOW = [
   STATUS.CANCELLED,
 ]
 export const STATUS_LABEL = {
+  pending_payment: 'Awaiting payment',
   new: 'New',
   confirmed: 'Confirmed',
   baking: 'In production',
@@ -184,6 +186,80 @@ async function fbIsAdmin(uid) {
   return snap.exists() && snap.data()?.isAdmin === true
 }
 
+// ---- Blog posts --------------------------------------------------------
+async function fbGetPosts(adminMode = false) {
+  const { collection, getDocs, query, where, orderBy } = await import('firebase/firestore')
+  const col = collection(db, 'posts')
+  try {
+    const q = adminMode
+      ? query(col, orderBy('createdAt', 'desc'))
+      : query(col, where('published', '==', true), orderBy('createdAt', 'desc'))
+    const snap = await getDocs(q)
+    return snap.docs.map((d) => ({ ...d.data(), slug: d.id }))
+  } catch {
+    // Composite index may not exist yet — fall back to fetching all and filtering client-side.
+    const snap = await getDocs(col)
+    const all = snap.docs.map((d) => ({ ...d.data(), slug: d.id }))
+    return adminMode
+      ? all.sort((a, b) => (b.createdAt || '').localeCompare(a.createdAt || ''))
+      : all
+          .filter((p) => p.published === true)
+          .sort((a, b) => (b.createdAt || '').localeCompare(a.createdAt || ''))
+  }
+}
+
+async function fbGetPost(slug) {
+  const { doc, getDoc } = await import('firebase/firestore')
+  const snap = await getDoc(doc(db, 'posts', slug))
+  return snap.exists() ? { ...snap.data(), slug: snap.id } : null
+}
+
+async function fbAddPost(post) {
+  const { doc, setDoc } = await import('firebase/firestore')
+  const now = new Date().toISOString()
+  await setDoc(doc(db, 'posts', post.slug), { ...post, createdAt: now, updatedAt: now })
+  return { slug: post.slug }
+}
+
+async function fbUpdatePost(slug, patch) {
+  const { doc, updateDoc } = await import('firebase/firestore')
+  await updateDoc(doc(db, 'posts', slug), { ...patch, updatedAt: new Date().toISOString() })
+}
+
+async function fbDeletePost(slug) {
+  const { doc, deleteDoc } = await import('firebase/firestore')
+  await deleteDoc(doc(db, 'posts', slug))
+}
+
+// Upload an image file to Firebase Storage and return the public download URL.
+// The image is stored at products/{productId}/{filename}.
+async function fbUploadProductImage(productId, file) {
+  const { getStorage, ref, uploadBytes, getDownloadURL } = await import('firebase/storage')
+  const { app } = await import('../config/firebase.js')
+  const storage = getStorage(app)
+  const ext = file.name.split('.').pop()
+  const storageRef = ref(storage, `products/${productId}/${Date.now()}.${ext}`)
+  const snap = await uploadBytes(storageRef, file)
+  const url = await getDownloadURL(snap.ref)
+  // Save the URL back to the product document.
+  await fbUpdateProduct(productId, { imageUrl: url })
+  return url
+}
+
+// Local fallback: convert the file to a base64 data URL stored in localStorage.
+async function localUploadProductImage(productId, file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader()
+    reader.onload = async () => {
+      const url = reader.result // data:image/...;base64,...
+      await local.updateProduct(productId, { imageUrl: url })
+      resolve(url)
+    }
+    reader.onerror = () => reject(new Error('Failed to read file.'))
+    reader.readAsDataURL(file)
+  })
+}
+
 // ---- Public API (picks implementation) -------------------------------------
 export const dataApi = isFirebaseConfigured
   ? {
@@ -198,6 +274,11 @@ export const dataApi = isFirebaseConfigured
       getAllOrders: fbGetAllOrders,
       updateOrderStatus: fbUpdateOrderStatus,
       isAdmin: fbIsAdmin,
+      getPosts: (adminMode) => fbGetPosts(adminMode),
+      getPost: fbGetPost,
+      addPost: fbAddPost,
+      updatePost: fbUpdatePost,
+      deletePost: fbDeletePost,
       subscribe: () => () => {},
     }
   : {
@@ -205,12 +286,17 @@ export const dataApi = isFirebaseConfigured
       getProduct: local.getProduct,
       addProduct: local.addProduct,
       updateProduct: local.updateProduct,
-      uploadProductImage: local.uploadProductImage,
+      uploadProductImage: localUploadProductImage,
       seedInventory: async () => {},
       createOrder: local.createOrder,
       getMyOrders: local.getMyOrders,
       getAllOrders: local.getAllOrders,
       updateOrderStatus: local.updateOrderStatus,
       isAdmin: async () => false,
+      getPosts: () => local.getPosts(),
+      getPost: local.getPost,
+      addPost: local.addPost,
+      updatePost: local.updatePost,
+      deletePost: local.deletePost,
       subscribe: local.subscribe,
     }

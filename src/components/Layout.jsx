@@ -2,9 +2,8 @@ import { Outlet } from 'react-router-dom'
 import Header from './Header.jsx'
 import Footer from './Footer.jsx'
 import CartDrawer from './CartDrawer.jsx'
+import WhatsAppButton from './WhatsAppButton.jsx'
 
-// App shell: skip link for accessibility, fixed header, main content, footer.
-// CartDrawer lives here so it is available on every page.
 export default function Layout() {
   return (
     <div className="flex min-h-screen flex-col">
@@ -20,6 +19,7 @@ export default function Layout() {
         <Outlet />
       </main>
       <Footer />
+      <WhatsAppButton />
     </div>
   )
 }

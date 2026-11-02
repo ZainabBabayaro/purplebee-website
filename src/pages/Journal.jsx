@@ -1,10 +1,11 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { ArrowRight, Tag } from 'lucide-react'
 import SEO, { breadcrumbLd } from '../components/SEO.jsx'
 import Reveal from '../components/Reveal.jsx'
 import OptimizedImage from '../components/OptimizedImage.jsx'
 import { journal, categories, allTags } from '../data/journal.js'
+import { dataApi } from '../services/db.js'
 
 // ---- helpers ---------------------------------------------------------------
 function formatDate(iso) {
@@ -122,17 +123,32 @@ function FeaturedHero({ article }) {
 export default function Journal() {
   const [activeCategory, setActiveCategory] = useState('all')
   const [activeTag, setActiveTag] = useState(null)
+  // Seed with static data so SSG/prerender works; replace with live Firestore posts after hydration.
+  const [posts, setPosts] = useState(journal)
 
-  const featured = journal.find((a) => a.featured) || journal[0]
+  useEffect(() => {
+    dataApi.getPosts(false)
+      .then((live) => {
+        if (live && live.length > 0) {
+          // Merge: live Firestore posts + static posts not yet in Firestore
+          const liveSlugs = new Set(live.map((p) => p.slug))
+          const staticOnly = journal.filter((a) => !liveSlugs.has(a.slug))
+          setPosts([...live, ...staticOnly].sort((a, b) => (b.date || '').localeCompare(a.date || '')))
+        }
+      })
+      .catch(() => {}) // fail silently — static data stays
+  }, [])
+
+  const featured = posts.find((a) => a.featured) || posts[0]
 
   const filtered = useMemo(() => {
-    return journal.filter((a) => {
-      if (a.slug === featured.slug && activeCategory === 'all' && !activeTag) return false
+    return posts.filter((a) => {
+      if (a.slug === featured?.slug && activeCategory === 'all' && !activeTag) return false
       const matchCat = activeCategory === 'all' || a.category === activeCategory
       const matchTag = !activeTag || (a.tags || []).includes(activeTag)
       return matchCat && matchTag
     })
-  }, [activeCategory, activeTag, featured.slug])
+  }, [posts, activeCategory, activeTag, featured?.slug])
 
   return (
     <>
@@ -277,7 +293,7 @@ export default function Journal() {
                 <div>
                   <p className="eyebrow mb-4">All articles</p>
                   <ul className="space-y-3">
-                    {journal.map((a) => (
+                    {posts.map((a) => (
                       <li key={a.slug}>
                         <Link
                           to={`/journal/${a.slug}`}
