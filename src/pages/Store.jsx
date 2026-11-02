@@ -52,17 +52,11 @@ const StoreCard = memo(function StoreCard({ product, index }) {
   }
 
   return (
-    // content-visibility:auto lets the browser skip rendering off-screen cards —
-    // big win on a long product grid. contain-intrinsic-size prevents layout shift.
-    <div
-      className="group flex flex-col rounded-2xl border border-line bg-ivory overflow-hidden transition-shadow hover:shadow-lg"
-      style={{ contentVisibility: index > 7 ? 'auto' : 'visible', containIntrinsicSize: '0 420px' }}
-    >
-      {/* Image */}
-      <div className="relative overflow-hidden bg-cream" style={{ aspectRatio: '1 / 1' }}>
-        {product.imageUrl ? (
+    <div className="group flex flex-col rounded-2xl border border-line bg-ivory overflow-hidden transition-shadow hover:shadow-lg">
+      <div className="relative overflow-hidden bg-cream aspect-[4/4]">
+        {product.image ? (
           <img
-            src={product.imageUrl}
+            src={product.image}
             alt={product.name}
             width={400}
             height={400}

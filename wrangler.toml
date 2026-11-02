@@ -1,0 +1,15 @@
+name = "purplebee-website"
+compatibility_date = "2024-09-23"
+pages_build_output_dir = "dist"
+
+# R2 bucket binding for product images
+[[r2_buckets]]
+binding = "R2_BUCKET"
+bucket_name = "purplebee-product-images"
+
+[vars]
+FIREBASE_PROJECT_ID = "purplebeecakes01"
+ADMIN_EMAILS = "purplebeecakess@gmail.com"
+# Optional: If you attach a custom domain or enable public access on R2, set the URL here:
+# R2_PUBLIC_URL = "https://images.purplebeecakes.co.uk"
+

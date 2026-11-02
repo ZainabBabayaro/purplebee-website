@@ -7,7 +7,9 @@
 
 import {
   isFirebaseConfigured,
-  initFirebase,
+  db,
+  auth,
+  app,
 } from '../config/firebase.js'
 import { localdb } from './localdb.js'
 
@@ -80,7 +82,67 @@ async function fbAddProduct(product) {
 async function fbUpdateProduct(id, patch) {
   const { db } = await getFirebase()
   const { doc, updateDoc } = await import('firebase/firestore')
+  // patch may include price, stock, active, imageUrl, etc. Firestore merges top-level keys.
   await updateDoc(doc(db, 'inventory', id), patch)
+}
+
+// Upload an image — prefers Cloudflare R2 (/api/upload), with fallback to Firebase Storage.
+// Accepts a base64 data-URL (from the image picker) or a File/Blob.
+async function fbUploadProductImage(productId, file) {
+  // 1. Try Cloudflare Pages R2 endpoint (/api/upload)
+  try {
+    let token = null
+    if (auth?.currentUser) {
+      token = await auth.currentUser.getIdToken()
+    }
+    const blob = await toBlob(file)
+    const ext = (file.name || 'image').split('.').pop() || (blob.type.split('/')[1] || 'jpg')
+    const formData = new FormData()
+    formData.append('file', blob, `${productId}.${ext}`)
+    formData.append('productId', productId)
+
+    const res = await fetch('/api/upload', {
+      method: 'POST',
+      headers: token ? { Authorization: `Bearer ${token}` } : {},
+      body: formData,
+    })
+
+    if (res.ok) {
+      const data = await res.json()
+      if (data?.url) return data.url
+    } else {
+      const errJson = await res.json().catch(() => ({}))
+      console.warn('Cloudflare R2 upload returned status ' + res.status + ':', errJson.error || res.statusText)
+    }
+  } catch (err) {
+    console.warn('Cloudflare R2 endpoint unavailable, attempting Firebase Storage fallback:', err)
+  }
+
+  // 2. Fallback to Firebase Storage if R2 is not reachable or not yet configured
+  try {
+    const { getStorage, ref, uploadBytes, getDownloadURL } = await import('firebase/storage')
+    const storage = getStorage(app)
+    const blob = await toBlob(file)
+    const ext = (file.name || 'image').split('.').pop() || 'jpg'
+    const storageRef = ref(storage, `products/${productId}/${Date.now()}.${ext}`)
+    const snap = await uploadBytes(storageRef, blob)
+    return getDownloadURL(snap.ref)
+  } catch (fbErr) {
+    console.error('All storage upload attempts failed:', fbErr)
+    throw new Error('Failed to upload product image to both Cloudflare R2 and Firebase Storage: ' + fbErr.message)
+  }
+}
+
+// Convert a base64 data-URL, File, or Blob into a Blob.
+async function toBlob(file) {
+  if (file instanceof Blob) return file
+  if (typeof file === 'string' && file.startsWith('data:')) {
+    const [header, base64] = file.split(',', 2)
+    const mime = (header.match(/:(.*?);/) || [])[1] || 'application/octet-stream'
+    const bytes = Uint8Array.from(atob(base64), (c) => c.charCodeAt(0))
+    return new Blob([bytes], { type: mime })
+  }
+  throw new Error('Unsupported image format')
 }
 
 async function fbSeedInventory(items) {

@@ -7,15 +7,19 @@
 // ============================================================================
 
 const firebaseConfig = {
-  apiKey: 'AIzaSyDbKz_wX4OWf-MpL6wqFJF6BeQeWBVlwvM',
-  authDomain: 'purplebeecakes01.firebaseapp.com',
-  projectId: 'purplebeecakes01',
-  storageBucket: 'purplebeecakes01.firebasestorage.app',
-  messagingSenderId: '754389835205',
-  appId: '1:754389835205:web:4b7747d2f98094df55bfac',
-  measurementId: 'G-1B80EYYGTP',
-}
 
+  apiKey: "AIzaSyDbKz_wX4OWf-MpL6wqFJF6BeQeWBVlwvM",
+  authDomain: "purplebeecakes01.firebaseapp.com",
+  projectId: "purplebeecakes01",
+  storageBucket: "purplebeecakes01.firebasestorage.app",
+  messagingSenderId: "754389835205",
+  appId: "1:754389835205:web:4b7747d2f98094df55bfac",
+  measurementId: "G-1B80EYYGTP"
+};
+
+// Dev/UX admin allowlist (used by the local fallback and as a convenience in
+// the client). It does NOT grant any access on its own — Firestore rules are
+// the real gatekeeper. Replace with your owner email.
 export const ADMIN_EMAILS = ['purplebeecakess@gmail.com']
 export const isFirebaseConfigured = true
 
@@ -48,3 +52,7 @@ export async function initFirebase() {
 
   isSupported().then((ok) => { if (ok) getAnalytics(app) })
 }
+
+export { app, auth, db }
+export { firebaseConfig }
+export { app, auth, db }

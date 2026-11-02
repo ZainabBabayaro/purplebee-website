@@ -88,6 +88,18 @@ export const localdb = {
     if (p) Object.assign(p, patch)
     write(KEYS.inv, inv)
   },
+  async addProduct(product) {
+    const inv = seedInventory()
+    const id = product.slug || product.name.toLowerCase().replace(/\s+/g, '-')
+    const entry = { ...product, id, stock: product.stock ?? 0, active: product.active !== false }
+    inv.push(entry)
+    write(KEYS.inv, inv)
+    return { id }
+  },
+  // Local fallback: images are already base64 data-URLs, so just return them.
+  async uploadProductImage(_productId, file) {
+    return typeof file === 'string' ? file : URL.createObjectURL(file)
+  },
 
   // ---- Comments ----
   async getComments(postSlug, adminMode = false) {
