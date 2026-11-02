@@ -7,9 +7,7 @@
 
 import {
   isFirebaseConfigured,
-  db,
-  auth,
-  app,
+  initFirebase,
 } from '../config/firebase.js'
 import { localdb } from './localdb.js'
 
@@ -17,11 +15,11 @@ import { localdb } from './localdb.js'
 export { isFirebaseConfigured }
 
 // Helper: ensures Firebase is ready before any Firestore/Auth call.
-// Returns { db, auth } from the lazily-initialised firebase module.
+// Returns { db, auth, app } from the lazily-initialised firebase module.
 async function getFirebase() {
   await initFirebase()
-  const { db, auth } = await import('../config/firebase.js')
-  return { db, auth }
+  const { db, auth, app } = await import('../config/firebase.js')
+  return { db, auth, app }
 }
 
 // Re-export auth as a getter so components can await it.
@@ -91,6 +89,7 @@ async function fbUpdateProduct(id, patch) {
 async function fbUploadProductImage(productId, file) {
   // 1. Try Cloudflare Pages R2 endpoint (/api/upload)
   try {
+    const { auth } = await getFirebase()
     let token = null
     if (auth?.currentUser) {
       token = await auth.currentUser.getIdToken()
@@ -120,6 +119,7 @@ async function fbUploadProductImage(productId, file) {
 
   // 2. Fallback to Firebase Storage if R2 is not reachable or not yet configured
   try {
+    const { app } = await getFirebase()
     const { getStorage, ref, uploadBytes, getDownloadURL } = await import('firebase/storage')
     const storage = getStorage(app)
     const blob = await toBlob(file)
@@ -290,25 +290,17 @@ async function fbGetAllComments() {
   return snap.docs.map((d) => ({ id: d.id, ...d.data() }))
 }
 
-async function fbUploadProductImage(productId, file) {
-  const { app } = await getFirebase()
-  const { getStorage, ref, uploadBytes, getDownloadURL } = await import('firebase/storage')
-  const storage = getStorage(app)
-  const ext = file.name.split('.').pop()
-  const storageRef = ref(storage, `products/${productId}/${Date.now()}.${ext}`)
-  const snap = await uploadBytes(storageRef, file)
-  const url = await getDownloadURL(snap.ref)
-  await fbUpdateProduct(productId, { imageUrl: url })
-  return url
-}
-
 // Local fallback: convert the file to a base64 data URL stored in localStorage.
 async function localUploadProductImage(productId, file) {
+  if (typeof file === 'string') {
+    await local.updateProduct(productId, { image: file, imageUrl: file })
+    return file
+  }
   return new Promise((resolve, reject) => {
     const reader = new FileReader()
     reader.onload = async () => {
       const url = reader.result // data:image/...;base64,...
-      await local.updateProduct(productId, { imageUrl: url })
+      await local.updateProduct(productId, { image: url, imageUrl: url })
       resolve(url)
     }
     reader.onerror = () => reject(new Error('Failed to read file.'))

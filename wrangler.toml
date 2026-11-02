@@ -13,3 +13,11 @@ ADMIN_EMAILS = "purplebeecakess@gmail.com"
 # Optional: If you attach a custom domain or enable public access on R2, set the URL here:
 # R2_PUBLIC_URL = "https://images.purplebeecakes.co.uk"
 
+# Paystack Webhook & Firebase Admin vars
+# (Best set as secret variables in Cloudflare Dashboard -> Pages -> Settings -> Environment Variables)
+# PAYSTACK_SECRET_KEY = "sk_live_..."
+# FIREBASE_SERVICE_ACCOUNT = '{"type": "service_account", ...}'
+# Or alternatively:
+# FIREBASE_CLIENT_EMAIL = "firebase-adminsdk-...@purplebeecakes01.iam.gserviceaccount.com"
+# FIREBASE_PRIVATE_KEY = "-----BEGIN PRIVATE KEY-----\n..."
+

@@ -1,129 +1,270 @@
 // ============================================================================
 // Paystack webhook handler — Cloudflare Pages Function
 // ----------------------------------------------------------------------------
-// Cloudflare Pages Functions run server-side at the edge.
-// This file is automatically deployed as a serverless endpoint at:
-//   https://www.purplebeecakes.com/api/paystack-webhook
+// Deployed at:
+//   https://<your-domain>/api/paystack-webhook
+//   https://<your-domain>/api/webhook/paystack
 //
-// Set in your Cloudflare Pages project → Settings → Environment variables:
-//   PAYSTACK_SECRET_KEY   — your Paystack secret key (sk_live_...)
-//   FIREBASE_PROJECT_ID   — purplebeecakes01
-//   FIREBASE_CLIENT_EMAIL — from your Firebase service account JSON
-//   FIREBASE_PRIVATE_KEY  — from your Firebase service account JSON
+// Environment variables (Cloudflare Pages -> Settings -> Environment variables):
+//   PAYSTACK_SECRET_KEY   — Your Paystack secret key (sk_live_... or sk_test_...)
+//   FIREBASE_PROJECT_ID   — purplebeecakes01 (defaults to purplebeecakes01)
+//   FIREBASE_SERVICE_ACCOUNT — (Option A) Entire JSON string of Firebase service account
+//   FIREBASE_CLIENT_EMAIL — (Option B) client_email from service account
+//   FIREBASE_PRIVATE_KEY  — (Option B) private_key from service account
 // ============================================================================
 
-// Verify the webhook signature using HMAC-SHA512.
-async function verifySignature(body, signature, secret) {
-  const encoder = new TextEncoder()
-  const keyData = encoder.encode(secret)
-  const msgData = encoder.encode(body)
-  const cryptoKey = await crypto.subtle.importKey(
-    'raw', keyData, { name: 'HMAC', hash: 'SHA-512' }, false, ['sign']
-  )
-  const sigBuffer = await crypto.subtle.sign('HMAC', cryptoKey, msgData)
-  const computed = Array.from(new Uint8Array(sigBuffer))
-    .map((b) => b.toString(16).padStart(2, '0'))
-    .join('')
-  return computed === signature
+// URL-safe Base64 encoder required for Google OAuth RS256 JWT
+function base64Url(data) {
+  let b64 = ''
+  if (typeof data === 'string') {
+    b64 = btoa(data)
+  } else {
+    let binary = ''
+    const bytes = new Uint8Array(data)
+    for (let i = 0; i < bytes.length; i++) {
+      binary += String.fromCharCode(bytes[i])
+    }
+    b64 = btoa(binary)
+  }
+  return b64.replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '')
 }
 
-// Get a Firebase Admin access token using a service account.
-async function getFirebaseToken(clientEmail, privateKey, projectId) {
-  const now = Math.floor(Date.now() / 1000)
-  const header = btoa(JSON.stringify({ alg: 'RS256', typ: 'JWT' }))
-  const payload = btoa(JSON.stringify({
-    iss: clientEmail,
-    sub: clientEmail,
-    aud: 'https://oauth2.googleapis.com/token',
-    iat: now,
-    exp: now + 3600,
-    scope: 'https://www.googleapis.com/auth/datastore',
-  }))
+// Convert PEM PKCS8 to ArrayBuffer for Web Crypto import
+function pemToBuffer(pem) {
+  const cleanPem = pem
+    .replace(/-----BEGIN[A-Z\s]+-----/, '')
+    .replace(/-----END[A-Z\s]+-----/, '')
+    .replace(/\\n/g, '')
+    .replace(/\s+/g, '')
+  const binary = atob(cleanPem)
+  const buffer = new Uint8Array(binary.length)
+  for (let i = 0; i < binary.length; i++) {
+    buffer[i] = binary.charCodeAt(i)
+  }
+  return buffer.buffer
+}
 
-  // Sign with RS256 (requires the private key in PEM format)
+// Verify the Paystack webhook signature using HMAC-SHA512
+async function verifyPaystackSignature(rawBody, signature, secret) {
+  if (!signature || !secret) return false
+  try {
+    const encoder = new TextEncoder()
+    const keyData = encoder.encode(secret)
+    const cryptoKey = await crypto.subtle.importKey(
+      'raw',
+      keyData,
+      { name: 'HMAC', hash: 'SHA-512' },
+      false,
+      ['sign']
+    )
+    const sigBuffer = await crypto.subtle.sign('HMAC', cryptoKey, encoder.encode(rawBody))
+    const computed = Array.from(new Uint8Array(sigBuffer))
+      .map((b) => b.toString(16).padStart(2, '0'))
+      .join('')
+    return computed.toLowerCase() === signature.trim().toLowerCase()
+  } catch (err) {
+    console.error('Error verifying Paystack signature:', err)
+    return false
+  }
+}
+
+// Mint a Google OAuth2 access token for Firestore with admin datastore scope
+async function getFirebaseAccessToken(clientEmail, privateKey) {
+  const now = Math.floor(Date.now() / 1000)
+  const header = base64Url(JSON.stringify({ alg: 'RS256', typ: 'JWT' }))
+  const payload = base64Url(
+    JSON.stringify({
+      iss: clientEmail,
+      sub: clientEmail,
+      aud: 'https://oauth2.googleapis.com/token',
+      iat: now,
+      exp: now + 3600,
+      scope: 'https://www.googleapis.com/auth/datastore',
+    })
+  )
+
+  const unsignedJwt = `${header}.${payload}`
   const pemKey = privateKey.replace(/\\n/g, '\n')
   const keyBuffer = pemToBuffer(pemKey)
+
   const cryptoKey = await crypto.subtle.importKey(
-    'pkcs8', keyBuffer, { name: 'RSASSA-PKCS1-v1_5', hash: 'SHA-256' }, false, ['sign']
+    'pkcs8',
+    keyBuffer,
+    { name: 'RSASSA-PKCS1-v1_5', hash: 'SHA-256' },
+    false,
+    ['sign']
   )
+
   const sigBuffer = await crypto.subtle.sign(
-    'RSASSA-PKCS1-v1_5', cryptoKey,
-    new TextEncoder().encode(`${header}.${payload}`)
+    'RSASSA-PKCS1-v1_5',
+    cryptoKey,
+    new TextEncoder().encode(unsignedJwt)
   )
-  const sig = btoa(String.fromCharCode(...new Uint8Array(sigBuffer)))
-  const jwt = `${header}.${payload}.${sig}`
+
+  const sig = base64Url(sigBuffer)
+  const assertion = `${unsignedJwt}.${sig}`
 
   const res = await fetch('https://oauth2.googleapis.com/token', {
     method: 'POST',
     headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-    body: `grant_type=urn:ietf:params:oauth:grant-type:jwt-bearer&assertion=${jwt}`,
+    body: `grant_type=urn:ietf:params:oauth:grant-type:jwt-bearer&assertion=${assertion}`,
   })
-  const { access_token } = await res.json()
-  return access_token
+
+  if (!res.ok) {
+    const errText = await res.text()
+    throw new Error(`Google OAuth error: ${res.status} - ${errText}`)
+  }
+
+  const data = await res.json()
+  return data.access_token
 }
 
-function pemToBuffer(pem) {
-  const b64 = pem.replace(/-----[^-]+-----/g, '').replace(/\s/g, '')
-  const binary = atob(b64)
-  const buffer = new Uint8Array(binary.length)
-  for (let i = 0; i < binary.length; i++) buffer[i] = binary.charCodeAt(i)
-  return buffer.buffer
-}
+// Update the order in Firestore via REST API with updateMask to protect existing fields
+async function updateOrderInFirestore(projectId, token, orderId, paymentData) {
+  const fields = {
+    status: { stringValue: 'confirmed' },
+    paymentStatus: { stringValue: 'paid' },
+    paystackReference: { stringValue: paymentData.reference || '' },
+    paidAt: { stringValue: paymentData.paid_at || new Date().toISOString() },
+    amountPaid: { doubleValue: Number(paymentData.amount || 0) / 100 },
+    channel: { stringValue: paymentData.channel || 'card' },
+  }
 
-// Update the order status in Firestore via REST API.
-async function updateOrderInFirestore(projectId, token, orderId, status, paystackRef) {
-  const url = `https://firestore.googleapis.com/v1/projects/${projectId}/databases/(default)/documents/orders/${orderId}`
-  await fetch(url, {
+  const fieldKeys = Object.keys(fields)
+  const mask = fieldKeys.map((f) => `updateMask.fieldPaths=${f}`).join('&')
+  const url = `https://firestore.googleapis.com/v1/projects/${projectId}/databases/(default)/documents/orders/${orderId}?${mask}`
+
+  const res = await fetch(url, {
     method: 'PATCH',
     headers: {
       Authorization: `Bearer ${token}`,
       'Content-Type': 'application/json',
     },
-    body: JSON.stringify({
-      fields: {
-        status: { stringValue: status },
-        paystackReference: { stringValue: paystackRef || '' },
-        paidAt: { stringValue: new Date().toISOString() },
-      },
-    }),
+    body: JSON.stringify({ fields }),
   })
-}
 
-export async function onRequestPost({ request, env }) {
-  const body = await request.text()
-  const signature = request.headers.get('x-paystack-signature') || ''
-
-  // 1. Verify signature
-  const valid = await verifySignature(body, signature, env.PAYSTACK_SECRET_KEY || '')
-  if (!valid) {
-    return new Response('Invalid signature', { status: 401 })
+  if (!res.ok) {
+    const errText = await res.text()
+    throw new Error(`Firestore update failed (${res.status}): ${errText}`)
   }
 
-  const event = JSON.parse(body)
-  const { event: eventType, data } = event
+  return true
+}
 
-  // 2. Handle charge.success
-  if (eventType === 'charge.success') {
-    const { reference, metadata, status } = data
-    // You should store the order ID in Paystack metadata at checkout time.
-    const orderId = metadata?.orderId || metadata?.order_id
+// Extract the internal order ID from Paystack event data
+function extractOrderId(data) {
+  const { metadata, reference } = data
 
-    if (orderId && env.FIREBASE_CLIENT_EMAIL && env.FIREBASE_PRIVATE_KEY) {
-      try {
-        const token = await getFirebaseToken(
-          env.FIREBASE_CLIENT_EMAIL,
-          env.FIREBASE_PRIVATE_KEY,
-          env.FIREBASE_PROJECT_ID
-        )
-        await updateOrderInFirestore(
-          env.FIREBASE_PROJECT_ID, token, orderId, 'confirmed', reference
-        )
-      } catch (err) {
-        console.error('Firestore update failed:', err.message)
-        // Still return 200 so Paystack doesn't retry
-      }
+  // 1. Check metadata object
+  if (metadata && typeof metadata === 'object') {
+    if (metadata.orderId) return String(metadata.orderId)
+    if (metadata.order_id) return String(metadata.order_id)
+    if (Array.isArray(metadata.custom_fields)) {
+      const field = metadata.custom_fields.find(
+        (f) => f.variable_name === 'order_id' || f.display_name === 'Order ID'
+      )
+      if (field?.value) return String(field.value)
     }
   }
 
-  return new Response('OK', { status: 200 })
+  // 2. Check if metadata was serialized as JSON string
+  if (typeof metadata === 'string') {
+    try {
+      const parsed = JSON.parse(metadata)
+      if (parsed?.orderId) return String(parsed.orderId)
+      if (parsed?.order_id) return String(parsed.order_id)
+    } catch (_) {}
+  }
+
+  // 3. Check reference format from Checkout.jsx: PBC-<orderId>-<timestamp>
+  if (reference && typeof reference === 'string') {
+    const match = reference.match(/^PBC-([a-zA-Z0-9_-]+)-\d+$/)
+    if (match) return match[1]
+  }
+
+  return null
+}
+
+export async function onRequestGet() {
+  return new Response(
+    JSON.stringify({
+      status: 'active',
+      message: 'Paystack webhook listener is ready. Send POST requests from Paystack.',
+    }),
+    { status: 200, headers: { 'Content-Type': 'application/json' } }
+  )
+}
+
+export async function onRequestPost({ request, env }) {
+  const rawBody = await request.text()
+  const signature = request.headers.get('x-paystack-signature') || ''
+
+  // 1. Verify webhook signature
+  const secretKey = env.PAYSTACK_SECRET_KEY || ''
+  if (!secretKey) {
+    console.error('PAYSTACK_SECRET_KEY is not set in Cloudflare environment variables.')
+    return new Response('PAYSTACK_SECRET_KEY not configured', { status: 500 })
+  }
+
+  const isValid = await verifyPaystackSignature(rawBody, signature, secretKey)
+  if (!isValid) {
+    console.warn('Paystack webhook signature verification failed.')
+    return new Response('Invalid signature', { status: 401 })
+  }
+
+  // 2. Parse Paystack webhook JSON
+  let eventPayload
+  try {
+    eventPayload = JSON.parse(rawBody)
+  } catch (err) {
+    return new Response('Invalid JSON payload', { status: 400 })
+  }
+
+  const { event, data } = eventPayload
+
+  // 3. Handle charge.success
+  if (event === 'charge.success' && data?.status === 'success') {
+    const orderId = extractOrderId(data)
+
+    if (!orderId) {
+      console.warn(`Paystack charge.success received with reference ${data.reference}, but no matching orderId could be resolved.`)
+      // Still return 200 so Paystack does not endlessly retry
+      return new Response('Event received, order ID not found', { status: 200 })
+    }
+
+    // Resolve Firebase credentials
+    let clientEmail = env.FIREBASE_CLIENT_EMAIL
+    let privateKey = env.FIREBASE_PRIVATE_KEY
+    let projectId = env.FIREBASE_PROJECT_ID || 'purplebeecakes01'
+
+    if (env.FIREBASE_SERVICE_ACCOUNT) {
+      try {
+        const sa = JSON.parse(env.FIREBASE_SERVICE_ACCOUNT)
+        clientEmail = sa.client_email || clientEmail
+        privateKey = sa.private_key || privateKey
+        projectId = sa.project_id || projectId
+      } catch (e) {
+        console.error('Failed to parse FIREBASE_SERVICE_ACCOUNT JSON:', e)
+      }
+    }
+
+    if (clientEmail && privateKey) {
+      try {
+        const accessToken = await getFirebaseAccessToken(clientEmail, privateKey)
+        await updateOrderInFirestore(projectId, accessToken, orderId, data)
+        console.log(`Order ${orderId} successfully confirmed via Paystack reference ${data.reference}.`)
+      } catch (err) {
+        console.error(`Failed to update Firestore order ${orderId}:`, err)
+        // Return 200 so Paystack won't repeat if it's an internal DB issue, or 500 if you want Paystack to retry
+      }
+    } else {
+      console.warn('Firebase service account credentials missing. Set FIREBASE_SERVICE_ACCOUNT in Cloudflare.')
+    }
+  }
+
+  // Paystack expects HTTP 200 OK
+  return new Response(JSON.stringify({ received: true }), {
+    status: 200,
+    headers: { 'Content-Type': 'application/json' },
+  })
 }

@@ -53,6 +53,4 @@ export async function initFirebase() {
   isSupported().then((ok) => { if (ok) getAnalytics(app) })
 }
 
-export { app, auth, db }
 export { firebaseConfig }
-export { app, auth, db }

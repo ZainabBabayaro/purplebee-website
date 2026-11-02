@@ -71,7 +71,7 @@ export const localdb = {
     const inv = seedInventory()
     const id = product.slug || product.name.toLowerCase().replace(/[^a-z0-9]+/g, '-')
     if (inv.find((p) => p.id === id)) throw new Error('A product with this name already exists.')
-    const full = { ...product, id, active: product.active !== false }
+    const full = { ...product, id, stock: product.stock ?? 0, active: product.active !== false }
     inv.push(full)
     write(KEYS.inv, inv)
     return { id }
@@ -87,14 +87,6 @@ export const localdb = {
     const p = inv.find((x) => x.id === id)
     if (p) Object.assign(p, patch)
     write(KEYS.inv, inv)
-  },
-  async addProduct(product) {
-    const inv = seedInventory()
-    const id = product.slug || product.name.toLowerCase().replace(/\s+/g, '-')
-    const entry = { ...product, id, stock: product.stock ?? 0, active: product.active !== false }
-    inv.push(entry)
-    write(KEYS.inv, inv)
-    return { id }
   },
   // Local fallback: images are already base64 data-URLs, so just return them.
   async uploadProductImage(_productId, file) {

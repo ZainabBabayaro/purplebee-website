@@ -315,6 +315,43 @@ Product images uploaded through the admin inventory portal are automatically rou
    - In Pages **Settings** → **Environment variables**, set `R2_PUBLIC_URL` to that domain.
    - *Note:* If you don't set a custom domain, images will automatically be served through the built-in edge cache route `/cdn/products/...` on your website domain!
 
+---
+
+## 8c. Connecting Paystack Webhook (Automatic Order & Payment Confirmation)
+
+When a customer completes payment on Paystack, Paystack sends a secure server-to-server webhook event (`charge.success`).
+The webhook route at `/api/paystack-webhook` (or `/api/webhook/paystack`) verifies the signature and updates the order status in Firestore from `pending_payment` to `confirmed`.
+
+### 1. Set your Webhook URL in Paystack
+1. Log in to your [Paystack Dashboard](https://dashboard.paystack.com/).
+2. Go to **Settings** → **API Keys & Webhooks**.
+3. Under **Live Webhook URL** (or **Test Webhook URL**), enter:
+   ```text
+   https://yourdomain.com/api/paystack-webhook
+   ```
+4. Click **Save Changes**.
+
+### 2. Configure Environment Variables in Cloudflare Pages
+In Cloudflare Dashboard → **Workers & Pages** → your website project → **Settings** → **Environment variables**:
+
+| Variable Name | Description | Where to get it |
+|---|---|---|
+| `PAYSTACK_SECRET_KEY` | Paystack Secret Key | Paystack Dashboard → Settings → API Keys (`sk_live_...` or `sk_test_...`) |
+| `FIREBASE_SERVICE_ACCOUNT` | Entire JSON content of your Firebase Service Account key file | Firebase Console → Project Settings → Service Accounts → *Generate new private key* |
+
+*(Alternatively, you can provide `FIREBASE_CLIENT_EMAIL` and `FIREBASE_PRIVATE_KEY` as separate variables).*
+
+### 3. What the Webhook Does
+- Authenticates the request with HMAC-SHA512 `x-paystack-signature`.
+- Extracts the matching internal order ID from `metadata.orderId` or the `PBC-<orderId>-<timestamp>` reference.
+- Updates the order in Firestore using an update mask (keeping all items and customer details intact):
+  - `status: "confirmed"`
+  - `paymentStatus: "paid"`
+  - `amountPaid: <amount in Naira>`
+  - `paystackReference: <reference>`
+  - `paidAt: <timestamp>`
+- The order immediately updates to **Confirmed** in the Admin Portal and Customer Account.
+
 ### What changes when Firebase is connected
 
 - Orders are stored in the cloud, visible from any device
