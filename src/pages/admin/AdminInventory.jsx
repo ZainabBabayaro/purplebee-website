@@ -4,6 +4,64 @@ import { dataApi } from '../../services/db.js'
 import PlaceholderArt from '../../components/PlaceholderArt.jsx'
 import { getPalette } from '../../utils/images.js'
 
+/** Read a File and resolve with a base64 data-URL string. */
+function fileToBase64(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader()
+    reader.onload = () => resolve(reader.result)
+    reader.onerror = reject
+    reader.readAsDataURL(file)
+  })
+}
+
+/** Tiny image picker button used in both the add-form and the edit row. */
+function ImagePicker({ value, onChange }) {
+  const inputRef = useRef(null)
+
+  const handleFile = async (e) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+    if (!file.type.startsWith('image/')) return
+    const b64 = await fileToBase64(file)
+    onChange(b64)
+    // Reset so picking the same file again still fires onChange
+    e.target.value = ''
+  }
+
+  return (
+    <div className="flex flex-col items-center gap-2">
+      {/* Preview */}
+      <div
+        className="h-16 w-16 shrink-0 overflow-hidden rounded-xl border border-plum-700 bg-plum-800 cursor-pointer"
+        onClick={() => inputRef.current?.click()}
+        title="Click to upload image"
+      >
+        {value ? (
+          <img src={value} alt="Product preview" className="h-full w-full object-cover" />
+        ) : (
+          <div className="flex h-full w-full items-center justify-center text-plum-500">
+            <ImagePlus size={22} strokeWidth={1.5} />
+          </div>
+        )}
+      </div>
+      <button
+        type="button"
+        onClick={() => inputRef.current?.click()}
+        className="text-xs text-plum-400 hover:text-ivory"
+      >
+        {value ? 'Change' : 'Add image'}
+      </button>
+      <input
+        ref={inputRef}
+        type="file"
+        accept="image/*"
+        className="hidden"
+        onChange={handleFile}
+      />
+    </div>
+  )
+}
+
 function money(n) { return `£${Number(n).toFixed(2)}` }
 
 /** Read a File and resolve with a base64 data-URL string. */
@@ -130,7 +188,7 @@ function ImageCell({ product, onImageSaved }) {
 function ProductRow({ product: initial, onImageSaved }) {
   const [p, setP] = useState(initial)
   const [editing, setEditing] = useState(false)
-  const [draft, setDraft] = useState({ price: initial.price, stock: initial.stock })
+  const [draft, setDraft] = useState({ price: initial.price, stock: initial.stock, image: initial.image || '' })
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
   const [err, setErr] = useState('')
@@ -152,8 +210,18 @@ function ProductRow({ product: initial, onImageSaved }) {
     setErr('')
     setSaving(true)
     try {
-      await dataApi.updateProduct(p.id, { price, stock })
-      setP((v) => ({ ...v, price, stock }))
+      const patch = { price, stock }
+      if (draft.image !== (initial.image || '')) {
+        if (draft.image && draft.image.startsWith('data:')) {
+          // Upload base64 image to Storage and store the download URL (keeps
+          // Firestore documents well under the 1 MB limit).
+          patch.image = await dataApi.uploadProductImage(p.id, draft.image)
+        } else {
+          patch.image = draft.image || undefined
+        }
+      }
+      await dataApi.updateProduct(p.id, patch)
+      setP((v) => ({ ...v, price, stock, image: draft.image || v.image }))
       setEditing(false)
       setSaved(true)
       setTimeout(() => setSaved(false), 2500)
@@ -177,6 +245,11 @@ function ProductRow({ product: initial, onImageSaved }) {
             <p className="font-medium text-ivory">{p.name}</p>
             <p className="text-xs text-plum-400">{p.collectionName} · {p.occasion}</p>
           </div>
+          {editing && (
+            <div className="ml-4 flex items-center gap-2">
+              <ImagePicker value={draft.image} onChange={(b64) => setDraft((d) => ({ ...d, image: b64 }))} />
+            </div>
+          )}
         </div>
       </td>
 
@@ -235,7 +308,7 @@ function ProductRow({ product: initial, onImageSaved }) {
                 {saving ? 'Saving…' : 'Save'}
               </button>
               <button
-                onClick={() => { setEditing(false); setDraft({ price: p.price, stock: p.stock }); setErr('') }}
+                onClick={() => { setEditing(false); setDraft({ price: p.price, stock: p.stock, image: p.image || '' }); setErr('') }}
                 className="rounded-full border border-plum-700 px-3 py-1.5 text-xs text-plum-300 hover:text-ivory"
               >
                 Cancel
@@ -244,7 +317,7 @@ function ProductRow({ product: initial, onImageSaved }) {
           ) : (
             <>
               <button
-                onClick={() => { setDraft({ price: p.price, stock: p.stock }); setEditing(true) }}
+                onClick={() => { setDraft({ price: p.price, stock: p.stock, image: p.image || '' }); setEditing(true) }}
                 className="rounded-full border border-plum-700 px-3 py-1.5 text-xs text-plum-300 hover:text-ivory"
               >
                 {saved ? '✓ Saved' : 'Edit'}
@@ -285,9 +358,14 @@ export default function AdminInventory() {
     if (Number.isNaN(stock) || stock < 0) { setAddErr('Enter a valid stock number.'); return }
     setAdding(true)
     try {
+      const slug = name.toLowerCase().replace(/\s+/g, '-')
+      let image = undefined
+      if (formImage) {
+        image = await dataApi.uploadProductImage(slug, formImage)
+      }
       await dataApi.addProduct({
         name,
-        slug: name.toLowerCase().replace(/\s+/g, '-'),
+        slug,
         price,
         stock,
         active: true,
