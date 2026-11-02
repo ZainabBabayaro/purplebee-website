@@ -289,6 +289,32 @@ Right now the site stores everything in your browser's local storage. To use a r
 
 Full step-by-step instructions are in **`FIREBASE_SETUP.md`** in the project root.
 
+---
+
+## 8b. Product image storage with Cloudflare R2
+
+Product images uploaded through the admin inventory portal are automatically routed to **Cloudflare R2** via Cloudflare Pages Functions, providing global CDN edge-caching with **$0 egress fees**.
+
+### Quick steps to activate Cloudflare R2 in Cloudflare:
+
+1. **Create an R2 Bucket:**
+   - Log in to your [Cloudflare Dashboard](https://dash.cloudflare.com/)
+   - Go to **R2 Storage** → Click **Create bucket**
+   - Name it `purplebee-product-images` (or any name you prefer)
+
+2. **Bind R2 to your Cloudflare Pages project:**
+   - In Cloudflare, go to **Workers & Pages** → click on your website's Pages project.
+   - Go to **Settings** → **Functions**.
+   - Under **R2 bucket bindings**, click **Add binding**:
+     - **Variable name**: `R2_BUCKET`
+     - **R2 bucket**: Select your bucket (`purplebee-product-images`)
+   - Click **Save**.
+
+3. **(Optional) Custom Domain or Public URL:**
+   - In R2 → Bucket Settings, you can attach a custom domain (e.g. `images.purplebeecakes.co.uk`) or enable the `r2.dev` public bucket URL.
+   - In Pages **Settings** → **Environment variables**, set `R2_PUBLIC_URL` to that domain.
+   - *Note:* If you don't set a custom domain, images will automatically be served through the built-in edge cache route `/cdn/products/...` on your website domain!
+
 ### What changes when Firebase is connected
 
 - Orders are stored in the cloud, visible from any device

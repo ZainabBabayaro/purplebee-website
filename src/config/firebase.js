@@ -33,15 +33,16 @@ export const ADMIN_EMAILS = ['purplebeecakess@gmail.com']
 
 export const isFirebaseConfigured = !firebaseConfig.apiKey.startsWith('YOUR_')
 
+let app = null
 let auth = null
 let db = null
 
 // Only initialise Firebase on the client (never during SSR/prerender).
 if (isFirebaseConfigured && typeof window !== 'undefined') {
-  const app = initializeApp(firebaseConfig)
+  app = initializeApp(firebaseConfig)
   auth = getAuth(app)
   db = getFirestore(app)
 }
 
-export { auth, db }
+export { app, auth, db }
 export { firebaseConfig }

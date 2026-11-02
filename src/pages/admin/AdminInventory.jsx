@@ -67,7 +67,7 @@ function money(n) { return `£${Number(n).toFixed(2)}` }
 function ProductRow({ product: initial }) {
   const [p, setP] = useState(initial)
   const [editing, setEditing] = useState(false)
-  const [draft, setDraft] = useState({ price: initial.price, stock: initial.stock })
+  const [draft, setDraft] = useState({ price: initial.price, stock: initial.stock, image: initial.image || '' })
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
   const [err, setErr] = useState('')
@@ -93,8 +93,18 @@ function ProductRow({ product: initial }) {
     setErr('')
     setSaving(true)
     try {
-      await dataApi.updateProduct(p.id, { price, stock })
-      setP((v) => ({ ...v, price, stock }))
+      const patch = { price, stock }
+      if (draft.image !== (initial.image || '')) {
+        if (draft.image && draft.image.startsWith('data:')) {
+          // Upload base64 image to Storage and store the download URL (keeps
+          // Firestore documents well under the 1 MB limit).
+          patch.image = await dataApi.uploadProductImage(p.id, draft.image)
+        } else {
+          patch.image = draft.image || undefined
+        }
+      }
+      await dataApi.updateProduct(p.id, patch)
+      setP((v) => ({ ...v, price, stock, image: draft.image || v.image }))
       setEditing(false)
       setSaved(true)
       setTimeout(() => setSaved(false), 2500)
@@ -125,6 +135,11 @@ function ProductRow({ product: initial }) {
             <p className="font-medium text-ivory">{p.name}</p>
             <p className="text-xs text-plum-400">{p.collectionName} · {p.occasion}</p>
           </div>
+          {editing && (
+            <div className="ml-4 flex items-center gap-2">
+              <ImagePicker value={draft.image} onChange={(b64) => setDraft((d) => ({ ...d, image: b64 }))} />
+            </div>
+          )}
         </div>
       </td>
 
@@ -188,7 +203,7 @@ function ProductRow({ product: initial }) {
                 {saving ? 'Saving…' : 'Save'}
               </button>
               <button
-                onClick={() => { setEditing(false); setDraft({ price: p.price, stock: p.stock }); setErr('') }}
+                onClick={() => { setEditing(false); setDraft({ price: p.price, stock: p.stock, image: p.image || '' }); setErr('') }}
                 className="rounded-full border border-plum-700 px-3 py-1.5 text-xs text-plum-300 hover:text-ivory"
               >
                 Cancel
@@ -197,7 +212,7 @@ function ProductRow({ product: initial }) {
           ) : (
             <>
               <button
-                onClick={() => { setDraft({ price: p.price, stock: p.stock }); setEditing(true) }}
+                onClick={() => { setDraft({ price: p.price, stock: p.stock, image: p.image || '' }); setEditing(true) }}
                 className="rounded-full border border-plum-700 px-3 py-1.5 text-xs text-plum-300 hover:text-ivory"
               >
                 {saved ? '✓ Saved' : 'Edit'}
@@ -241,9 +256,14 @@ export default function AdminInventory() {
 
     setAdding(true)
     try {
+      const slug = name.toLowerCase().replace(/\s+/g, '-')
+      let image = undefined
+      if (formImage) {
+        image = await dataApi.uploadProductImage(slug, formImage)
+      }
       await dataApi.addProduct({
         name,
-        slug: name.toLowerCase().replace(/\s+/g, '-'),
+        slug,
         price,
         stock,
         active: true,
@@ -252,7 +272,7 @@ export default function AdminInventory() {
         summary: '',
         description: '',
         paletteKey: 'garden',
-        ...(formImage ? { image: formImage } : {}),
+        ...(image ? { image } : {}),
       })
       setForm({ name: '', price: '', stock: '' })
       setFormImage('')
@@ -306,6 +326,10 @@ export default function AdminInventory() {
               placeholder="e.g. Iris"
               className="w-full rounded-lg border border-plum-700 bg-plum-950 px-3 py-2 text-sm text-ivory focus:border-plum-400 focus:outline-none"
             />
+          </div>
+          <div className="col-span-1 md:col-span-2">
+            <label className="block text-xs text-plum-400 mb-1">Product image</label>
+            <ImagePicker value={formImage} onChange={setFormImage} />
           </div>
           <div className="col-span-1 md:col-span-1">
             <label className="block text-xs text-plum-400 mb-1">Price (£)</label>
