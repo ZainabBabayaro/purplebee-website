@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { Check, Lock } from 'lucide-react'
 import SEO from '../components/SEO.jsx'
@@ -11,8 +11,20 @@ import PlaceholderArt from '../components/PlaceholderArt.jsx'
 import { getPalette } from '../utils/images.js'
 import { site } from '../data/site.js'
 
-// ⚠️ Replace with your Paystack PUBLIC key (pk_live_... or pk_test_...)
-const PAYSTACK_PUBLIC_KEY = 'pk_test_YOUR_PAYSTACK_PUBLIC_KEY'
+const PAYSTACK_PUBLIC_KEY = 'pk_test_e61761c8d6623f0257a4124e0f0225a3fa838a0d'
+
+// Load Paystack script only when this page is visited — not on every page.
+function usePaystack() {
+  useEffect(() => {
+    if (document.getElementById('paystack-script')) return
+    const script = document.createElement('script')
+    script.id = 'paystack-script'
+    script.src = 'https://js.paystack.co/v1/inline.js'
+    script.async = true
+    document.body.appendChild(script)
+    return () => {} // keep it cached for the session; don't remove on unmount
+  }, [])
+}
 
 function money(n) { return `₦${Number(n).toLocaleString('en-NG', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` }
 
@@ -30,6 +42,7 @@ export default function Checkout() {
   const { items, total, clear } = useCart()
   const { user } = useAuth()
   const navigate = useNavigate()
+  usePaystack() // load Paystack script only when checkout page is visited
 
   const [values, setValues] = useState({
     name: user?.displayName || '',

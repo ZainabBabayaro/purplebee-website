@@ -4,65 +4,7 @@ import { dataApi } from '../../services/db.js'
 import PlaceholderArt from '../../components/PlaceholderArt.jsx'
 import { getPalette } from '../../utils/images.js'
 
-/** Read a File and resolve with a base64 data-URL string. */
-function fileToBase64(file) {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader()
-    reader.onload = () => resolve(reader.result)
-    reader.onerror = reject
-    reader.readAsDataURL(file)
-  })
-}
-
-/** Tiny image picker button used in both the add-form and the edit row. */
-function ImagePicker({ value, onChange }) {
-  const inputRef = useRef(null)
-
-  const handleFile = async (e) => {
-    const file = e.target.files?.[0]
-    if (!file) return
-    if (!file.type.startsWith('image/')) return
-    const b64 = await fileToBase64(file)
-    onChange(b64)
-    // Reset so picking the same file again still fires onChange
-    e.target.value = ''
-  }
-
-  return (
-    <div className="flex flex-col items-center gap-2">
-      {/* Preview */}
-      <div
-        className="h-16 w-16 shrink-0 overflow-hidden rounded-xl border border-plum-700 bg-plum-800 cursor-pointer"
-        onClick={() => inputRef.current?.click()}
-        title="Click to upload image"
-      >
-        {value ? (
-          <img src={value} alt="Product preview" className="h-full w-full object-cover" />
-        ) : (
-          <div className="flex h-full w-full items-center justify-center text-plum-500">
-            <ImagePlus size={22} strokeWidth={1.5} />
-          </div>
-        )}
-      </div>
-      <button
-        type="button"
-        onClick={() => inputRef.current?.click()}
-        className="text-xs text-plum-400 hover:text-ivory"
-      >
-        {value ? 'Change' : 'Add image'}
-      </button>
-      <input
-        ref={inputRef}
-        type="file"
-        accept="image/*"
-        className="hidden"
-        onChange={handleFile}
-      />
-    </div>
-  )
-}
-
-function money(n) { return `£${Number(n).toFixed(2)}` }
+function money(n) { return `₦${Number(n).toLocaleString('en-NG', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` }
 
 /** Read a File and resolve with a base64 data-URL string. */
 function fileToBase64(file) {
@@ -257,7 +199,7 @@ function ProductRow({ product: initial, onImageSaved }) {
       <td className="px-4 py-4">
         {editing ? (
           <div className="flex items-center">
-            <span className="mr-1 text-plum-400">£</span>
+            <span className="mr-1 text-plum-400">₦</span>
             <input
               type="number" min="0" step="0.01"
               value={draft.price}

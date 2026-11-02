@@ -1,13 +1,14 @@
 import { NavLink, Outlet, useNavigate } from 'react-router-dom'
-import { LayoutDashboard, Package, ShoppingBag, BookOpen, LogOut, ExternalLink } from 'lucide-react'
+import { LayoutDashboard, Package, ShoppingBag, BookOpen, MessageSquare, LogOut, ExternalLink } from 'lucide-react'
 import { useAuth } from '../../context/AuthContext.jsx'
 import { LogoLockupLight } from '../../components/Logo.jsx'
 
 const links = [
-  { to: '/admin/dashboard', label: 'Dashboard', Icon: LayoutDashboard },
-  { to: '/admin/orders',    label: 'Orders',    Icon: ShoppingBag },
-  { to: '/admin/inventory', label: 'Inventory', Icon: Package },
-  { to: '/admin/blog',      label: 'Blog',      Icon: BookOpen },
+  { to: '/admin/dashboard', label: 'Dashboard',  Icon: LayoutDashboard },
+  { to: '/admin/orders',    label: 'Orders',      Icon: ShoppingBag },
+  { to: '/admin/inventory', label: 'Inventory',   Icon: Package },
+  { to: '/admin/blog',      label: 'Blog',        Icon: BookOpen },
+  { to: '/admin/comments',  label: 'Comments',    Icon: MessageSquare },
 ]
 
 export default function AdminLayout() {

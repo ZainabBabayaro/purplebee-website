@@ -1,14 +1,13 @@
-import { initializeApp } from 'firebase/app'
-import { getAuth } from 'firebase/auth'
-import { getFirestore } from 'firebase/firestore'
-import { getAnalytics, isSupported } from 'firebase/analytics'
+// ============================================================================
+// Firebase configuration
+// ----------------------------------------------------------------------------
+// Firebase is initialised lazily on the client only — it must NOT run during
+// SSR/prerender (no window), and deferring it keeps it out of the initial
+// JS bundle so the homepage loads fast.
+// ============================================================================
 
 const firebaseConfig = {
 
-// Admin emails — add your owner email here.
-// This is a client-side convenience check only.
-// Real admin access is enforced by Firestore security rules (admins/{uid}).
-=======
   apiKey: "AIzaSyDbKz_wX4OWf-MpL6wqFJF6BeQeWBVlwvM",
   authDomain: "purplebeecakes01.firebaseapp.com",
   projectId: "purplebeecakes01",
@@ -22,23 +21,36 @@ const firebaseConfig = {
 // the client). It does NOT grant any access on its own — Firestore rules are
 // the real gatekeeper. Replace with your owner email.
 export const ADMIN_EMAILS = ['purplebeecakess@gmail.com']
-
 export const isFirebaseConfigured = true
 
-let app = null
-let auth = null
-let db = null
+// These are populated by initFirebase() below — null until called client-side.
+export let app = null
+export let auth = null
+export let db = null
 
-// Only initialise Firebase on the client (never during SSR/prerender).
-if (isFirebaseConfigured && typeof window !== 'undefined') {
+let initialised = false
+
+export async function initFirebase() {
+  if (initialised || typeof window === 'undefined') return
+  initialised = true
+
+  const [
+    { initializeApp },
+    { getAuth },
+    { getFirestore },
+    { getAnalytics, isSupported },
+  ] = await Promise.all([
+    import('firebase/app'),
+    import('firebase/auth'),
+    import('firebase/firestore'),
+    import('firebase/analytics'),
+  ])
+
   app = initializeApp(firebaseConfig)
   auth = getAuth(app)
   db = getFirestore(app)
 
-  // Analytics only loads in browsers that support it (blocks SSR + some privacy modes).
-  isSupported().then((supported) => {
-    if (supported) getAnalytics(app)
-  })
+  isSupported().then((ok) => { if (ok) getAnalytics(app) })
 }
 
 export { app, auth, db }

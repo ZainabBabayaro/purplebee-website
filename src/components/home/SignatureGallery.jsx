@@ -32,6 +32,7 @@ export default function SignatureGallery() {
                 <Link to={`/cakes/${cake.slug}`} className="group block">
                   <div className="overflow-hidden rounded-xl bg-ivory">
                     <OptimizedImage
+                      src={cake.image}
                       seed={`cake-${cake.slug}`}
                       paletteKey={cake.paletteKey}
                       alt={`${cake.name} — ${cake.summary}`}

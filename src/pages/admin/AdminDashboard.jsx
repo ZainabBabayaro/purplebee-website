@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom'
 import { ShoppingBag, Package, TrendingUp, Clock, ChevronRight } from 'lucide-react'
 import { dataApi, STATUS_LABEL } from '../../services/db.js'
 
-function money(n) { return `£${Number(n).toFixed(2)}` }
+function money(n) { return `₦${Number(n).toLocaleString('en-NG', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` }
 
 function statusPill(s) {
   const map = {

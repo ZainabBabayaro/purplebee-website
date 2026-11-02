@@ -11,11 +11,12 @@ import { cakes } from '../data/cakes.js'
 import { ADMIN_EMAILS } from '../config/firebase.js'
 
 const KEYS = {
-  inv: 'pb_inventory',
+  inv: 'pb_inventory_v2',
   orders: 'pb_orders',
   users: 'pb_users',
   session: 'pb_session',
   posts: 'pb_posts',
+  comments: 'pb_comments',
 }
 
 const listeners = new Set()
@@ -98,6 +99,30 @@ export const localdb = {
   // Local fallback: images are already base64 data-URLs, so just return them.
   async uploadProductImage(_productId, file) {
     return typeof file === 'string' ? file : URL.createObjectURL(file)
+  },
+
+  // ---- Comments ----
+  async getComments(postSlug, adminMode = false) {
+    const all = read(KEYS.comments, []).filter((c) => c.postSlug === postSlug)
+    return adminMode ? all : all.filter((c) => c.approved)
+  },
+  async addComment(comment) {
+    const comments = read(KEYS.comments, [])
+    const id = 'cmt_' + Math.random().toString(36).slice(2, 10)
+    comments.push({ ...comment, id, approved: false, createdAt: new Date().toISOString() })
+    write(KEYS.comments, comments)
+    return { id }
+  },
+  async approveComment(id, approved) {
+    const comments = read(KEYS.comments, [])
+    const c = comments.find((x) => x.id === id)
+    if (c) { c.approved = approved; write(KEYS.comments, comments) }
+  },
+  async deleteComment(id) {
+    write(KEYS.comments, read(KEYS.comments, []).filter((c) => c.id !== id))
+  },
+  async getAllComments() {
+    return read(KEYS.comments, []).sort((a, b) => (b.createdAt || '').localeCompare(a.createdAt || ''))
   },
 
   // ---- Blog posts ----

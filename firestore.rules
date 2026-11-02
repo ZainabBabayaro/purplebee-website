@@ -13,39 +13,42 @@ service cloud.firestore {
         && get(/databases/$(database)/documents/admins/$(request.auth.uid)).data.isAdmin == true;
     }
 
-    // ── Inventory (store products) ──────────────────────────────────────────
-    // Public read so the store loads without login.
-    // Only admins can write.
+    // ── Inventory ───────────────────────────────────────────────────────────
     match /inventory/{productId} {
       allow read: if true;
       allow write: if isAdmin();
     }
 
     // ── Orders ──────────────────────────────────────────────────────────────
-    // Customers can create and read their own orders.
-    // Admins can read and update any order.
-    // Nobody deletes — cancel via status field.
     match /orders/{orderId} {
       allow create: if isSignedIn()
         && request.resource.data.uid == request.auth.uid
-        && request.resource.data.status == 'new';
+        && request.resource.data.status == 'pending_payment';
       allow read: if isAdmin()
         || (isSignedIn() && resource.data.uid == request.auth.uid);
       allow update: if isAdmin();
       allow delete: if false;
     }
 
-    // ── Blog posts ──────────────────────────────────────────────────────────
-    // Anyone can read published posts (public blog).
-    // Only admins can create, update or delete.
+    // ── Blog posts ───────────────────────────────────────────────────────────
     match /posts/{postId} {
       allow read: if resource.data.published == true || isAdmin();
       allow write: if isAdmin();
     }
 
-    // ── Admins collection ───────────────────────────────────────────────────
-    // Completely unreadable from the client — prevents enumeration.
-    // Only set via Firebase Console or server-side code.
+    // ── Comments ─────────────────────────────────────────────────────────────
+    // Anyone can read approved comments.
+    // Anyone can submit a new comment (lands as approved:false for moderation).
+    // Only admins can approve, unapprove, or delete.
+    match /comments/{commentId} {
+      allow read: if resource.data.approved == true || isAdmin();
+      allow create: if
+        request.resource.data.approved == false
+        && request.resource.data.keys().hasAll(['postSlug','name','email','body','createdAt','approved']);
+      allow update, delete: if isAdmin();
+    }
+
+    // ── Admins ───────────────────────────────────────────────────────────────
     match /admins/{uid} {
       allow read, write: if false;
     }

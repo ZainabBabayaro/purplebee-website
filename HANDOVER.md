@@ -116,7 +116,7 @@ Lighthouse scores. These require live testing after deployment.
   then, the forms validate and show an honest "not sent" confirmation.
 - **Email/phone/address/service area/social handles/domain:** all placeholders
   in `src/data/site.js`. Confirm and replace before launch. The placeholder
-  domain `https://www.purplebeecakes.co.uk` is used for canonical URLs, OG tags
+  domain `https://www.purplebeecakes.com` is used for canonical URLs, OG tags
   and the sitemap — update `site.url` (and `public/robots.txt`) to the live
   domain.
 - **OG image:** `public/og-image.svg` is a branded SVG placeholder. Replace with

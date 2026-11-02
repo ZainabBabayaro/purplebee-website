@@ -130,7 +130,7 @@ function statusPill(s) {
 }
 
 function money(n) {
-  return `£${Number(n).toFixed(2)}`
+  return `₦${Number(n).toLocaleString('en-NG', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
 }
 
 function OrderHistory({ uid }) {
