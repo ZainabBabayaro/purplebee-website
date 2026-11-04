@@ -6,7 +6,6 @@ import PlaceholderArt from '../components/PlaceholderArt.jsx'
 import { getPalette } from '../utils/images.js'
 import { useCart } from '../context/CartContext.jsx'
 import { dataApi } from '../services/db.js'
-import { cakes } from '../data/cakes.js'
 
 const OCCASIONS = ['All', 'Birthday', 'Wedding', 'Celebration']
 const SORT_OPTS = [
@@ -17,25 +16,6 @@ const SORT_OPTS = [
 
 function money(n) {
   return `₦${Number(n).toLocaleString('en-NG', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
-}
-
-// Seed the grid immediately from the static cakes data so the store renders
-// on first paint without a loading spinner. Firestore/local updates replace
-// this in the background.
-function seedProducts() {
-  return cakes.map((c) => ({
-    id: c.slug,
-    slug: c.slug,
-    name: c.name,
-    paletteKey: c.paletteKey,
-    collectionName: c.collectionName,
-    occasion: c.occasion,
-    summary: c.summary,
-    price: c.price,
-    stock: c.stock,
-    active: true,
-    imageUrl: '',
-  }))
 }
 
 // memo: only re-renders when the product object or cart state changes.
@@ -124,22 +104,24 @@ const StoreCard = memo(function StoreCard({ product, index }) {
 })
 
 export default function Store() {
-  const [products, setProducts] = useState(seedProducts) // instant — no spinner
+  const [products, setProducts] = useState([])
+  const [loading, setLoading] = useState(true)
   const [occasion, setOccasion] = useState('All')
   const [sort, setSort] = useState('az')
 
-  // Fetch live data in the background and silently swap in the real prices/stock.
   useEffect(() => {
     let active = true
-    const load = () =>
-      dataApi.getInventory().then((inv) => {
-        if (!active || !inv?.length) return
-        setProducts(inv)
-      }).catch(() => {})
-
-    load()
-    const unsub = dataApi.subscribe ? dataApi.subscribe(load) : () => {}
-    return () => { active = false; unsub() }
+    dataApi.getInventory()
+      .then((inv) => {
+        if (!active) return
+        setProducts(inv && inv.length > 0 ? inv : [])
+        setLoading(false)
+      })
+      .catch((err) => {
+        console.warn('Store: could not load inventory.', err?.message)
+        if (active) setLoading(false)
+      })
+    return () => { active = false }
   }, [])
 
   const filtered = useMemo(() => {
@@ -213,8 +195,12 @@ export default function Store() {
             </p>
           </div>
 
-          {/* Grid — no Reveal wrappers so cards paint immediately */}
-          {filtered.length === 0 ? (
+          {/* Grid */}
+          {loading ? (
+            <div className="flex items-center justify-center py-24">
+              <div className="h-10 w-10 animate-spin rounded-full border-2 border-plum-200 border-t-plum-600" />
+            </div>
+          ) : filtered.length === 0 ? (
             <div className="py-24 text-center text-stone">
               No designs match this filter.{' '}
               <button
