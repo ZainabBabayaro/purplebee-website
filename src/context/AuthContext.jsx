@@ -3,7 +3,10 @@ import { isFirebaseConfigured, initFirebase, ADMIN_EMAILS } from '../config/fire
 import { dataApi } from '../services/db.js'
 import { localdb } from '../services/localdb.js'
 
-const AuthContext = createContext(null)
+export const AuthContext = createContext(null)
+
+// useAuth is a hook — kept in this file for convenience.
+// The Fast Refresh warning is resolved by exporting AuthContext (not just the hook).
 export const useAuth = () => useContext(AuthContext)
 
 export function AuthProvider({ children }) {
