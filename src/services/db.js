@@ -18,8 +18,10 @@ export { isFirebaseConfigured }
 // Returns { db, auth, app } from the lazily-initialised firebase module.
 async function getFirebase() {
   await initFirebase()
-  const { db, auth, app } = await import('../config/firebase.js')
-  return { db, auth, app }
+  // Re-import after init so we get the populated values, not the initial nulls.
+  const firebase = await import('../config/firebase.js')
+  if (!firebase.db) throw new Error('Firebase db not initialised — check your firebase config.')
+  return { db: firebase.db, auth: firebase.auth, app: firebase.app }
 }
 
 // Re-export auth as a getter so components can await it.

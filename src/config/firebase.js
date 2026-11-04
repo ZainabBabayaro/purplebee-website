@@ -29,28 +29,35 @@ export let auth = null
 export let db = null
 
 let initialised = false
+let initPromise = null
 
-export async function initFirebase() {
-  if (initialised || typeof window === 'undefined') return
-  initialised = true
+export function initFirebase() {
+  if (typeof window === 'undefined') return Promise.resolve()
+  if (initialised) return Promise.resolve()
+  if (initPromise) return initPromise
 
-  const [
-    { initializeApp },
-    { getAuth },
-    { getFirestore },
-    { getAnalytics, isSupported },
-  ] = await Promise.all([
-    import('firebase/app'),
-    import('firebase/auth'),
-    import('firebase/firestore'),
-    import('firebase/analytics'),
-  ])
+  initPromise = (async () => {
+    const [
+      { initializeApp },
+      { getAuth },
+      { getFirestore },
+      { getAnalytics, isSupported },
+    ] = await Promise.all([
+      import('firebase/app'),
+      import('firebase/auth'),
+      import('firebase/firestore'),
+      import('firebase/analytics'),
+    ])
 
-  app = initializeApp(firebaseConfig)
-  auth = getAuth(app)
-  db = getFirestore(app)
+    app = initializeApp(firebaseConfig)
+    auth = getAuth(app)
+    db = getFirestore(app)
+    initialised = true
 
-  isSupported().then((ok) => { if (ok) getAnalytics(app) })
+    isSupported().then((ok) => { if (ok) getAnalytics(app) })
+  })()
+
+  return initPromise
 }
 
 export { firebaseConfig }
