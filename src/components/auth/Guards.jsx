@@ -1,6 +1,6 @@
 import { Navigate, useLocation } from 'react-router-dom'
 import { useEffect, useState } from 'react'
-import { useAuth } from '../../context/AuthContext.jsx'
+import { useAuth } from '../../context/useAuth.js'
 
 // A small, brand-aligned loading state used by guards.
 // Only rendered after the client has mounted to avoid SSR hydration mismatch.

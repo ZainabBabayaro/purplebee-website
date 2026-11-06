@@ -4,7 +4,7 @@ import { Menu, ShoppingBag, User } from 'lucide-react'
 import { navItems, primaryAction } from '../data/navigation.js'
 import { site } from '../data/site.js'
 import { useCart } from '../context/CartContext.jsx'
-import { useAuth } from '../context/AuthContext.jsx'
+import { useAuth } from '../context/useAuth.js'
 import MobileMenu from './MobileMenu.jsx'
 import { LogoLockup } from './Logo.jsx'
 

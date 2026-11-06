@@ -103,10 +103,7 @@ export default function Contact() {
                   </div>
                 </div>
 
-                <p className="mt-8 rounded-xl border border-dashed border-stone-light bg-cream/40 px-5 py-4 text-xs text-stone">
-                  Development preview — contact details, social handles and the
-                  service area are placeholders pending confirmation before launch.
-                </p>
+                
               </Reveal>
             </div>
 

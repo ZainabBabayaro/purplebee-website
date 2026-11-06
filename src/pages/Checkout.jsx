@@ -5,13 +5,13 @@ import SEO from '../components/SEO.jsx'
 import Reveal from '../components/Reveal.jsx'
 import { Input, Select, Textarea } from '../components/form/Inputs.jsx'
 import { useCart } from '../context/CartContext.jsx'
-import { useAuth } from '../context/AuthContext.jsx'
+import { useAuth } from '../context/useAuth.js'
 import { dataApi } from '../services/db.js'
 import PlaceholderArt from '../components/PlaceholderArt.jsx'
 import { getPalette } from '../utils/images.js'
 import { site } from '../data/site.js'
 
-const PAYSTACK_PUBLIC_KEY = 'pk_test_e61761c8d6623f0257a4124e0f0225a3fa838a0d'
+const PAYSTACK_PUBLIC_KEY = 'pk_live_b985e33142096821d0278cbcb768a549384c6d17'
 
 // Load Paystack script only when this page is visited — not on every page.
 function usePaystack() {
@@ -28,7 +28,7 @@ function usePaystack() {
 
 function money(n) { return `₦${Number(n).toLocaleString('en-NG', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` }
 
-const DELIVERY_OPTIONS = [
+const DELIVERY_OPTIONS = [ 
   { value: 'collection', label: 'Collection (free)' },
   { value: 'delivery', label: 'Local delivery (to be confirmed)' },
 ]
@@ -92,9 +92,9 @@ export default function Checkout() {
     }
     setBusy(true)
     setServerErr('')
+
     try {
-      // Step 1 — Save the order to Firestore with status 'pending_payment'.
-      // The webhook will update it to 'confirmed' once Paystack confirms payment.
+      // ── Step 1: Save order to Firestore ──────────────────────────────────
       const order = {
         uid: user?.uid || 'guest',
         customerName: values.name,
@@ -108,22 +108,34 @@ export default function Checkout() {
         total,
         status: 'pending_payment',
       }
-      const { id: orderId } = await dataApi.createOrder(order)
 
-      // Step 2 — Open Paystack popup with the order ID in metadata.
-      if (PAYSTACK_PUBLIC_KEY.startsWith('pk_test_YOUR') || !window.PaystackPop) {
-        // Paystack not configured — skip payment and go straight to confirmation.
+      console.log('[Checkout] Creating order in Firestore...', order)
+      let orderId
+      try {
+        const result = await dataApi.createOrder(order)
+        orderId = result.id
+        console.log('[Checkout] ✓ Order created in Firestore. Order ID:', orderId)
+      } catch (firestoreErr) {
+        console.error('[Checkout] ✗ Failed to create order in Firestore:', firestoreErr.message)
+        throw firestoreErr
+      }
+
+      // ── Step 2: Launch Paystack ───────────────────────────────────────────
+      if (!window.PaystackPop) {
+        console.warn('[Checkout] PaystackPop not available — redirecting without payment')
         clear()
         navigate('/order-confirmation', { state: { orderId, name: values.name } })
         return
       }
 
+      console.log('[Checkout] Opening Paystack popup for order:', orderId)
+
       const handler = window.PaystackPop.setup({
         key: PAYSTACK_PUBLIC_KEY,
         email: values.email,
-        amount: Math.round(total * 100), // Paystack uses kobo (smallest unit)
+        amount: Math.round(total * 100), // kobo
         currency: 'NGN',
-        ref: `PBC-${orderId}-${Date.now()}`,
+        ref: orderId, // Use Firestore order ID directly — same ID on Paystack, Firestore and admin
         metadata: {
           orderId,
           customerName: values.name,
@@ -133,18 +145,31 @@ export default function Checkout() {
           ],
         },
         callback: (response) => {
-          // Payment successful — clear cart and redirect.
+          console.log('[Checkout] ✓ Payment successful!')
+          console.log('[Checkout] Paystack reference:', response.reference)
+          console.log('[Checkout] Order ID:', orderId)
+
+          // Update order status directly from client after confirmed payment.
+          dataApi.updateOrderStatus(orderId, 'confirmed')
+            .then(() => console.log('[Checkout] ✓ Order status updated to confirmed in Firestore'))
+            .catch((err) => console.warn('[Checkout] Could not update status from client:', err.message))
+
           clear()
-          navigate('/order-confirmation', { state: { orderId, name: values.name, paystackRef: response.reference } })
+          navigate('/order-confirmation', {
+            state: { orderId, name: values.name, paystackRef: response.reference },
+          })
         },
         onClose: () => {
-          // Customer closed the popup without paying — order stays as pending_payment.
+          console.warn('[Checkout] Paystack popup closed without payment. Order remains as pending_payment.')
           setBusy(false)
           setServerErr('Payment was not completed. Your order has been saved — you can try again.')
         },
       })
+
       handler.openIframe()
+
     } catch (err) {
+      console.error('[Checkout] ✗ Checkout error:', err.message)
       setBusy(false)
       setServerErr(err.message || 'There was a problem placing your order.')
     }
@@ -220,12 +245,6 @@ export default function Checkout() {
                   onChange={set('notes')}
                   placeholder="Colour preferences, dietary requirements, anything else…"
                 />
-
-                {!user && (
-                  <div className="rounded-xl border border-plum-200 bg-plum-50 px-5 py-4 text-sm text-plum-700">
-                    <Link to="/account" className="font-medium underline">Sign in</Link> to track this order in your account, or continue as a guest.
-                  </div>
-                )}
               </div>
 
               {/* Order summary */}

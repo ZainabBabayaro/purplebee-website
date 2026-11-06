@@ -62,11 +62,49 @@ const local = localdb
 
 // ---- Firebase implementation ----------------------------------------------
 async function fbGetInventory() {
-  const { db } = await getFirebase()
-  const { collection, getDocs } = await import('firebase/firestore')
-  const snap = await getDocs(collection(db, 'inventory'))
-  if (snap.empty) return []
-  return snap.docs.map((d) => ({ id: d.id, ...d.data() }))
+  // Use the Firestore REST API for public inventory reads — no auth required.
+  // This ensures the store loads for everyone including guests.
+  const projectId = 'purplebeecakes01'
+  try {
+    const url = `https://firestore.googleapis.com/v1/projects/${projectId}/databases/(default)/documents/inventory`
+    const res = await fetch(url)
+    if (!res.ok) throw new Error(`Firestore REST error: ${res.status}`)
+    const json = await res.json()
+    if (!json.documents) return []
+    return json.documents.map((doc) => {
+      const id = doc.name.split('/').pop()
+      const fields = doc.fields || {}
+      // Convert Firestore field format to plain JS object
+      const parse = (v) => {
+        if (v.stringValue !== undefined) return v.stringValue
+        if (v.integerValue !== undefined) return Number(v.integerValue)
+        if (v.doubleValue !== undefined) return Number(v.doubleValue)
+        if (v.booleanValue !== undefined) return v.booleanValue
+        if (v.arrayValue) return (v.arrayValue.values || []).map(parse)
+        if (v.mapValue) {
+          const obj = {}
+          Object.entries(v.mapValue.fields || {}).forEach(([k, val]) => { obj[k] = parse(val) })
+          return obj
+        }
+        return null
+      }
+      const product = { id }
+      Object.entries(fields).forEach(([k, v]) => { product[k] = parse(v) })
+      return product
+    }).sort((a, b) => (a.name || '').localeCompare(b.name || ''))
+  } catch (err) {
+    console.error('[Inventory] REST fetch failed, trying SDK:', err.message)
+    // Fallback to SDK if REST fails
+    try {
+      const { db } = await getFirebase()
+      const { collection, getDocs } = await import('firebase/firestore')
+      const snap = await getDocs(collection(db, 'inventory'))
+      return snap.docs.map((d) => ({ id: d.id, ...d.data() }))
+    } catch (sdkErr) {
+      console.error('[Inventory] SDK fallback also failed:', sdkErr.message)
+      return []
+    }
+  }
 }
 
 async function fbAddProduct(product) {
@@ -157,6 +195,8 @@ async function fbCreateOrder(order) {
   const { db } = await getFirebase()
   const { collection, doc, runTransaction, increment } = await import('firebase/firestore')
   const orderRef = doc(collection(db, 'orders'))
+  // Use the Firestore-generated ID as the canonical order ID everywhere
+  const orderId = orderRef.id
   await runTransaction(db, async (tx) => {
     const refs = order.items.map((i) => doc(db, 'inventory', i.id))
     const snaps = await Promise.all(refs.map((r) => tx.get(r)))
@@ -168,9 +208,14 @@ async function fbCreateOrder(order) {
       }
       tx.update(refs[i], { stock: increment(-item.qty) })
     }
-    tx.set(orderRef, { ...order, id: orderRef.id, status: order.status || 'new', createdAt: new Date().toISOString() })
+    tx.set(orderRef, {
+      ...order,
+      id: orderId,
+      status: 'pending_payment',
+      createdAt: new Date().toISOString(),
+    })
   })
-  return { id: orderRef.id }
+  return { id: orderId }
 }
 
 async function fbGetMyOrders(uid) {
@@ -183,8 +228,17 @@ async function fbGetMyOrders(uid) {
 async function fbGetAllOrders() {
   const { db } = await getFirebase()
   const { collection, getDocs, orderBy, query } = await import('firebase/firestore')
-  const snap = await getDocs(query(collection(db, 'orders'), orderBy('createdAt', 'desc')))
-  return snap.docs.map((d) => ({ id: d.id, ...d.data() }))
+  try {
+    const snap = await getDocs(query(collection(db, 'orders'), orderBy('createdAt', 'desc')))
+    return snap.docs.map((d) => ({ id: d.id, ...d.data() }))
+  } catch {
+    // Fallback if index not ready — fetch all and sort client-side
+    const { getDocs: gd, collection: col } = await import('firebase/firestore')
+    const snap = await getDocs(col(db, 'orders'))
+    return snap.docs
+      .map((d) => ({ id: d.id, ...d.data() }))
+      .sort((a, b) => (b.createdAt || '').localeCompare(a.createdAt || ''))
+  }
 }
 
 async function fbUpdateOrderStatus(id, status) {

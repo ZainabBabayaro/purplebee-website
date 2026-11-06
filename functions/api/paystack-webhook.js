@@ -199,36 +199,46 @@ export async function onRequestPost({ request, env }) {
   const rawBody = await request.text()
   const signature = request.headers.get('x-paystack-signature') || ''
 
+  console.log('[Paystack Webhook] Received POST request')
+  console.log('[Paystack Webhook] Signature present:', !!signature)
+
   // 1. Verify webhook signature
   const secretKey = env.PAYSTACK_SECRET_KEY || ''
   if (!secretKey) {
-    console.error('PAYSTACK_SECRET_KEY is not set in Cloudflare environment variables.')
+    console.error('[Paystack Webhook] PAYSTACK_SECRET_KEY is not set.')
     return new Response('PAYSTACK_SECRET_KEY not configured', { status: 500 })
   }
 
   const isValid = await verifyPaystackSignature(rawBody, signature, secretKey)
   if (!isValid) {
-    console.warn('Paystack webhook signature verification failed.')
+    console.warn('[Paystack Webhook] Signature verification FAILED. Check PAYSTACK_SECRET_KEY matches your Paystack dashboard.')
     return new Response('Invalid signature', { status: 401 })
   }
+
+  console.log('[Paystack Webhook] Signature verified ✓')
 
   // 2. Parse Paystack webhook JSON
   let eventPayload
   try {
     eventPayload = JSON.parse(rawBody)
   } catch (err) {
+    console.error('[Paystack Webhook] Invalid JSON:', err.message)
     return new Response('Invalid JSON payload', { status: 400 })
   }
 
   const { event, data } = eventPayload
+  console.log('[Paystack Webhook] Event type:', event)
+  console.log('[Paystack Webhook] Payment reference:', data?.reference)
+  console.log('[Paystack Webhook] Payment status:', data?.status)
+  console.log('[Paystack Webhook] Metadata:', JSON.stringify(data?.metadata))
 
   // 3. Handle charge.success
   if (event === 'charge.success' && data?.status === 'success') {
     const orderId = extractOrderId(data)
+    console.log('[Paystack Webhook] Extracted orderId:', orderId)
 
     if (!orderId) {
-      console.warn(`Paystack charge.success received with reference ${data.reference}, but no matching orderId could be resolved.`)
-      // Still return 200 so Paystack does not endlessly retry
+      console.warn('[Paystack Webhook] Could not extract orderId from metadata or reference:', data.reference)
       return new Response('Event received, order ID not found', { status: 200 })
     }
 
@@ -243,26 +253,34 @@ export async function onRequestPost({ request, env }) {
         clientEmail = sa.client_email || clientEmail
         privateKey = sa.private_key || privateKey
         projectId = sa.project_id || projectId
+        console.log('[Paystack Webhook] Firebase credentials loaded from FIREBASE_SERVICE_ACCOUNT')
       } catch (e) {
-        console.error('Failed to parse FIREBASE_SERVICE_ACCOUNT JSON:', e)
+        console.error('[Paystack Webhook] Failed to parse FIREBASE_SERVICE_ACCOUNT JSON:', e.message)
       }
     }
+
+    console.log('[Paystack Webhook] Firebase project:', projectId)
+    console.log('[Paystack Webhook] Firebase client email present:', !!clientEmail)
+    console.log('[Paystack Webhook] Firebase private key present:', !!privateKey)
 
     if (clientEmail && privateKey) {
       try {
+        console.log('[Paystack Webhook] Getting Firebase access token...')
         const accessToken = await getFirebaseAccessToken(clientEmail, privateKey)
+        console.log('[Paystack Webhook] Firebase token obtained ✓')
+        console.log(`[Paystack Webhook] Updating Firestore order ${orderId}...`)
         await updateOrderInFirestore(projectId, accessToken, orderId, data)
-        console.log(`Order ${orderId} successfully confirmed via Paystack reference ${data.reference}.`)
+        console.log(`[Paystack Webhook] ✓ Order ${orderId} confirmed successfully`)
       } catch (err) {
-        console.error(`Failed to update Firestore order ${orderId}:`, err)
-        // Return 200 so Paystack won't repeat if it's an internal DB issue, or 500 if you want Paystack to retry
+        console.error(`[Paystack Webhook] Firestore update FAILED for order ${orderId}:`, err.message)
       }
     } else {
-      console.warn('Firebase service account credentials missing. Set FIREBASE_SERVICE_ACCOUNT in Cloudflare.')
+      console.error('[Paystack Webhook] Missing Firebase credentials. Set FIREBASE_SERVICE_ACCOUNT (or FIREBASE_CLIENT_EMAIL + FIREBASE_PRIVATE_KEY) in Cloudflare environment variables.')
     }
+  } else {
+    console.log(`[Paystack Webhook] Ignored event: ${event} (status: ${data?.status})`)
   }
 
-  // Paystack expects HTTP 200 OK
   return new Response(JSON.stringify({ received: true }), {
     status: 200,
     headers: { 'Content-Type': 'application/json' },

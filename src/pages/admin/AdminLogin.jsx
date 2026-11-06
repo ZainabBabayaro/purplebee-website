@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { Lock } from 'lucide-react'
 import SEO from '../../components/SEO.jsx'
 import { Input } from '../../components/form/Inputs.jsx'
-import { useAuth } from '../../context/AuthContext.jsx'
+import { useAuth } from '../../context/useAuth.js'
 
 export default function AdminLogin() {
   const { login, user, isAdmin, loading } = useAuth()

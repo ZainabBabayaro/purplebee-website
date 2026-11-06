@@ -21,12 +21,18 @@ service cloud.firestore {
 
     // ── Orders ──────────────────────────────────────────────────────────────
     match /orders/{orderId} {
-      allow create: if isSignedIn()
-        && request.resource.data.uid == request.auth.uid
-        && request.resource.data.status == 'pending_payment';
+      // Anyone (signed in or guest) can create an order.
+      allow create: if request.resource.data.status == 'pending_payment';
+
+      // Allow updating status to 'confirmed' only — this is the post-payment
+      // client-side fallback in case the webhook hasn't fired yet.
+      allow update: if isAdmin()
+        || (resource.data.status == 'pending_payment'
+            && request.resource.data.status == 'confirmed'
+            && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status']));
+
       allow read: if isAdmin()
         || (isSignedIn() && resource.data.uid == request.auth.uid);
-      allow update: if isAdmin();
       allow delete: if false;
     }
 
@@ -37,9 +43,6 @@ service cloud.firestore {
     }
 
     // ── Comments ─────────────────────────────────────────────────────────────
-    // Anyone can read approved comments.
-    // Anyone can submit a new comment (lands as approved:false for moderation).
-    // Only admins can approve, unapprove, or delete.
     match /comments/{commentId} {
       allow read: if resource.data.approved == true || isAdmin();
       allow create: if

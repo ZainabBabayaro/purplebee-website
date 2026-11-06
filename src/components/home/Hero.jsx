@@ -22,30 +22,40 @@ export default function Hero() {
         {/* ── Text ── */}
         <div className="md:col-span-5 md:pr-6">
           <Reveal>
-            <p className="eyebrow">Bespoke cake design studio</p>
+            <p className="eyebrow">Purplebee Cakes · Abuja, Nigeria</p>
           </Reveal>
           <Reveal delay={80}>
             <h1 className="mt-6 font-display text-[2.6rem] font-medium leading-[1.04] tracking-[-0.02em] text-ink sm:text-6xl md:text-[4rem]">
-              Considered cakes,
+              A cake that looks
               <br />
-              made to be{' '}
-              <span className="italic text-plum-600">remembered.</span>
+              as extraordinary as it{' '}
+              <span className="italic text-plum-600">tastes.</span>
             </h1>
           </Reveal>
           <Reveal delay={160}>
             <p className="mt-7 max-w-md text-pretty text-lg leading-relaxed text-stone">
-              A studio pairing thoughtful design with flavour made from scratch —
-              for the celebrations that deserve something personal.
+            Beautifully designed cakes.     </p>
+            
+            <p  className="py-2 max-w-md text-pretty text-lg leading-relaxed text-stone">
+                          Indulgent, carefully developed flavours. Every detail considered, from the first look to the last bite.
+
             </p>
+
+<p className=' max-w-md text-pretty text-lg leading-relaxed text-stone'>
+  Whether you're celebrating someone special or treating yourself to something exceptional, discover cakes made to make the moment even sweeter.
+
+  </p>
+        
           </Reveal>
           <Reveal delay={240}>
             <div className="mt-9 flex flex-col gap-4 sm:flex-row sm:items-center">
-              <Link to="/our-cakes" className="btn btn-primary">
-                Explore our cakes
+              <Link to="/enquiry" className="btn btn-primary">
+              Order a Cake
+                
                 <ArrowRight size={17} strokeWidth={1.8} />
               </Link>
-              <Link to="/our-story" className="btn btn-ghost">
-                Our story
+              <Link to="/our-cakes" className="btn btn-ghost">
+               Explore our cakes
               </Link>
             </div>
           </Reveal>

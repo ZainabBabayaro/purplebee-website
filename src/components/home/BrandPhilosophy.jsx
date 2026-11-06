@@ -13,28 +13,23 @@ export default function BrandPhilosophy() {
 
           {/* ── Text ── */}
           <Reveal className="order-2 md:order-1">
-            <p className="eyebrow">The thinking</p>
+            <p className="eyebrow">The Purplebee Cake Experirnce</p>
             <h2 className="mt-5 font-display text-4xl font-medium leading-tight text-ink md:text-5xl">
-              Flavour, design and colour, considered together
+                   Let's make your celebration unforgetable 
             </h2>
             <div className="mt-6 space-y-5 text-pretty leading-relaxed text-stone">
               <p>
-                A cake is asked to do two things at once — to look the part and to
-                taste of something real. We never treat those as separate jobs.
-                The flavour is designed into the structure, and the design is built
-                around how the cake will be eaten.
+          The cake is more than another item on your celebration checklist. It's the centrepiece everyone gathers around, the moment captured in photographs and, hopefully, the part everyone remembers long after the celebration.
               </p>
               <p>
-                Colour is a studio signature, used the way a painter uses it — with
-                intention, restraint and a little courage. The result should feel
-                personal, never patterned from a template.
+             But finding a cake that looks beautiful and actually tastes exceptional shouldn't mean compromising on either.
               </p>
+              <p>At Purple Bee Cakes, we bring thoughtful design and indulgent flavour together, so you can feel just as excited about serving your cake as you are about seeing it.</p>
             </div>
 
             <blockquote className="mt-9 border-l-2 border-plum-300 pl-5">
               <p className="font-display text-2xl font-medium leading-snug text-ink">
-                "The best cakes feel like they belong to one day, to one table,
-                to the people gathered there."
+                "A cake should be a feast for the eyes and a delight to the palate."
               </p>
             </blockquote>
           </Reveal>

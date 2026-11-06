@@ -109,8 +109,7 @@ export default function CakeDetail() {
               </div>
 
               <p className="mt-5 text-xs text-stone">
-                Flavours and serving sizes are development placeholders, to be
-                confirmed before launch. Pricing is provided per enquiry.
+                Flavours and serving sizes are indicative. Final details confirmed on enquiry.
               </p>
 
               <div className="mt-8 flex flex-col gap-3 sm:flex-row">

@@ -12,15 +12,16 @@ export default function Home() {
   return (
     <>
       <SEO
-        title="Bespoke Cake Design Studio"
+        title="Purplebee Cakes Abuja"
         description="Purple Bee Cakes is a cake design studio crafting bespoke celebration and wedding cakes — thoughtful design, flavour made from scratch, for the moments that matter."
         canonicalPath="/"
         structured={[organizationLd(), bakeryLd()]}
       />
       <Hero />
       {/* <FeaturedCollections /> */}
-      <SignatureGallery />
       <BrandPhilosophy />
+
+      <SignatureGallery />
       <BespokeEnquiry />
       <Testimonials />
       <FounderStory />

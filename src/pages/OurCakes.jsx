@@ -86,11 +86,7 @@ export default function OurCakes() {
             })}
           </div>
 
-          <p className="mt-14 rounded-xl border border-dashed border-stone-light bg-cream/40 px-5 py-4 text-xs text-stone">
-            Development content — cake designs, names and details shown here are
-            sample studies and will be replaced with the studio's real work and
-            photography before launch.
-          </p>
+          
         </div>
       </section>
     </>

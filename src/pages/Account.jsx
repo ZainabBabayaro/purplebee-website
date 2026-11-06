@@ -3,7 +3,7 @@ import { Link, useNavigate, useLocation } from 'react-router-dom'
 import { LogOut, Package, ChevronRight } from 'lucide-react'
 import SEO from '../components/SEO.jsx'
 import { Input } from '../components/form/Inputs.jsx'
-import { useAuth } from '../context/AuthContext.jsx'
+import { useAuth } from '../context/useAuth.js'
 import { dataApi } from '../services/db.js'
 
 // ---- Auth forms ----

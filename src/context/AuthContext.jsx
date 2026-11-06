@@ -1,13 +1,9 @@
-import { createContext, useContext, useEffect, useState } from 'react'
+import { createContext, useEffect, useState } from 'react'
 import { isFirebaseConfigured, initFirebase, ADMIN_EMAILS } from '../config/firebase.js'
 import { dataApi } from '../services/db.js'
 import { localdb } from '../services/localdb.js'
 
 export const AuthContext = createContext(null)
-
-// useAuth is a hook — kept in this file for convenience.
-// The Fast Refresh warning is resolved by exporting AuthContext (not just the hook).
-export const useAuth = () => useContext(AuthContext)
 
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null)

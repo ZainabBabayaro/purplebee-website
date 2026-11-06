@@ -108,11 +108,7 @@ export default function Footer() {
           </div>
         </div>
 
-        {/* Honest development notice — remove before launch */}
-        <p className="border-t border-plum-800 py-5 text-center text-[0.7rem] text-plum-400">
-          Development preview. Photography, testimonials, prices and business
-          details shown are placeholders pending confirmation before launch.
-        </p>
+        
       </div>
     </footer>
   )

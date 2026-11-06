@@ -47,10 +47,7 @@ export default function FounderStory() {
               </p>
             </div>
 
-            <p className="mt-6 rounded-xl border border-dashed border-stone-light bg-cream/50 px-5 py-4 text-xs text-stone">
-              Development placeholder — this section awaits the founder's real
-              name, photograph and story, to be confirmed before launch.
-            </p>
+            
 
             <Link
               to="/our-story"

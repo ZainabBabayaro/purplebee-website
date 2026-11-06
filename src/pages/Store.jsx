@@ -220,7 +220,7 @@ export default function Store() {
           )}
 
           <p className="mt-12 rounded-xl border border-dashed border-stone-light bg-cream/40 px-5 py-4 text-xs text-stone">
-            Development preview — prices and availability are placeholders to be confirmed before launch.
+            Prices shown are indicative. Final pricing confirmed on enquiry.
           </p>
         </div>
       </section>

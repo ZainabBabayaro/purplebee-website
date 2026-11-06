@@ -34,13 +34,7 @@ export default function Testimonials() {
           ))}
         </div>
 
-        {testimonialsArePlaceholders && (
-          <p className="mt-10 rounded-xl border border-dashed border-stone-light bg-ivory px-5 py-4 text-center text-xs text-stone">
-            Development content — these are sample testimonials shown as layout
-            placeholders. They will be replaced with genuine, consented customer
-            reviews before launch. No star ratings or review counts are shown.
-          </p>
-        )}
+        {testimonialsArePlaceholders && null}
       </div>
     </section>
   )
