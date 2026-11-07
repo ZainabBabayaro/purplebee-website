@@ -1,3 +1,5 @@
+import { Link } from 'react-router-dom'
+import { ArrowRight } from 'lucide-react'
 import Reveal from '../Reveal.jsx'
 import OptimizedImage from '../OptimizedImage.jsx'
 
@@ -32,6 +34,13 @@ export default function BrandPhilosophy() {
                 "A cake should be a feast for the eyes and a delight to the palate."
               </p>
             </blockquote>
+
+            <div className="mt-9">
+              <Link to="/store" className="btn btn-primary">
+                Find Your Perfect Cake
+                <ArrowRight size={17} strokeWidth={1.8} />
+              </Link>
+            </div>
           </Reveal>
 
           {/* ── Video / image ── */}
@@ -69,7 +78,9 @@ export default function BrandPhilosophy() {
           </Reveal>
 
         </div>
+        
       </div>
+      
     </section>
   )
 }

@@ -1,15 +1,18 @@
+import { useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
-import { ArrowRight } from 'lucide-react'
+import { ArrowRight, ShoppingBag } from 'lucide-react'
 import SEO, { breadcrumbLd, cakeProductLd } from '../components/SEO.jsx'
 import Breadcrumbs from '../components/Breadcrumbs.jsx'
 import OptimizedImage from '../components/OptimizedImage.jsx'
 import Reveal from '../components/Reveal.jsx'
 import CTASection from '../components/CTASection.jsx'
-import { getCakeBySlug, cakes, flavourOptions, servingGuides } from '../data/cakes.js'
+import CakeCustomiser from '../components/CakeCustomiser.jsx'
+import { getCakeBySlug, cakes, flavourOptions, fillingOptions, coveringOptions, servingGuides } from '../data/cakes.js'
 
 export default function CakeDetail() {
   const { slug } = useParams()
   const cake = getCakeBySlug(slug)
+  const [customising, setCustomising] = useState(false)
 
   if (!cake) {
     return (
@@ -21,8 +24,7 @@ export default function CakeDetail() {
   }
 
   const related = cakes.filter((c) => c.collectionSlug === cake.collectionSlug && c.slug !== cake.slug).slice(0, 3)
-  const fallbackRelated = cakes.filter((c) => c.slug !== cake.slug).slice(0, 3)
-  const relatedCakes = related.length ? related : fallbackRelated
+  const relatedCakes = related.length ? related : cakes.filter((c) => c.slug !== cake.slug).slice(0, 3)
 
   return (
     <>
@@ -58,6 +60,8 @@ export default function CakeDetail() {
       <section className="bg-ivory pb-16">
         <div className="mx-auto max-w-7xl px-5 md:px-8">
           <div className="grid gap-12 md:grid-cols-2 md:gap-16">
+
+            {/* Image */}
             <Reveal>
               <div className="overflow-hidden rounded-2xl shadow-[0_30px_70px_-35px_rgba(55,42,74,0.4)] md:sticky md:top-28">
                 <OptimizedImage
@@ -70,6 +74,7 @@ export default function CakeDetail() {
               </div>
             </Reveal>
 
+            {/* Details */}
             <Reveal delay={120}>
               <p className="eyebrow">{cake.collectionName} · {cake.occasion}</p>
               <h1 className="mt-5 font-display text-4xl font-medium leading-tight text-ink md:text-5xl">
@@ -81,9 +86,9 @@ export default function CakeDetail() {
                 <p>{cake.description}</p>
               </div>
 
-              {/* Flavours — placeholder */}
+              {/* Sponge flavours */}
               <div className="mt-10 rounded-2xl border border-line bg-cream/40 p-6">
-                <h2 className="font-display text-lg font-medium text-ink">Suggested flavours</h2>
+                <h2 className="font-display text-lg font-medium text-ink">Sponge flavours</h2>
                 <ul className="mt-4 flex flex-wrap gap-2">
                   {flavourOptions.map((f) => (
                     <li key={f} className="rounded-full border border-line bg-ivory px-4 py-1.5 text-sm text-stone">
@@ -93,9 +98,36 @@ export default function CakeDetail() {
                 </ul>
               </div>
 
-              {/* Servings — placeholder */}
-              <div className="mt-5 rounded-2xl border border-line bg-cream/40 p-6">
-                <h2 className="font-display text-lg font-medium text-ink">Serving guidance</h2>
+              {/* Fillings */}
+              <div className="mt-4 rounded-2xl border border-line bg-cream/40 p-6">
+                <h2 className="font-display text-lg font-medium text-ink">Fillings</h2>
+                <ul className="mt-4 flex flex-wrap gap-2">
+                  {fillingOptions.map((f) => (
+                    <li key={f} className="rounded-full border border-line bg-ivory px-4 py-1.5 text-sm text-stone">
+                      {f}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+
+              {/* Coverings */}
+              <div className="mt-4 rounded-2xl border border-line bg-cream/40 p-6">
+                <h2 className="font-display text-lg font-medium text-ink">Coverings</h2>
+                <ul className="mt-4 space-y-2">
+                  {coveringOptions.map((c) => (
+                    <li key={c.value} className="text-sm text-stone">
+                      <span className="font-medium text-ink">{c.label.split('—')[0].trim()}</span>
+                      {c.label.includes('—') && (
+                        <span className="text-stone"> — {c.label.split('—')[1].trim()}</span>
+                      )}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+
+              {/* Sizes */}
+              <div className="mt-4 rounded-2xl border border-line bg-cream/40 p-6">
+                <h2 className="font-display text-lg font-medium text-ink">Sizes & servings</h2>
                 <table className="mt-4 w-full text-sm">
                   <tbody>
                     {servingGuides.map((s) => (
@@ -108,17 +140,19 @@ export default function CakeDetail() {
                 </table>
               </div>
 
-              <p className="mt-5 text-xs text-stone">
-                Flavours and serving sizes are indicative. Final details confirmed on enquiry.
-              </p>
-
+              {/* Actions */}
               <div className="mt-8 flex flex-col gap-3 sm:flex-row">
-                <Link to="/enquiry" className="btn btn-primary">
-                  Enquire about this cake
+                <button
+                  type="button"
+                  onClick={() => setCustomising(true)}
+                  className="btn btn-primary"
+                >
+                  <ShoppingBag size={16} strokeWidth={1.8} />
+                  Add to basket
+                </button>
+                <Link to="/enquiry" className="btn btn-outline">
+                  Enquire about a cake
                   <ArrowRight size={16} strokeWidth={1.8} />
-                </Link>
-                <Link to={`/collections/${cake.collectionSlug}`} className="btn btn-outline">
-                  View the {cake.collectionName} collection
                 </Link>
               </div>
             </Reveal>
@@ -132,8 +166,7 @@ export default function CakeDetail() {
           <div className="flex items-center justify-between">
             <h2 className="font-display text-3xl font-medium text-ink md:text-4xl">More to explore</h2>
             <Link to="/our-cakes" className="link-underline inline-flex items-center gap-2 text-sm font-medium text-plum-600">
-              All cakes
-              <ArrowRight size={16} strokeWidth={1.8} />
+              All cakes <ArrowRight size={16} strokeWidth={1.8} />
             </Link>
           </div>
           <div className="mt-10 grid grid-cols-2 gap-5 md:grid-cols-3 md:gap-8">
@@ -162,6 +195,14 @@ export default function CakeDetail() {
       </section>
 
       <CTASection />
+
+      {/* Customiser modal */}
+      {customising && (
+        <CakeCustomiser
+          cake={cake}
+          onClose={() => setCustomising(false)}
+        />
+      )}
     </>
   )
 }

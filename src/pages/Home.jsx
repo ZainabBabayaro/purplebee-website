@@ -18,10 +18,9 @@ export default function Home() {
         structured={[organizationLd(), bakeryLd()]}
       />
       <Hero />
-      {/* <FeaturedCollections /> */}
       <BrandPhilosophy />
-
-      <SignatureGallery />
+      <FeaturedCollections />
+      {/* <SignatureGallery /> */}
       <BespokeEnquiry />
       <Testimonials />
       <FounderStory />

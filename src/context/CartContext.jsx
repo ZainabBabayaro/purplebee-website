@@ -40,6 +40,9 @@ export function CartProvider({ children }) {
           name: product.name,
           price: product.price,
           paletteKey: product.paletteKey,
+          imageUrl: product.imageUrl || '',
+          description: product.description || '',
+          customisation: product.customisation || null,
           qty,
         },
       ]

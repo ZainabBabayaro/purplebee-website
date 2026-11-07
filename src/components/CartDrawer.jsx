@@ -83,6 +83,11 @@ export default function CartDrawer() {
                       </button>
                     </div>
                     <p className="text-sm text-stone">{money(item.price)}</p>
+                    {item.customisation && (
+                      <p className="text-xs text-stone-light leading-snug mt-0.5">
+                        {item.customisation.size} · {item.customisation.flavour}
+                      </p>
+                    )}
                     <div className="mt-auto flex items-center gap-3">
                       <div className="flex items-center rounded-full border border-line">
                         <button

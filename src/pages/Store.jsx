@@ -6,6 +6,7 @@ import PlaceholderArt from '../components/PlaceholderArt.jsx'
 import { getPalette } from '../utils/images.js'
 import { useCart } from '../context/CartContext.jsx'
 import { dataApi } from '../services/db.js'
+import CakeCustomiser from '../components/CakeCustomiser.jsx'
 
 const OCCASIONS = ['All', 'Birthday', 'Wedding', 'Celebration']
 const SORT_OPTS = [
@@ -19,17 +20,8 @@ function money(n) {
 }
 
 // memo: only re-renders when the product object or cart state changes.
-const StoreCard = memo(function StoreCard({ product, index }) {
-  const { add } = useCart()
-  const [added, setAdded] = useState(false)
+const StoreCard = memo(function StoreCard({ product, index, onCustomise }) {
   const outOfStock = product.stock <= 0 || !product.active
-
-  const handleAdd = () => {
-    if (outOfStock) return
-    add(product, 1)
-    setAdded(true)
-    setTimeout(() => setAdded(false), 2000)
-  }
 
   return (
     <div className="group flex flex-col rounded-2xl border border-line bg-ivory overflow-hidden transition-shadow hover:shadow-lg">
@@ -83,19 +75,17 @@ const StoreCard = memo(function StoreCard({ product, index }) {
           </span>
           <button
             type="button"
-            onClick={handleAdd}
+            onClick={() => !outOfStock && onCustomise(product)}
             disabled={outOfStock}
             className={`flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-full px-3 py-1.5 text-xs font-medium transition-colors ${
-              added
-                ? 'bg-plum-100 text-plum-700'
-                : outOfStock
+              outOfStock
                 ? 'cursor-not-allowed bg-stone/10 text-stone-light'
                 : 'bg-plum-600 text-ivory hover:bg-plum-700'
             }`}
-            aria-label={`Add ${product.name} to basket`}
+            aria-label={`Customise and add ${product.name} to basket`}
           >
             <ShoppingBag size={16} strokeWidth={1.7} />
-            {added ? 'Added' : 'Add to basket'}
+            {outOfStock ? 'Sold out' : 'Add to basket'}
           </button>
         </div>
       </div>
@@ -108,6 +98,7 @@ export default function Store() {
   const [loading, setLoading] = useState(true)
   const [occasion, setOccasion] = useState('All')
   const [sort, setSort] = useState('az')
+  const [customising, setCustomising] = useState(null) // product being customised
 
   useEffect(() => {
     let active = true
@@ -214,7 +205,7 @@ export default function Store() {
           ) : (
             <div className="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
               {filtered.map((p, i) => (
-                <StoreCard key={p.id} product={p} index={i} />
+                <StoreCard key={p.id} product={p} index={i} onCustomise={setCustomising} />
               ))}
             </div>
           )}
@@ -224,6 +215,14 @@ export default function Store() {
           </p>
         </div>
       </section>
+
+      {/* Customiser modal */}
+      {customising && (
+        <CakeCustomiser
+          cake={customising}
+          onClose={() => setCustomising(null)}
+        />
+      )}
     </>
   )
 }

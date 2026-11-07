@@ -11,20 +11,20 @@ export default function Collections() {
     <>
       <SEO
         title="Collections"
-        description="Explore the curated cake collections from Purple Bee Cakes — design directions for romantic florals, modern sculptural forms, painterly colour and quiet luxury."
+        description="Browse all Purple Bee Cakes collections — bespoke cakes, signature designs, celebration cakes, wedding cakes, cake slices and loaf cakes."
         canonicalPath="/collections"
         structured={[breadcrumbLd([{ name: 'Home', path: '/' }, { name: 'Collections', path: '/collections' }])]}
       />
       <PageHero
-        eyebrow="Design directions"
-        title="Collections"
-        intro="Each collection is a way of thinking about cake — a shared approach to colour, texture and form. Browse the directions, then we shape a cake around your occasion."
+        eyebrow="What we make"
+        title="Our collections"
+        intro="Browse by collection or explore everything we offer. Click any collection to see all the designs inside and add them to your basket."
         trail={[{ name: 'Home', to: '/' }, { name: 'Collections', to: '/collections' }]}
       />
 
       <section className="section-y bg-ivory pt-0">
         <div className="mx-auto max-w-7xl px-5 md:px-8">
-          <div className="grid gap-8 md:grid-cols-2 md:gap-12">
+          <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-3 md:gap-10">
             {collections.map((c, i) => (
               <Reveal key={c.slug} delay={(i % 2) * 100}>
                 <Link to={`/collections/${c.slug}`} className="group block">

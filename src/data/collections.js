@@ -1,53 +1,80 @@
 // ============================================================================
-// COLLECTIONS — curated design families
-// ----------------------------------------------------------------------------
-// These are curated DIRECTIONAL collections that show how the studio thinks
-// about cake design. They are development content (`development: true`) and
-// must be confirmed or replaced by the business owner before launch. The
-// descriptions are written as design directions, not confirmed product lines.
+// COLLECTIONS — Purple Bee Cakes product categories
 // ============================================================================
 
 export const collections = [
-  {
-    slug: 'romantic-garden',
-    name: 'Romantic Garden',
-    subtitle: 'Floral, soft, alive with detail',
+    {
+    slug: 'celebration-cakes',
+    name: 'Celebration Cakes',
+    subtitle: 'For every milestone worth marking',
     description:
-      'Hand-finished sugar flowers and gathered botanical details, designed for celebrations that lean toward the romantic. Soft colour, considered asymmetry and a sense of something grown rather than simply made.',
-    occasions: ['Weddings', 'Anniversaries', 'Milestone birthdays'],
-    paletteKey: 'garden',
-    development: true,
-  },
-  {
-    slug: 'modern-sculptural',
-    name: 'Modern Sculptural',
-    subtitle: 'Minimal forms, confident lines',
-    description:
-      'Clean silhouettes and a restrained palette, where one beautiful idea is allowed to breathe. For the modern celebration that speaks quietly but says exactly what it means.',
-    occasions: ['Birthdays', 'Civil ceremonies', 'Contemporary celebrations'],
-    paletteKey: 'sculptural',
-    development: true,
-  },
-  {
-    slug: 'painterly-colour',
-    name: 'Painterly Colour',
-    subtitle: 'Colour as the subject',
-    description:
-      'Cakes that treat colour the way a painter does — layered, blended, sometimes unexpected. A celebration of hue, used with intention and never simply for its own sake.',
-    occasions: ['Birthdays', 'Celebrations', 'Creative briefs'],
+'A birthday, anniversary, graduation or a milestone worth marking. Give your celebration a centrepiece that feels as special as the occasion.',
+    occasions: ['Birthdays', 'Anniversaries', 'Graduations', 'Baby showers'],
     paletteKey: 'painterly',
-    development: true,
+    icon: '🎂',
+  },
+    {
+    slug: 'cake-slices',
+    name: 'Cake Slices',
+    subtitle: 'Your favourite part of the day, beautifully served.',
+    description:
+      'Sometimes, the best reason to have cake is simply wanting cake.  Our individual cake slices are perfect for gifting, sampling flavours, or treating yourself. Each slice is made with the same care as our full cakes.',
+    occasions: ['Gifting', 'Tasting', 'Events'],
+    paletteKey: 'garden',
+    icon: '◇',
   },
   {
-    slug: 'quiet-luxury',
-    name: 'Quiet Luxury',
-    subtitle: 'Texture, tone, restraint',
+    slug: 'loaf-cakes',
+    name: 'Loaf Cakes',
+    subtitle: 'Everyday indulgence, thoughtfully baked',
     description:
-      'Textured butters and natural tones — the kind of detail you feel before you quite notice it. Understated cakes for occasions where quiet elegance is the whole point.',
-    occasions: ['Weddings', 'Anniversaries', 'Intimate gatherings'],
+      'Elegantly flavoured loaf cakes for gifting, gathering or simply enjoying at home. Available in a rotating selection of seasonal flavours.',
+    occasions: ['Gifting', 'Home', 'Events'],
     paletteKey: 'quiet',
-    development: true,
+    icon: '▭',
   },
+  {
+    slug: 'bespoke-cakes',
+    name: 'Bespoke Cakes',
+    subtitle: 'Designed entirely around you',
+    description:
+      'Every bespoke cake begins with a conversation. We design around your occasion, your colours and your vision — no two are alike.',
+    occasions: ['Weddings', 'Birthdays', 'Milestones', 'Any celebration'],
+    paletteKey: 'garden',
+    icon: '✦',
+  },
+
+
+  {
+    slug: 'wedding-cakes',
+    name: 'Wedding Cakes',
+    subtitle: 'The centrepiece of your day',
+    description:
+      'Multi-tiered wedding cakes designed to complement your setting and style, with flavours as memorable as the occasion.',
+    occasions: ['Weddings', 'Engagements', 'Anniversaries'],
+    paletteKey: 'sculptural',
+    icon: '♡',
+  },
+{
+  slug: 'corporate-cakes',
+  name: 'Corporate Cakes',
+  subtitle: 'Making business milestones worth celebrating.',
+  description:
+    'Thoughtfully designed corporate cakes that bring a touch of distinction to company celebrations, product launches, client appreciation, team milestones and special business occasions. Beautifully presented and crafted with exceptional flavours, they make every achievement a little sweeter.',
+  occasions: [
+    'Corporate Anniversaries',
+    'Staff Birthdays',
+    'Product Launches',
+    'Company Milestones',
+    'Client Appreciation',
+    'Office Celebrations',
+    'Team Achievements',
+    'End of the year gifting'
+  ],
+  paletteKey: 'sculptural',
+  icon: '♡',
+}
+
 ]
 
 export const getCollectionBySlug = (slug) =>
