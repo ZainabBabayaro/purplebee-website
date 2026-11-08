@@ -15,8 +15,17 @@ export default function BespokeEnquiry() {
               Your occasion, designed around you
             </h2>
             <p className="mt-5 text-pretty leading-relaxed text-plum-200">
-              Commissioning a cake should feel personal and straightforward. Here
-              is how it works from the first conversation to the finished cake.
+Some celebrations call for something more personal.
+
+            </p>
+            <p className="mt-5 text-pretty leading-relaxed text-plum-200">
+A cake that reflects your style, complements your event and gives your guests something beautiful to admire.
+
+            </p>
+            <p className="mt-5 text-pretty leading-relaxed text-plum-200">
+
+
+Whether you have a clear design in mind or simply know the feeling you want to create, we'll work with you to bring your ideas together
             </p>
           </Reveal>
         </div>
@@ -48,7 +57,7 @@ export default function BespokeEnquiry() {
               to="/enquiry"
               className="btn shrink-0 bg-ivory text-plum-700 hover:bg-plum-50"
             >
-              Start an enquiry
+             Create Your Bespoke Cake
               <ArrowRight size={16} strokeWidth={1.8} />
             </Link>
           </div>

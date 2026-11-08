@@ -30,7 +30,7 @@ export const site = {
   },
 
   // ⚠️ PLACEHOLDER — confirm the real service area before launch.
-  serviceArea: 'Greater London & surrounding areas — to be confirmed',
+  serviceArea: 'Abuja, Nigeria',
 
   social: [
     // ⚠️ PLACEHOLDER handles — replace with verified accounts before launch.
@@ -49,7 +49,7 @@ export const site = {
 // Content shown on the enquiry page to set expectations. Real business only.
 export const enquiryInfo = {
   leadTime:
-    'Bespoke cakes are made to order. Please enquire as early as you can — ideally several weeks ahead — so there is time to design, source and craft your cake.',
+    'Bespoke cakes are made to order. Please enquire as early as you can. Ideally several weeks ahead so there is time to design, source and craft your cake.',
   process: [
     {
       step: '01',

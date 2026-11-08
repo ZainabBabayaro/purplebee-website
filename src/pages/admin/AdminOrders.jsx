@@ -67,11 +67,42 @@ function OrderRow({ order, onStatusChange }) {
               {/* Items */}
               <div>
                 <p className="mb-3 text-xs uppercase tracking-wide text-plum-400">Items ordered</p>
-                <ul className="space-y-2">
+                <ul className="space-y-3">
                   {(order.items || []).map((item, i) => (
-                    <li key={i} className="flex justify-between text-sm">
-                      <span className="text-ivory">{item.name} × {item.qty}</span>
-                      <span className="text-plum-300">{money(item.price * item.qty)}</span>
+                    <li key={i} className="rounded-xl bg-plum-900/60 p-3">
+                      <div className="flex justify-between text-sm">
+                        <div className="min-w-0">
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <span className="text-ivory font-medium">{item.name}</span>
+                            <span className="text-plum-400">× {item.qty}</span>
+                            {item.productType && item.productType !== 'cake' && (
+                              <span className={`rounded-full px-2 py-0.5 text-[0.6rem] font-semibold uppercase tracking-wide ${
+                                item.productType === 'cake-slice' ? 'bg-amber-900/40 text-amber-300' : 'bg-plum-800 text-plum-400'
+                              }`}>
+                                {item.productType === 'cake-slice' ? 'Slice' : 'Loaf'}
+                              </span>
+                            )}
+                          </div>
+                          {/* Customisation details for full cakes */}
+                          {item.customisation && (
+                            <div className="mt-1.5 space-y-0.5">
+                              {item.customisation.size && (
+                                <p className="text-xs text-plum-300">Size: {item.customisation.size} ({item.customisation.servings})</p>
+                              )}
+                              {item.customisation.flavour && (
+                                <p className="text-xs text-plum-300">Sponge: {item.customisation.flavour}</p>
+                              )}
+                              {item.customisation.filling && (
+                                <p className="text-xs text-plum-300">Filling: {item.customisation.filling}</p>
+                              )}
+                              {item.customisation.covering && (
+                                <p className="text-xs text-plum-300">Covering: {item.customisation.covering}</p>
+                              )}
+                            </div>
+                          )}
+                        </div>
+                        <span className="shrink-0 text-plum-300 ml-3">{money(item.price * item.qty)}</span>
+                      </div>
                     </li>
                   ))}
                 </ul>

@@ -40,9 +40,10 @@ export function CartProvider({ children }) {
           name: product.name,
           price: product.price,
           paletteKey: product.paletteKey,
-          imageUrl: product.imageUrl || '',
+          imageUrl: product.imageUrl || product.image || '',
           description: product.description || '',
           customisation: product.customisation || null,
+          productType: product.productType || 'cake',
           qty,
         },
       ]

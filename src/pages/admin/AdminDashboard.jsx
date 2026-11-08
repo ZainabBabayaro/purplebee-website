@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { ShoppingBag, Package, TrendingUp, Clock, ChevronRight } from 'lucide-react'
+import { ShoppingBag, Package, TrendingUp, Clock, ChevronRight, Layers } from 'lucide-react'
 import { dataApi, STATUS_LABEL } from '../../services/db.js'
 
 function money(n) { return `₦${Number(n).toLocaleString('en-NG', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` }
@@ -47,6 +47,13 @@ export default function AdminDashboard() {
   const revenue = orders?.reduce((n, o) => o.status !== 'cancelled' ? n + (o.total || 0) : n, 0) || 0
   const lowStock = inventory?.filter((p) => p.stock <= 3 && p.active) || []
 
+  // Product type breakdown
+  const typeCounts = (inventory || []).reduce((acc, p) => {
+    const t = p.productType || 'cake'
+    acc[t] = (acc[t] || 0) + 1
+    return acc
+  }, {})
+
   return (
     <div className="min-h-full bg-plum-950 p-6 md:p-10">
       <div className="mb-8">
@@ -67,6 +74,33 @@ export default function AdminDashboard() {
             <StatCard label="Revenue" value={money(revenue)} Icon={TrendingUp} sub="Excluding cancelled" />
             <StatCard label="Low stock" value={lowStock.length} Icon={Package} sub={lowStock.length ? lowStock.map((p) => p.name).join(', ') : 'No items low'} />
           </div>
+
+          {/* Product type breakdown */}
+          {inventory && inventory.length > 0 && (
+            <div className="mt-6 rounded-2xl bg-plum-800 p-5">
+              <div className="flex items-center justify-between mb-3">
+                <div className="flex items-center gap-2">
+                  <Layers size={16} strokeWidth={1.6} className="text-plum-300" />
+                  <p className="text-xs uppercase tracking-wide text-plum-400">Inventory by type</p>
+                </div>
+                <Link to="/admin/inventory" className="text-xs text-plum-400 hover:text-ivory">Manage →</Link>
+              </div>
+              <div className="flex flex-wrap gap-3">
+                <div className="rounded-xl bg-plum-700/50 px-4 py-2.5 text-center">
+                  <p className="font-display text-xl text-ivory">{typeCounts['cake'] || 0}</p>
+                  <p className="text-xs text-plum-300 mt-0.5">Full Cakes</p>
+                </div>
+                <div className="rounded-xl bg-amber-900/30 px-4 py-2.5 text-center">
+                  <p className="font-display text-xl text-ivory">{typeCounts['cake-slice'] || 0}</p>
+                  <p className="text-xs text-amber-300 mt-0.5">Cake Slices</p>
+                </div>
+                <div className="rounded-xl bg-plum-900 px-4 py-2.5 text-center">
+                  <p className="font-display text-xl text-ivory">{typeCounts['cake-loaf'] || 0}</p>
+                  <p className="text-xs text-plum-400 mt-0.5">Cake Loaves</p>
+                </div>
+              </div>
+            </div>
+          )}
 
           {/* Recent orders */}
           <div className="mt-10">

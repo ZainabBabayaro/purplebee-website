@@ -7,8 +7,115 @@ import OptimizedImage from '../components/OptimizedImage.jsx'
 import Reveal from '../components/Reveal.jsx'
 import CTASection from '../components/CTASection.jsx'
 import CakeCustomiser from '../components/CakeCustomiser.jsx'
+import SimpleAddToCart from '../components/SimpleAddToCart.jsx'
+import ProductTypeTag from '../components/ProductTypeTag.jsx'
 import { getCakeBySlug, cakes, flavourOptions, fillingOptions, coveringOptions, servingGuides } from '../data/cakes.js'
 
+function money(n) {
+  return `₦${Number(n).toLocaleString('en-NG', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+}
+
+// ── Full cake purchase section ────────────────────────────────────────────────
+function FullCakePurchase({ cake, onCustomise }) {
+  return (
+    <>
+      {/* Sponge flavours */}
+      <div className="mt-10 rounded-2xl border border-line bg-cream/40 p-6">
+        <h2 className="font-display text-lg font-medium text-ink">Sponge flavours</h2>
+        <ul className="mt-4 flex flex-wrap gap-2">
+          {flavourOptions.map((f) => (
+            <li key={f} className="rounded-full border border-line bg-ivory px-4 py-1.5 text-sm text-stone">{f}</li>
+          ))}
+        </ul>
+      </div>
+
+      {/* Fillings */}
+      <div className="mt-4 rounded-2xl border border-line bg-cream/40 p-6">
+        <h2 className="font-display text-lg font-medium text-ink">Fillings</h2>
+        <ul className="mt-4 flex flex-wrap gap-2">
+          {fillingOptions.map((f) => (
+            <li key={f} className="rounded-full border border-line bg-ivory px-4 py-1.5 text-sm text-stone">{f}</li>
+          ))}
+        </ul>
+      </div>
+
+      {/* Coverings */}
+      <div className="mt-4 rounded-2xl border border-line bg-cream/40 p-6">
+        <h2 className="font-display text-lg font-medium text-ink">Coverings</h2>
+        <ul className="mt-4 space-y-2">
+          {coveringOptions.map((c) => (
+            <li key={c.value} className="text-sm text-stone">
+              <span className="font-medium text-ink">{c.label.split('—')[0].trim()}</span>
+              {c.label.includes('—') && <span className="text-stone"> — {c.label.split('—')[1].trim()}</span>}
+            </li>
+          ))}
+        </ul>
+      </div>
+
+      {/* Sizes */}
+      <div className="mt-4 rounded-2xl border border-line bg-cream/40 p-6">
+        <h2 className="font-display text-lg font-medium text-ink">Sizes & servings</h2>
+        <table className="mt-4 w-full text-sm">
+          <tbody>
+            {servingGuides.map((s) => (
+              <tr key={s.size} className="border-b border-line last:border-0">
+                <td className="py-2 font-medium text-ink">{s.size}</td>
+                <td className="py-2 text-right text-stone">{s.servings}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+
+      {/* Actions */}
+      <div className="mt-8 flex flex-col gap-3 sm:flex-row">
+        <button type="button" onClick={onCustomise} className="btn btn-primary">
+          <ShoppingBag size={16} strokeWidth={1.8} />
+          Customise &amp; add to basket
+        </button>
+        <Link to="/enquiry" className="btn btn-outline">
+          Enquire about this cake
+          <ArrowRight size={16} strokeWidth={1.8} />
+        </Link>
+      </div>
+      <p className="mt-3 text-xs text-stone">
+        Choose your sponge, filling, covering and size before adding to basket.
+      </p>
+    </>
+  )
+}
+
+// ── Slice / Loaf purchase section ─────────────────────────────────────────────
+function SimplePurchase({ cake }) {
+  const isSlice = cake.productType === 'cake-slice'
+  return (
+    <>
+      <div className="mt-10 rounded-2xl border border-line bg-cream/40 p-6">
+        <div className="flex items-center justify-between gap-4">
+          <div>
+            <h2 className="font-display text-lg font-medium text-ink">
+              {isSlice ? 'Individual slice' : 'Full loaf'}
+            </h2>
+            <p className="mt-1 text-sm text-stone">
+              {isSlice
+                ? 'Each slice is freshly made to order. Perfect for gifting or treating yourself.'
+                : 'Made fresh to order. Keeps well for 3–4 days at room temperature.'}
+            </p>
+          </div>
+          <span className="font-display text-2xl font-medium text-ink shrink-0">
+            {money(cake.price)}
+          </span>
+        </div>
+      </div>
+
+      <div className="mt-6">
+        <SimpleAddToCart product={cake} />
+      </div>
+    </>
+  )
+}
+
+// ── Page ──────────────────────────────────────────────────────────────────────
 export default function CakeDetail() {
   const { slug } = useParams()
   const cake = getCakeBySlug(slug)
@@ -17,13 +124,16 @@ export default function CakeDetail() {
   if (!cake) {
     return (
       <div className="px-5 pt-40 pb-20 text-center">
-        <h1 className="font-display text-3xl text-ink">Cake not found</h1>
+        <h1 className="font-display text-3xl text-ink">Product not found</h1>
         <Link to="/our-cakes" className="btn btn-outline mt-8">Back to the gallery</Link>
       </div>
     )
   }
 
-  const related = cakes.filter((c) => c.collectionSlug === cake.collectionSlug && c.slug !== cake.slug).slice(0, 3)
+  const isFullCake = cake.productType === 'cake'
+  const related = cakes
+    .filter((c) => c.collectionSlug === cake.collectionSlug && c.slug !== cake.slug)
+    .slice(0, 3)
   const relatedCakes = related.length ? related : cakes.filter((c) => c.slug !== cake.slug).slice(0, 3)
 
   return (
@@ -68,7 +178,7 @@ export default function CakeDetail() {
                   src={cake.image}
                   seed={`cake-${slug}`}
                   paletteKey={cake.paletteKey}
-                  alt={`${cake.name} cake — ${cake.summary}`}
+                  alt={`${cake.name} — ${cake.summary}`}
                   aspect="4 / 5"
                 />
               </div>
@@ -76,85 +186,34 @@ export default function CakeDetail() {
 
             {/* Details */}
             <Reveal delay={120}>
-              <p className="eyebrow">{cake.collectionName} · {cake.occasion}</p>
+              {/* Collection + product type tags */}
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="eyebrow">{cake.collectionName}</span>
+                <span className="text-stone-light">·</span>
+                <ProductTypeTag productType={cake.productType} />
+              </div>
+
               <h1 className="mt-5 font-display text-4xl font-medium leading-tight text-ink md:text-5xl">
                 {cake.name}
               </h1>
+
+              {/* Price — always visible */}
+              <p className="mt-4 font-display text-3xl font-medium text-ink">
+                {money(cake.price)}
+              </p>
+
               <p className="mt-4 text-lg leading-relaxed text-stone">{cake.summary}</p>
 
-              <div className="mt-8 space-y-5 text-pretty leading-relaxed text-stone">
+              <div className="mt-6 space-y-4 text-pretty leading-relaxed text-stone">
                 <p>{cake.description}</p>
               </div>
 
-              {/* Sponge flavours */}
-              <div className="mt-10 rounded-2xl border border-line bg-cream/40 p-6">
-                <h2 className="font-display text-lg font-medium text-ink">Sponge flavours</h2>
-                <ul className="mt-4 flex flex-wrap gap-2">
-                  {flavourOptions.map((f) => (
-                    <li key={f} className="rounded-full border border-line bg-ivory px-4 py-1.5 text-sm text-stone">
-                      {f}
-                    </li>
-                  ))}
-                </ul>
-              </div>
-
-              {/* Fillings */}
-              <div className="mt-4 rounded-2xl border border-line bg-cream/40 p-6">
-                <h2 className="font-display text-lg font-medium text-ink">Fillings</h2>
-                <ul className="mt-4 flex flex-wrap gap-2">
-                  {fillingOptions.map((f) => (
-                    <li key={f} className="rounded-full border border-line bg-ivory px-4 py-1.5 text-sm text-stone">
-                      {f}
-                    </li>
-                  ))}
-                </ul>
-              </div>
-
-              {/* Coverings */}
-              <div className="mt-4 rounded-2xl border border-line bg-cream/40 p-6">
-                <h2 className="font-display text-lg font-medium text-ink">Coverings</h2>
-                <ul className="mt-4 space-y-2">
-                  {coveringOptions.map((c) => (
-                    <li key={c.value} className="text-sm text-stone">
-                      <span className="font-medium text-ink">{c.label.split('—')[0].trim()}</span>
-                      {c.label.includes('—') && (
-                        <span className="text-stone"> — {c.label.split('—')[1].trim()}</span>
-                      )}
-                    </li>
-                  ))}
-                </ul>
-              </div>
-
-              {/* Sizes */}
-              <div className="mt-4 rounded-2xl border border-line bg-cream/40 p-6">
-                <h2 className="font-display text-lg font-medium text-ink">Sizes & servings</h2>
-                <table className="mt-4 w-full text-sm">
-                  <tbody>
-                    {servingGuides.map((s) => (
-                      <tr key={s.size} className="border-b border-line last:border-0">
-                        <td className="py-2 font-medium text-ink">{s.size}</td>
-                        <td className="py-2 text-right text-stone">{s.servings}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-
-              {/* Actions */}
-              <div className="mt-8 flex flex-col gap-3 sm:flex-row">
-                <button
-                  type="button"
-                  onClick={() => setCustomising(true)}
-                  className="btn btn-primary"
-                >
-                  <ShoppingBag size={16} strokeWidth={1.8} />
-                  Add to basket
-                </button>
-                <Link to="/enquiry" className="btn btn-outline">
-                  Enquire about a cake
-                  <ArrowRight size={16} strokeWidth={1.8} />
-                </Link>
-              </div>
+              {/* Purchase section — branches by product type */}
+              {isFullCake ? (
+                <FullCakePurchase cake={cake} onCustomise={() => setCustomising(true)} />
+              ) : (
+                <SimplePurchase cake={cake} />
+              )}
             </Reveal>
           </div>
         </div>
@@ -173,7 +232,7 @@ export default function CakeDetail() {
             {relatedCakes.map((c, i) => (
               <Reveal key={c.slug} delay={i * 90}>
                 <Link to={`/cakes/${c.slug}`} className="group block">
-                  <div className="overflow-hidden rounded-xl bg-ivory">
+                  <div className="overflow-hidden rounded-xl bg-ivory relative">
                     <OptimizedImage
                       src={c.image}
                       seed={`cake-${c.slug}`}
@@ -182,11 +241,14 @@ export default function CakeDetail() {
                       aspect="4 / 5"
                       className="transition-transform duration-700 ease-out group-hover:scale-[1.04]"
                     />
+                    <div className="absolute left-3 top-3">
+                      <ProductTypeTag productType={c.productType} />
+                    </div>
                   </div>
                   <h3 className="mt-4 font-display text-lg font-medium text-ink transition-colors group-hover:text-plum-600 md:text-xl">
                     {c.name}
                   </h3>
-                  <p className="mt-0.5 text-sm text-stone">{c.occasion}</p>
+                  <p className="mt-0.5 text-sm text-stone">{c.collectionName}</p>
                 </Link>
               </Reveal>
             ))}
@@ -196,7 +258,7 @@ export default function CakeDetail() {
 
       <CTASection />
 
-      {/* Customiser modal */}
+      {/* Full cake customiser modal */}
       {customising && (
         <CakeCustomiser
           cake={cake}

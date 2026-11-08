@@ -20,6 +20,18 @@ export default function AdminLogin() {
     }
   }, [loading, user, isAdmin, navigate])
 
+  // Show a spinner while we have a user but isAdmin check is still in progress
+  if (!loading && user && !isAdmin) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-plum-900 px-5">
+        <div className="text-center">
+          <div className="mx-auto h-8 w-8 animate-spin rounded-full border-2 border-plum-600 border-t-plum-200 mb-4" />
+          <p className="text-sm text-plum-400">Verifying admin access…</p>
+        </div>
+      </div>
+    )
+  }
+
   const set = (k) => (e) => {
     setValues((v) => ({ ...v, [k]: e.target.value }))
     if (errors[k]) setErrors((er) => ({ ...er, [k]: undefined }))
@@ -36,8 +48,8 @@ export default function AdminLogin() {
     setBusy(true)
     try {
       await login({ email: values.email, password: values.password })
-      // AuthContext will update isAdmin; redirect happens on next render.
-      navigate('/admin/dashboard', { replace: true })
+      // Do NOT navigate immediately — isAdmin is not yet confirmed.
+      // The useEffect above watches for isAdmin to become true and then navigates.
     } catch (err) {
       setServerErr(err.message || 'Incorrect email or password.')
     } finally {

@@ -1,65 +1,87 @@
 import { useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
+import { ArrowRight } from 'lucide-react'
 import SEO, { breadcrumbLd } from '../components/SEO.jsx'
 import PageHero from '../components/PageHero.jsx'
 import OptimizedImage from '../components/OptimizedImage.jsx'
 import Reveal from '../components/Reveal.jsx'
 import { cakes } from '../data/cakes.js'
 
-const occasions = ['All', 'Wedding', 'Birthday', 'Celebration']
+// Gallery filters — brief specifies: All Cakes, Birthday, Wedding,
+// Anniversary, Milestone Celebrations, Custom Designs.
+// Map these to actual cake data by occasion + collectionSlug.
+const FILTERS = [
+  { label: 'All Cakes',            match: () => true },
+  { label: 'Birthday Cakes',       match: (c) => c.occasion === 'Birthday' },
+  { label: 'Wedding Cakes',        match: (c) => c.occasion === 'Wedding' },
+  { label: 'Anniversary Cakes',    match: (c) => c.occasion === 'Anniversary' || c.occasion === 'Celebration' },
+  { label: 'Milestone Celebrations', match: (c) => c.occasion === 'Celebration' || c.collectionSlug === 'celebration-cakes' },
+  { label: 'Custom Designs',       match: (c) => c.collectionSlug === 'bespoke-cakes' || c.collectionSlug === 'wedding-cakes' },
+]
 
 export default function OurCakes() {
-  const [filter, setFilter] = useState('All')
+  const [filterIndex, setFilterIndex] = useState(0)
 
   const filtered = useMemo(
-    () => (filter === 'All' ? cakes : cakes.filter((c) => c.occasion === filter)),
-    [filter, cakes],
+    () => cakes.filter(FILTERS[filterIndex].match),
+    [filterIndex],
   )
 
   return (
     <>
       <SEO
-        title="Our Cakes"
-        description="Browse the Purple Bee Cakes gallery of bespoke celebration, birthday and wedding cake designs — each made to order for one occasion."
+        title="Custom Birthday & Celebration Cakes in Abuja | Purple Bee Cakes"
+        description="Explore custom birthday cakes, wedding cakes, anniversary and celebration cake designs in Abuja. Find a design you love and commission a cake made entirely for your occasion."
         canonicalPath="/our-cakes"
-        structured={[breadcrumbLd([{ name: 'Home', path: '/' }, { name: 'Our Cakes', path: '/our-cakes' }])]}
+        structured={[breadcrumbLd([
+          { name: 'Home', path: '/' },
+          { name: 'Our Cakes', path: '/our-cakes' },
+        ])]}
       />
+
       <PageHero
         eyebrow="The gallery"
-        title="Our cakes"
-        intro="A growing collection of designs made for real celebrations. Filter by occasion, then open any cake to read the thinking behind it and enquire."
+        title="Our cakes."
+        intro="Explore our collection of carefully designed cakes — from timeless and elegant creations to expressive, artistic designs. Each cake is an opportunity to bring your celebration to life through colour, texture, flavour and detail."
         trail={[{ name: 'Home', to: '/' }, { name: 'Our Cakes', to: '/our-cakes' }]}
       />
 
       <section className="section-y bg-ivory pt-0">
         <div className="mx-auto max-w-7xl px-5 md:px-8">
+
           {/* Filters */}
-          <div className="flex flex-wrap items-center gap-3" role="group" aria-label="Filter cakes by occasion">
-            {occasions.map((o) => {
-              const active = filter === o
-              return (
-                <button
-                  key={o}
-                  type="button"
-                  onClick={() => setFilter(o)}
-                  aria-pressed={active}
-                  className={`rounded-full px-5 py-2 text-sm font-medium transition-colors ${
-                    active
-                      ? 'bg-plum-600 text-ivory'
-                      : 'border border-line bg-ivory text-ink hover:border-plum-300'
-                  }`}
-                >
-                  {o}
-                </button>
-              )
-            })}
+          <div
+            className="flex flex-wrap items-center gap-2 border-b border-line pb-5"
+            role="group"
+            aria-label="Filter cakes by type"
+          >
+            {FILTERS.map((f, i) => (
+              <button
+                key={f.label}
+                type="button"
+                onClick={() => setFilterIndex(i)}
+                aria-pressed={filterIndex === i}
+                className={`rounded-full px-4 py-1.5 text-sm font-medium transition-colors ${
+                  filterIndex === i
+                    ? 'bg-plum-600 text-ivory'
+                    : 'border border-line bg-ivory text-ink hover:border-plum-300'
+                }`}
+              >
+                {f.label}
+              </button>
+            ))}
           </div>
 
-          <div className="mt-12 grid grid-cols-2 gap-5 md:grid-cols-3 md:gap-8">
+          <p className="mt-4 text-xs text-stone">
+            Showing {filtered.length} design{filtered.length !== 1 ? 's' : ''}
+          </p>
+
+          {/* Gallery grid */}
+          <div className="mt-10 grid grid-cols-2 gap-5 md:grid-cols-3 md:gap-8">
             {filtered.map((cake, i) => {
               const offset = i % 3 === 1 ? 'md:mt-12' : ''
               return (
-                <Reveal key={cake.slug} delay={(i % 3) * 80} className={offset}>
+                <Reveal key={cake.slug} delay={(i % 3) * 70} className={offset}>
                   <Link to={`/cakes/${cake.slug}`} className="group block">
                     <div className="overflow-hidden rounded-xl bg-cream">
                       <OptimizedImage
@@ -76,7 +98,7 @@ export default function OurCakes() {
                         {cake.name}
                       </h2>
                       <span className="shrink-0 text-xs uppercase tracking-wide text-stone-light">
-                        {cake.occasion}
+                        {cake.collectionName}
                       </span>
                     </div>
                     <p className="mt-1 text-sm leading-snug text-stone">{cake.summary}</p>
@@ -86,7 +108,26 @@ export default function OurCakes() {
             })}
           </div>
 
-          
+          {/* Gallery closing section */}
+          <Reveal className="mt-20 rounded-3xl bg-plum-900 px-8 py-12 text-center text-ivory md:py-16">
+            <p className="eyebrow text-plum-300">Not found what you are looking for?</p>
+            <h2 className="mt-5 font-display text-3xl font-medium leading-tight text-ivory md:text-4xl">
+              Every cake we make can be made for you.
+            </h2>
+            <p className="mx-auto mt-5 max-w-xl text-pretty leading-relaxed text-plum-200">
+              If you have a specific vision in mind, we can design a cake entirely around your occasion, palette and preferences. Tell us what you are imagining and we will bring it to life.
+            </p>
+            <div className="mt-9 flex flex-col items-center gap-4 sm:flex-row sm:justify-center">
+              <Link to="/cake-enquiry" className="btn bg-ivory text-plum-700 hover:bg-plum-50">
+                Start a cake enquiry
+                <ArrowRight size={16} strokeWidth={1.8} />
+              </Link>
+              <Link to="/shop" className="btn border border-plum-600 text-ivory hover:bg-plum-800">
+                Shop our cakes
+              </Link>
+            </div>
+          </Reveal>
+
         </div>
       </section>
     </>

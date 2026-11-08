@@ -2,14 +2,13 @@ import { useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { X, Minus, Plus, ShoppingBag, Trash2 } from 'lucide-react'
 import { useCart } from '../context/CartContext.jsx'
-import PlaceholderArt from './PlaceholderArt.jsx'
-import { getPalette } from '../utils/images.js'
+import OptimizedImage from './OptimizedImage.jsx'
+import ProductTypeTag from './ProductTypeTag.jsx'
 
 function money(n) {
   return `₦${Number(n).toLocaleString('en-NG', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
 }
 
-// Slide-in cart drawer. Opens automatically when an item is added.
 export default function CartDrawer() {
   const { items, open, setOpen, setQty, remove, total, count } = useCart()
 
@@ -36,10 +35,12 @@ export default function CartDrawer() {
         aria-modal="true"
         aria-label="Your basket"
       >
+        {/* Header */}
         <div className="flex items-center justify-between border-b border-line px-6 py-5">
           <h2 className="flex items-center gap-2 font-display text-xl text-ink">
             <ShoppingBag size={20} strokeWidth={1.6} />
-            Your basket {count > 0 && <span className="text-sm text-stone">({count})</span>}
+            Your basket
+            {count > 0 && <span className="text-sm text-stone">({count})</span>}
           </h2>
           <button
             type="button"
@@ -53,6 +54,7 @@ export default function CartDrawer() {
 
         {items.length === 0 ? (
           <div className="flex flex-1 flex-col items-center justify-center px-6 text-center">
+            <ShoppingBag size={40} strokeWidth={1.2} className="text-plum-200 mb-4" />
             <p className="text-stone">Your basket is empty.</p>
             <Link to="/store" onClick={() => setOpen(false)} className="btn btn-outline mt-6">
               Browse the store
@@ -63,32 +65,53 @@ export default function CartDrawer() {
             <ul className="flex-1 overflow-y-auto px-6 py-4">
               {items.map((item) => (
                 <li key={item.id} className="flex gap-4 border-b border-line py-4">
-                  <div className="h-20 w-20 shrink-0 overflow-hidden rounded-lg bg-cream">
-                    <PlaceholderArt
+                  {/* Image */}
+                  <div className="h-20 w-20 shrink-0 overflow-hidden rounded-xl bg-cream">
+                    <OptimizedImage
+                      src={item.imageUrl || ''}
                       seed={`cake-${item.slug}`}
-                      palette={getPalette(item.paletteKey)}
-                      className="h-full w-full"
-                      label={`${item.name} illustration`}
+                      paletteKey={item.paletteKey || 'garden'}
+                      alt={item.name}
+                      aspect="1 / 1"
+                      imgClassName="object-cover"
                     />
                   </div>
-                  <div className="flex flex-1 flex-col">
-                    <div className="flex justify-between gap-2">
-                      <p className="font-medium text-ink">{item.name}</p>
+
+                  {/* Details */}
+                  <div className="flex flex-1 flex-col min-w-0">
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="min-w-0">
+                        <div className="flex flex-wrap items-center gap-1.5 mb-0.5">
+                          {item.productType && (
+                            <ProductTypeTag productType={item.productType} />
+                          )}
+                        </div>
+                        <p className="font-medium text-ink leading-snug">{item.name}</p>
+                        {/* Customisation summary for full cakes */}
+                        {item.customisation && (
+                          <p className="text-xs text-stone-light mt-0.5 leading-snug">
+                            {[
+                              item.customisation.size,
+                              item.customisation.flavour,
+                              item.customisation.filling,
+                              item.customisation.covering,
+                            ].filter(Boolean).join(' · ')}
+                          </p>
+                        )}
+                      </div>
                       <button
                         onClick={() => remove(item.id)}
-                        className="text-stone-light hover:text-red-500"
+                        className="shrink-0 text-stone-light hover:text-red-500 mt-0.5"
                         aria-label={`Remove ${item.name}`}
                       >
-                        <Trash2 size={16} strokeWidth={1.6} />
+                        <Trash2 size={15} strokeWidth={1.6} />
                       </button>
                     </div>
-                    <p className="text-sm text-stone">{money(item.price)}</p>
-                    {item.customisation && (
-                      <p className="text-xs text-stone-light leading-snug mt-0.5">
-                        {item.customisation.size} · {item.customisation.flavour}
-                      </p>
-                    )}
-                    <div className="mt-auto flex items-center gap-3">
+
+                    <p className="text-sm text-stone mt-1">{money(item.price)}</p>
+
+                    {/* Quantity + line total */}
+                    <div className="mt-auto pt-2 flex items-center gap-3">
                       <div className="flex items-center rounded-full border border-line">
                         <button
                           onClick={() => setQty(item.id, item.qty - 1)}
@@ -115,13 +138,14 @@ export default function CartDrawer() {
               ))}
             </ul>
 
+            {/* Footer */}
             <div className="border-t border-line px-6 py-5">
-              <div className="flex items-center justify-between">
+              <div className="flex items-center justify-between mb-1">
                 <span className="text-stone">Subtotal</span>
                 <span className="font-display text-2xl text-ink">{money(total)}</span>
               </div>
-              <p className="mt-1 text-xs text-stone">
-                Final pricing is confirmed before payment. Delivery calculated at checkout.
+              <p className="text-xs text-stone">
+                Final pricing confirmed before payment. Delivery calculated at checkout.
               </p>
               <Link
                 to="/checkout"

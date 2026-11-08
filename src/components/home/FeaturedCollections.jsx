@@ -26,7 +26,7 @@ export default function FeaturedCollections() {
               to="/our-cakes"
               className="btn btn-primary shrink-0"
             >
-              Explore all cakes
+              Explore cakes
               <ArrowRight size={16} strokeWidth={1.8} />
             </Link>
           </Reveal>

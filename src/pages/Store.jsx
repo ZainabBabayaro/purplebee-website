@@ -7,6 +7,8 @@ import { getPalette } from '../utils/images.js'
 import { useCart } from '../context/CartContext.jsx'
 import { dataApi } from '../services/db.js'
 import CakeCustomiser from '../components/CakeCustomiser.jsx'
+import SimpleAddToCart from '../components/SimpleAddToCart.jsx'
+import ProductTypeTag from '../components/ProductTypeTag.jsx'
 
 const OCCASIONS = ['All', 'Birthday', 'Wedding', 'Celebration']
 const SORT_OPTS = [
@@ -19,9 +21,10 @@ function money(n) {
   return `₦${Number(n).toLocaleString('en-NG', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
 }
 
-// memo: only re-renders when the product object or cart state changes.
+// memo: only re-renders when the product object changes.
 const StoreCard = memo(function StoreCard({ product, index, onCustomise }) {
   const outOfStock = product.stock <= 0 || !product.active
+  const isFullCake = product.productType === 'cake'
 
   return (
     <div className="group flex flex-col rounded-2xl border border-line bg-ivory overflow-hidden transition-shadow hover:shadow-lg">
@@ -45,17 +48,17 @@ const StoreCard = memo(function StoreCard({ product, index, onCustomise }) {
             label={`${product.name} illustration`}
           />
         )}
-
+        {/* Product type tag */}
+        <div className="absolute left-3 top-3">
+          <ProductTypeTag productType={product.productType || 'cake'} />
+        </div>
         {outOfStock && (
           <div className="absolute inset-0 flex items-center justify-center bg-ivory/70 backdrop-blur-sm">
-            <span className="rounded-full bg-stone/20 px-4 py-1.5 text-xs font-medium uppercase tracking-wide text-stone">
-              Sold out
-            </span>
+            <span className="rounded-full bg-stone/20 px-4 py-1.5 text-xs font-medium uppercase tracking-wide text-stone">Sold out</span>
           </div>
         )}
-
         {product.stock > 0 && product.stock <= 3 && (
-          <span className="absolute left-3 top-3 rounded-full bg-honey-500 px-2.5 py-1 text-[0.65rem] font-semibold text-ivory">
+          <span className="absolute right-3 top-3 rounded-full bg-honey-500 px-2.5 py-1 text-[0.65rem] font-semibold text-ivory">
             Only {product.stock} left
           </span>
         )}
@@ -63,30 +66,28 @@ const StoreCard = memo(function StoreCard({ product, index, onCustomise }) {
 
       {/* Details */}
       <div className="flex flex-1 flex-col p-5">
-        <span className="text-[0.7rem] uppercase tracking-[0.18em] text-plum-600">
-          {product.collectionName}
-        </span>
+        <span className="text-[0.7rem] uppercase tracking-[0.18em] text-plum-600">{product.collectionName}</span>
         <h2 className="mt-1 font-display text-xl font-medium text-ink">{product.name}</h2>
         <p className="mt-1.5 flex-1 text-sm leading-snug text-stone">{product.summary}</p>
 
         <div className="mt-4 flex items-center justify-between gap-3">
-          <span className="font-display text-2xl font-medium text-ink">
-            {money(product.price)}
-          </span>
-          <button
-            type="button"
-            onClick={() => !outOfStock && onCustomise(product)}
-            disabled={outOfStock}
-            className={`flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-full px-3 py-1.5 text-xs font-medium transition-colors ${
-              outOfStock
-                ? 'cursor-not-allowed bg-stone/10 text-stone-light'
-                : 'bg-plum-600 text-ivory hover:bg-plum-700'
-            }`}
-            aria-label={`Customise and add ${product.name} to basket`}
-          >
-            <ShoppingBag size={16} strokeWidth={1.7} />
-            {outOfStock ? 'Sold out' : 'Add to basket'}
-          </button>
+          <span className="font-display text-2xl font-medium text-ink">{money(product.price)}</span>
+          {isFullCake ? (
+            <button
+              type="button"
+              onClick={() => !outOfStock && onCustomise(product)}
+              disabled={outOfStock}
+              className={`flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-full px-3 py-1.5 text-xs font-medium transition-colors ${
+                outOfStock ? 'cursor-not-allowed bg-stone/10 text-stone-light' : 'bg-plum-600 text-ivory hover:bg-plum-700'
+              }`}
+              aria-label={`Customise and add ${product.name} to basket`}
+            >
+              <ShoppingBag size={16} strokeWidth={1.7} />
+              {outOfStock ? 'Sold out' : 'Add to basket'}
+            </button>
+          ) : (
+            <SimpleAddToCart product={product} compact />
+          )}
         </div>
       </div>
     </div>

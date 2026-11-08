@@ -32,10 +32,21 @@ export function AuthProvider({ children }) {
             displayName: fbUser.displayName || fbUser.email.split('@')[0],
           }
           setUser(u)
-          const admin =
-            (await dataApi.isAdmin(fbUser.uid)) ||
-            ADMIN_EMAILS.includes((fbUser.email || '').toLowerCase())
-          setIsAdmin(admin)
+          // Check email allowlist first — no Firestore read required.
+          // The admins collection is intentionally unreadable from the client.
+          const byEmail = ADMIN_EMAILS.includes((fbUser.email || '').toLowerCase())
+          if (byEmail) {
+            setIsAdmin(true)
+            setLoading(false)
+            return
+          }
+          // Fallback Firestore check — silently fails if rules block it.
+          try {
+            const adminByFirestore = await dataApi.isAdmin(fbUser.uid)
+            setIsAdmin(adminByFirestore)
+          } catch {
+            setIsAdmin(false)
+          }
           setLoading(false)
         })
       })
