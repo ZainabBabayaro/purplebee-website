@@ -34,13 +34,62 @@ export const coveringOptions = [
   { value: 'whipped-cream',  label: 'Whipped cream — light, soft finish' },
 ]
 
-// Serving guidance — used by full cakes only.
+// Serving guidance — used by single-tier full cakes only.
 export const servingGuides = [
   { size: '6 inch',  servings: '6–8 servings' },
   { size: '8 inch',  servings: '12–16 servings' },
   { size: '10 inch', servings: '22–28 servings' },
   { size: '12 inch', servings: '36–45 servings' },
 ]
+
+// Options for the celebrant / event fields collected with an order.
+export const eventTypeOptions = [
+  { value: 'Birthday',    label: 'Birthday' },
+  { value: 'Wedding',     label: 'Wedding' },
+  { value: 'Anniversary', label: 'Anniversary' },
+  { value: 'Baby Shower', label: 'Baby shower' },
+  { value: 'Graduation',  label: 'Graduation' },
+  { value: 'Corporate',   label: 'Corporate event' },
+  { value: 'Other',       label: 'Other' },
+]
+
+export const celebrantGenderOptions = [
+  { value: 'Female',            label: 'Female' },
+  { value: 'Male',              label: 'Male' },
+  { value: 'Non-binary',        label: 'Non-binary' },
+  { value: 'Prefer not to say', label: 'Prefer not to say' },
+]
+
+// ── Tiered cake sizes ─────────────────────────────────────────────────────────
+// Tiered cakes are sold by tier combinations rather than one diameter. Each
+// option below is a two-tier stack (both tiers three layers deep), starting at
+// 6" + 8" and finishing at 12" + 14". Prices scale with the tier pair and can
+// be edited per product in the admin inventory.
+export const DEFAULT_TIER_SIZES = [
+  { id: 'tier-6-8',   label: '6" 3 layers + 8" 3 layers',   servings: '20–30 servings',  priceFactor: 1 },
+  { id: 'tier-8-10',  label: '8" 3 layers + 10" 3 layers',  servings: '40–55 servings',  priceFactor: 1.3 },
+  { id: 'tier-10-12', label: '10" 3 layers + 12" 3 layers', servings: '65–80 servings',  priceFactor: 1.65 },
+  { id: 'tier-12-14', label: '12" 3 layers + 14" 3 layers', servings: '95–120 servings', priceFactor: 2 },
+]
+
+// Build the default tier options for a product, scaled from its base price.
+export function buildTierVariants(basePrice = 0) {
+  return DEFAULT_TIER_SIZES.map(({ id, label, servings, priceFactor }) => ({
+    id,
+    label,
+    servings,
+    price: Math.round((Number(basePrice) * priceFactor) / 1000) * 1000,
+  }))
+}
+
+// The price to advertise for a product: the lowest variant when the product
+// has size variations, otherwise the product's own price.
+export function productPriceFrom(product) {
+  const prices = (product?.variants || [])
+    .map((v) => Number(v.price))
+    .filter((n) => Number.isFinite(n))
+  return prices.length ? Math.min(...prices) : Number(product?.price) || 0
+}
 
 // Human-readable labels for product type tags
 export const productTypeLabel = {
@@ -55,6 +104,7 @@ const rawCakes = [
     slug: 'iris',
     name: 'Iris',
     productType: 'cake',
+    tiered: true,
     image: '/images/cakes/ivory-gold-cascade-cake.jpg',
     collectionSlug: 'wedding-cakes',
     collectionName: 'Wedding Cakes',
@@ -68,6 +118,7 @@ const rawCakes = [
     slug: 'wisteria',
     name: 'Wisteria',
     productType: 'cake',
+    tiered: true,
     image: '/images/cakes/sculptural-sage-and-gold-wedding-cake.jpg',
     collectionSlug: 'signature-collection',
     collectionName: 'Signature Collection',
@@ -107,6 +158,7 @@ const rawCakes = [
     slug: 'atrium',
     name: 'Atrium',
     productType: 'cake',
+    tiered: true,
     image: '/images/cakes/sculptural-ivory-and-berry-ruffle-cake.jpg',
     collectionSlug: 'wedding-cakes',
     collectionName: 'Wedding Cakes',
@@ -277,14 +329,33 @@ const storeMeta = {
   alabaster:             { price: 8000,  stock: 20 },
 }
 
-export const cakes = rawCakes.map((c) => ({
-  ...c,
-  price: storeMeta[c.slug]?.price ?? 50000,
-  stock: storeMeta[c.slug]?.stock ?? 10,
-  active: true,
-  image: c.image || '',
-}))
+export const cakes = rawCakes.map((c) => {
+  const basePrice = storeMeta[c.slug]?.price ?? 50000
+  return {
+    ...c,
+    price: basePrice,
+    stock: storeMeta[c.slug]?.stock ?? 10,
+    active: true,
+    image: c.image || '',
+    // Tiered cakes expose size variations; single-tier cakes use servingGuides.
+    variants: c.tiered ? buildTierVariants(basePrice) : [],
+  }
+})
 
 export const getCakeBySlug    = (slug) => cakes.find((c) => c.slug === slug)
 export const getFeaturedCakes = ()     => cakes.filter((c) => c.featured)
 export const getCakesByCollection = (slug) => cakes.filter((c) => c.collectionSlug === slug)
+
+// Firestore inventory created before size variations existed has no `variants`
+// field. Fall back to the catalogue's tier options so tiered cakes still offer
+// their size combinations. An explicit `tiered: false` from the admin wins.
+export function withDefaultVariants(product) {
+  if (!product) return product
+  if (Array.isArray(product.variants) && product.variants.length > 0) return product
+  if (product.tiered === false) return product
+  const fallback = cakes.find((c) => c.slug === (product.slug || product.id))
+  if (fallback?.tiered && fallback.variants?.length) {
+    return { ...product, tiered: true, variants: fallback.variants }
+  }
+  return product
+}

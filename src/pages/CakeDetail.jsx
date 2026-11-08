@@ -9,7 +9,7 @@ import CTASection from '../components/CTASection.jsx'
 import CakeCustomiser from '../components/CakeCustomiser.jsx'
 import SimpleAddToCart from '../components/SimpleAddToCart.jsx'
 import ProductTypeTag from '../components/ProductTypeTag.jsx'
-import { getCakeBySlug, cakes, flavourOptions, fillingOptions, coveringOptions, servingGuides } from '../data/cakes.js'
+import { getCakeBySlug, cakes, flavourOptions, fillingOptions, coveringOptions, servingGuides, productPriceFrom } from '../data/cakes.js'
 
 function money(n) {
   return `₦${Number(n).toLocaleString('en-NG', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
@@ -17,6 +17,9 @@ function money(n) {
 
 // ── Full cake purchase section ────────────────────────────────────────────────
 function FullCakePurchase({ cake, onCustomise }) {
+  const variants = Array.isArray(cake.variants) ? cake.variants : []
+  const isTiered = variants.length > 0
+
   return (
     <>
       {/* Sponge flavours */}
@@ -54,17 +57,33 @@ function FullCakePurchase({ cake, onCustomise }) {
 
       {/* Sizes */}
       <div className="mt-4 rounded-2xl border border-line bg-cream/40 p-6">
-        <h2 className="font-display text-lg font-medium text-ink">Sizes & servings</h2>
+        <h2 className="font-display text-lg font-medium text-ink">
+          {isTiered ? 'Tier combinations & servings' : 'Sizes & servings'}
+        </h2>
         <table className="mt-4 w-full text-sm">
           <tbody>
-            {servingGuides.map((s) => (
-              <tr key={s.size} className="border-b border-line last:border-0">
-                <td className="py-2 font-medium text-ink">{s.size}</td>
-                <td className="py-2 text-right text-stone">{s.servings}</td>
-              </tr>
-            ))}
+            {isTiered
+              ? variants.map((v) => (
+                  <tr key={v.id || v.label} className="border-b border-line last:border-0">
+                    <td className="py-2 pr-3 font-medium text-ink">{v.label}</td>
+                    <td className="py-2 text-right text-stone">{v.servings}</td>
+                    <td className="py-2 pl-4 text-right font-medium text-ink">{money(v.price)}</td>
+                  </tr>
+                ))
+              : servingGuides.map((s) => (
+                  <tr key={s.size} className="border-b border-line last:border-0">
+                    <td className="py-2 font-medium text-ink">{s.size}</td>
+                    <td className="py-2 text-right text-stone">{s.servings}</td>
+                    <td className="py-2 pl-4 text-right font-medium text-ink">{money(cake.price)}</td>
+                  </tr>
+                ))}
           </tbody>
         </table>
+        {isTiered && (
+          <p className="mt-3 text-xs text-stone">
+            Each tier is three layers deep. Choose your tier combination when you add the cake to your basket.
+          </p>
+        )}
       </div>
 
       {/* Actions */}
@@ -131,6 +150,7 @@ export default function CakeDetail() {
   }
 
   const isFullCake = cake.productType === 'cake'
+  const hasVariants = Array.isArray(cake.variants) && cake.variants.length > 0
   const related = cakes
     .filter((c) => c.collectionSlug === cake.collectionSlug && c.slug !== cake.slug)
     .slice(0, 3)
@@ -199,7 +219,8 @@ export default function CakeDetail() {
 
               {/* Price — always visible */}
               <p className="mt-4 font-display text-3xl font-medium text-ink">
-                {money(cake.price)}
+                {hasVariants && <span className="mr-2 align-middle text-sm font-normal uppercase tracking-wide text-stone">From</span>}
+                {money(productPriceFrom(cake))}
               </p>
 
               <p className="mt-4 text-lg leading-relaxed text-stone">{cake.summary}</p>

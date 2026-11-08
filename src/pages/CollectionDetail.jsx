@@ -10,7 +10,7 @@ import CakeCustomiser from '../components/CakeCustomiser.jsx'
 import SimpleAddToCart from '../components/SimpleAddToCart.jsx'
 import ProductTypeTag from '../components/ProductTypeTag.jsx'
 import { getCollectionBySlug } from '../data/collections.js'
-import { getCakesByCollection } from '../data/cakes.js'
+import { getCakesByCollection, productPriceFrom } from '../data/cakes.js'
 
 function money(n) {
   return `₦${Number(n).toLocaleString('en-NG', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
@@ -20,6 +20,7 @@ function money(n) {
 function ProductCard({ cake, onCustomise }) {
   const outOfStock = (cake.stock ?? 1) <= 0
   const isFullCake = cake.productType === 'cake'
+  const hasVariants = Array.isArray(cake.variants) && cake.variants.length > 0
 
   return (
     <Reveal>
@@ -57,7 +58,8 @@ function ProductCard({ cake, onCustomise }) {
 
           <div className="mt-4 flex items-center justify-between gap-3">
             <span className="font-display text-xl font-medium text-ink">
-              {money(cake.price)}
+              {hasVariants && <span className="mr-1 text-[0.65rem] font-normal uppercase tracking-wide text-stone">From</span>}
+              {money(productPriceFrom(cake))}
             </span>
 
             {/* Branch: full cake opens customiser; slices/loaves add directly */}

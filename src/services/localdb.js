@@ -50,13 +50,19 @@ function seedInventory() {
       id: c.slug,
       slug: c.slug,
       name: c.name,
+      productType: c.productType || 'cake',
       paletteKey: c.paletteKey,
       collectionName: c.collectionName,
       occasion: c.occasion,
       summary: c.summary,
+      description: c.description || '',
       price: c.price,
       stock: c.stock,
       active: c.active,
+      image: c.image || '',
+      imageUrl: c.image || '',
+      tiered: !!c.tiered,
+      variants: c.variants || [],
     }))
     write(KEYS.inv, inv)
   }

@@ -98,6 +98,15 @@ function OrderRow({ order, onStatusChange }) {
                               {item.customisation.covering && (
                                 <p className="text-xs text-plum-300">Covering: {item.customisation.covering}</p>
                               )}
+                              {item.customisation.eventType && (
+                                <p className="text-xs text-plum-300">Occasion: {item.customisation.eventType}</p>
+                              )}
+                              {item.customisation.celebrantGender && (
+                                <p className="text-xs text-plum-300">Celebrant: {item.customisation.celebrantGender}</p>
+                              )}
+                              {item.customisation.details && (
+                                <p className="text-xs text-plum-300">More details: {item.customisation.details}</p>
+                              )}
                             </div>
                           )}
                         </div>
@@ -108,7 +117,7 @@ function OrderRow({ order, onStatusChange }) {
                 </ul>
                 {order.notes && (
                   <div className="mt-4">
-                    <p className="text-xs uppercase tracking-wide text-plum-400">Notes</p>
+                    <p className="text-xs uppercase tracking-wide text-plum-400">More details</p>
                     <p className="mt-1 text-sm text-plum-200">{order.notes}</p>
                   </div>
                 )}
@@ -125,6 +134,18 @@ function OrderRow({ order, onStatusChange }) {
                   <div>
                     <p className="text-xs uppercase tracking-wide text-plum-400">Event date</p>
                     <p className="text-ivory">{order.eventDate}</p>
+                  </div>
+                )}
+                {order.eventType && (
+                  <div>
+                    <p className="text-xs uppercase tracking-wide text-plum-400">Event / occasion</p>
+                    <p className="text-ivory">{order.eventType}</p>
+                  </div>
+                )}
+                {order.celebrantGender && (
+                  <div>
+                    <p className="text-xs uppercase tracking-wide text-plum-400">Celebrant's gender</p>
+                    <p className="text-ivory">{order.celebrantGender}</p>
                   </div>
                 )}
                 {order.delivery && (

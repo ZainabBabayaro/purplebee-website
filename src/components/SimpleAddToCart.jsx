@@ -17,6 +17,7 @@ export default function SimpleAddToCart({ product, compact = false }) {
     if (outOfStock || added) return
     add({
       id: product.slug || product.id,
+      productId: product.id || product.slug,
       slug: product.slug || product.id,
       name: product.name,
       price: product.price,
@@ -48,6 +49,7 @@ export default function SimpleAddToCart({ product, compact = false }) {
         onClick={() => {
           add({
             id: product.slug || product.id,
+            productId: product.id || product.slug,
             slug: product.slug || product.id,
             name: product.name,
             price: product.price,

@@ -9,6 +9,7 @@ import { dataApi } from '../services/db.js'
 import CakeCustomiser from '../components/CakeCustomiser.jsx'
 import SimpleAddToCart from '../components/SimpleAddToCart.jsx'
 import ProductTypeTag from '../components/ProductTypeTag.jsx'
+import { productPriceFrom, withDefaultVariants } from '../data/cakes.js'
 
 const OCCASIONS = ['All', 'Birthday', 'Wedding', 'Celebration']
 const SORT_OPTS = [
@@ -25,6 +26,8 @@ function money(n) {
 const StoreCard = memo(function StoreCard({ product, index, onCustomise }) {
   const outOfStock = product.stock <= 0 || !product.active
   const isFullCake = product.productType === 'cake'
+  const hasVariants = Array.isArray(product.variants) && product.variants.length > 0
+  const displayPrice = productPriceFrom(product)
 
   return (
     <div className="group flex flex-col rounded-2xl border border-line bg-ivory overflow-hidden transition-shadow hover:shadow-lg">
@@ -71,7 +74,10 @@ const StoreCard = memo(function StoreCard({ product, index, onCustomise }) {
         <p className="mt-1.5 flex-1 text-sm leading-snug text-stone">{product.summary}</p>
 
         <div className="mt-4 flex items-center justify-between gap-3">
-          <span className="font-display text-2xl font-medium text-ink">{money(product.price)}</span>
+          <span className="font-display text-2xl font-medium text-ink">
+            {hasVariants && <span className="mr-1 text-xs font-normal uppercase tracking-wide text-stone">From</span>}
+            {money(displayPrice)}
+          </span>
           {isFullCake ? (
             <button
               type="button"
@@ -106,7 +112,7 @@ export default function Store() {
     dataApi.getInventory()
       .then((inv) => {
         if (!active) return
-        setProducts(inv && inv.length > 0 ? inv : [])
+        setProducts(inv && inv.length > 0 ? inv.map(withDefaultVariants) : [])
         setLoading(false)
       })
       .catch((err) => {
@@ -120,8 +126,8 @@ export default function Store() {
     let list = products.filter((p) => p.active !== false)
     if (occasion !== 'All') list = list.filter((p) => p.occasion === occasion)
     return [...list].sort((a, b) => {
-      if (sort === 'price-asc') return a.price - b.price
-      if (sort === 'price-desc') return b.price - a.price
+      if (sort === 'price-asc') return productPriceFrom(a) - productPriceFrom(b)
+      if (sort === 'price-desc') return productPriceFrom(b) - productPriceFrom(a)
       return a.name.localeCompare(b.name)
     })
   }, [products, occasion, sort])

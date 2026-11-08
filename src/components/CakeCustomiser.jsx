@@ -2,22 +2,34 @@ import { useEffect, useState } from 'react'
 import { X, ShoppingBag, ChevronDown } from 'lucide-react'
 import { useCart } from '../context/CartContext.jsx'
 import OptimizedImage from './OptimizedImage.jsx'
+import { Textarea } from './form/Inputs.jsx'
 import {
   flavourOptions,
   fillingOptions,
   coveringOptions,
   servingGuides,
+  eventTypeOptions,
+  celebrantGenderOptions,
 } from '../data/cakes.js'
 
 // ── CakeCustomiser
 // A modal that collects sponge flavour, filling, covering and size before
-// adding the item to the cart. Closes on Esc or backdrop click.
+// adding the item to the cart. Tiered cakes use their own size variations
+// (each with its own price); single-tier cakes use the standard size guide.
+// Closes on Esc or backdrop click.
 
-function SelectField({ id, label, value, onChange, options, placeholder, error }) {
+function money(n) {
+  return `₦${Number(n).toLocaleString('en-NG', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+}
+
+const EVENT_TYPES = eventTypeOptions
+const GENDER_OPTIONS = celebrantGenderOptions
+
+function SelectField({ id, label, value, onChange, options, placeholder, error, required = true }) {
   return (
     <div>
       <label htmlFor={id} className="mb-1.5 block text-sm font-medium text-ink">
-        {label} <span className="text-plum-500" aria-hidden="true">*</span>
+        {label} {required && <span className="text-plum-500" aria-hidden="true">*</span>}
       </label>
       <div className="relative">
         <select
@@ -47,9 +59,32 @@ function SelectField({ id, label, value, onChange, options, placeholder, error }
 
 export default function CakeCustomiser({ cake, onClose }) {
   const { add } = useCart()
-  const [form, setForm] = useState({ flavour: '', filling: '', covering: '', size: '' })
+  const [form, setForm] = useState({
+    flavour: '',
+    filling: '',
+    covering: '',
+    size: '',
+    eventType: '',
+    celebrantGender: '',
+    details: '',
+  })
   const [errors, setErrors] = useState({})
   const [added, setAdded] = useState(false)
+
+  const variants = Array.isArray(cake.variants) ? cake.variants : []
+  const isTiered = variants.length > 0
+
+  // Size choices: product-specific tier variations, or the standard single-tier
+  // serving guide. Tier variations carry their own price.
+  const sizeOptions = isTiered
+    ? variants.map((v) => ({ value: v.id, label: `${v.label} — ${money(v.price)}` }))
+    : servingGuides.map((s) => ({ value: s.size, label: `${s.size} — ${s.servings}` }))
+
+  const selectedVariant = isTiered ? variants.find((v) => v.id === form.size) : null
+  const selectedGuide = !isTiered ? servingGuides.find((s) => s.size === form.size) : null
+  const selectedPrice = selectedVariant ? Number(selectedVariant.price) : cake.price
+  const selectedLabel = selectedVariant?.label || form.size
+  const selectedServings = selectedVariant?.servings || selectedGuide?.servings || ''
 
   // Lock body scroll while open
   useEffect(() => {
@@ -82,26 +117,36 @@ export default function CakeCustomiser({ cake, onClose }) {
     setErrors(errs)
     if (Object.keys(errs).length) return
 
-    // Find the matching size guide for price display
-    const sizeGuide = servingGuides.find((s) => s.size === form.size)
     const coveringLabel = coveringOptions.find((c) => c.value === form.covering)?.label || form.covering
+    const lineId = `${cake.slug}-${form.size}-${form.flavour}-${form.filling}-${form.covering}`
+      .toLowerCase()
+      .replace(/\s+/g, '-')
 
     add({
-      id: `${cake.slug}-${form.flavour}-${form.filling}-${form.covering}-${form.size}`.toLowerCase().replace(/\s+/g, '-'),
+      id: lineId,
+      // The underlying inventory product — used for stock lookup at checkout.
+      productId: cake.id || cake.slug,
       slug: cake.slug,
       name: cake.name,
-      price: cake.price,
+      price: selectedPrice,
       paletteKey: cake.paletteKey,
       imageUrl: cake.image || '',
+      productType: 'cake',
       customisation: {
+        variantId: form.size,
+        size: selectedLabel,
+        servings: selectedServings,
         flavour: form.flavour,
         filling: form.filling,
         covering: coveringLabel,
-        size: form.size,
-        servings: sizeGuide?.servings || '',
+        eventType: form.eventType,
+        celebrantGender: form.celebrantGender,
+        details: form.details.trim(),
       },
       // Summary shown in cart
-      description: `${form.size} · ${form.flavour} · ${form.filling} · ${coveringLabel}`,
+      description: [selectedLabel, form.flavour, form.filling, coveringLabel]
+        .filter(Boolean)
+        .join(' · '),
     }, 1)
 
     setAdded(true)
@@ -191,26 +236,71 @@ export default function CakeCustomiser({ cake, onClose }) {
             />
             <SelectField
               id="size"
-              label="Size"
+              label={isTiered ? 'Size (tier combination)' : 'Size'}
               value={form.size}
               onChange={set('size')}
-              options={servingGuides.map((s) => ({
-                value: s.size,
-                label: `${s.size} — ${s.servings}`,
-              }))}
-              placeholder="Choose a size"
+              options={sizeOptions}
+              placeholder={isTiered ? 'Choose a tier combination' : 'Choose a size'}
               error={errors.size}
             />
+
+            {/* Event / celebrant details */}
+            <div className="border-t border-line pt-5">
+              <p className="text-sm font-medium text-ink">Celebrant details <span className="font-normal text-stone">(optional)</span></p>
+              <div className="mt-3 space-y-5">
+                <SelectField
+                  id="eventType"
+                  label="Event / occasion"
+                  value={form.eventType}
+                  onChange={set('eventType')}
+                  options={EVENT_TYPES}
+                  placeholder="Select the occasion"
+                  required={false}
+                />
+                <SelectField
+                  id="celebrantGender"
+                  label="Celebrant's gender"
+                  value={form.celebrantGender}
+                  onChange={set('celebrantGender')}
+                  options={GENDER_OPTIONS}
+                  placeholder="Select the celebrant's gender"
+                  required={false}
+                />
+                <Textarea
+                  id="details"
+                  label="More details"
+                  hint="Names, message on the cake, colour notes, dietary needs — anything that helps us get it right."
+                  rows={3}
+                  value={form.details}
+                  onChange={(e) => set('details')(e.target.value)}
+                  placeholder="e.g. “Happy 30th, Amaka” in gold lettering; no nuts; blush and ivory palette…"
+                />
+              </div>
+            </div>
           </div>
 
           {/* Summary */}
           {form.flavour && form.filling && form.covering && form.size && (
             <div className="mt-6 rounded-xl bg-plum-50 border border-plum-200 px-4 py-3 text-sm text-plum-700">
-              <p className="font-medium">Your selection</p>
-              <p className="mt-1 text-plum-600">
-                {form.size} · {form.flavour} · {form.filling} ·{' '}
-                {coveringOptions.find((c) => c.value === form.covering)?.label || form.covering}
-              </p>
+              <div className="flex items-start justify-between gap-3">
+                <div>
+                  <p className="font-medium">Your selection</p>
+                  <p className="mt-1 text-plum-600">
+                    {selectedLabel}
+                    {selectedServings ? ` (${selectedServings})` : ''} · {form.flavour} · {form.filling} ·{' '}
+                    {coveringOptions.find((c) => c.value === form.covering)?.label || form.covering}
+                  </p>
+                  {form.eventType && (
+                    <p className="mt-1 text-plum-600">Occasion: {form.eventType}</p>
+                  )}
+                  {form.celebrantGender && (
+                    <p className="mt-1 text-plum-600">Celebrant: {form.celebrantGender}</p>
+                  )}
+                </div>
+                <span className="shrink-0 font-display text-lg font-medium text-plum-800">
+                  {money(selectedPrice)}
+                </span>
+              </div>
             </div>
           )}
 
@@ -226,11 +316,11 @@ export default function CakeCustomiser({ cake, onClose }) {
             }`}
           >
             <ShoppingBag size={17} strokeWidth={1.8} />
-            {added ? 'Added to basket ✓' : 'Add to basket'}
+            {added ? 'Added to basket ✓' : `Add to basket${form.size ? ` — ${money(selectedPrice)}` : ''}`}
           </button>
 
           <p className="mt-3 text-center text-xs text-stone">
-            All four options must be selected before adding to basket.
+            Flavour, filling, covering and size are required. Celebrant details are optional.
           </p>
         </div>
       </div>

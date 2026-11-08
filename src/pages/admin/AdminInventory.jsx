@@ -1,9 +1,9 @@
 import { useEffect, useRef, useState } from 'react'
-import { Camera, Plus, Save, Eye, EyeOff, AlertTriangle, ImagePlus, RefreshCw } from 'lucide-react'
+import { Camera, Plus, Save, Eye, EyeOff, AlertTriangle, ImagePlus, RefreshCw, Layers, X } from 'lucide-react'
 import { dataApi } from '../../services/db.js'
 import PlaceholderArt from '../../components/PlaceholderArt.jsx'
 import { getPalette } from '../../utils/images.js'
-import { cakes } from '../../data/cakes.js'
+import { cakes, buildTierVariants } from '../../data/cakes.js'
 
 function money(n) { return `₦${Number(n).toLocaleString('en-NG', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` }
 
@@ -70,6 +70,111 @@ function ImagePicker({ value, onChange }) {
   )
 }
 
+// Clean up variants before saving: drop blank rows and coerce prices.
+function normalizeVariants(list) {
+  return (list || [])
+    .map((v, i) => ({
+      id: v.id || `tier-${i + 1}`,
+      label: String(v.label || '').trim(),
+      servings: String(v.servings || '').trim(),
+      price: Number(v.price),
+    }))
+    .filter((v) => v.label && Number.isFinite(v.price) && v.price >= 0)
+}
+
+// Editor for a product's size variations (label + servings + price).
+function VariantsEditor({ value = [], onChange, basePrice = 0 }) {
+  const variants = value || []
+  const update = (i, patch) => onChange(variants.map((v, idx) => (idx === i ? { ...v, ...patch } : v)))
+  const addRow = () => onChange([
+    ...variants,
+    { id: `tier-${Date.now()}`, label: '', servings: '', price: '' },
+  ])
+  const removeRow = (i) => onChange(variants.filter((_, idx) => idx !== i))
+
+  const field = 'w-full rounded-lg border border-plum-700 bg-plum-950 px-2.5 py-1.5 text-xs text-ivory placeholder:text-plum-600 focus:border-plum-400 focus:outline-none'
+
+  return (
+    <div className="rounded-xl border border-plum-700 bg-plum-950/60 p-4">
+      <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
+        <div>
+          <p className="flex items-center gap-1.5 text-xs font-medium uppercase tracking-wide text-plum-300">
+            <Layers size={13} strokeWidth={2} /> Size variations
+          </p>
+          <p className="mt-0.5 text-[0.65rem] text-plum-500">Each row is a selectable size with its own price.</p>
+        </div>
+        <div className="flex flex-wrap gap-2">
+          <button
+            type="button"
+            onClick={() => onChange(buildTierVariants(Number(basePrice) || 0))}
+            className="rounded-full border border-plum-700 px-3 py-1 text-[0.65rem] text-plum-300 hover:border-plum-500 hover:text-ivory"
+          >
+            Use default tiers
+          </button>
+          <button
+            type="button"
+            onClick={addRow}
+            className="rounded-full bg-plum-700 px-3 py-1 text-[0.65rem] font-medium text-ivory hover:bg-plum-600"
+          >
+            + Add size
+          </button>
+        </div>
+      </div>
+
+      {variants.length === 0 ? (
+        <p className="text-xs text-plum-400">
+          No size variations yet. Add one, or use the default 6" + 8" to 12" + 14" tiers.
+        </p>
+      ) : (
+        <div className="space-y-2">
+          {variants.map((v, i) => (
+            <div key={v.id || i} className="grid gap-2 sm:grid-cols-[1fr_8.5rem_7rem_1.75rem]">
+              <input
+                type="text"
+                aria-label={`Size ${i + 1} label`}
+                value={v.label || ''}
+                onChange={(e) => update(i, { label: e.target.value })}
+                placeholder='e.g. 6" 3 layers + 8" 3 layers'
+                className={field}
+              />
+              <input
+                type="text"
+                aria-label={`Size ${i + 1} servings`}
+                value={v.servings || ''}
+                onChange={(e) => update(i, { servings: e.target.value })}
+                placeholder="20–30 servings"
+                className={field}
+              />
+              <div className="relative">
+                <span className="pointer-events-none absolute left-2 top-1/2 -translate-y-1/2 text-[0.65rem] text-plum-500">₦</span>
+                <input
+                  type="number"
+                  min="0"
+                  step="1"
+                  aria-label={`Size ${i + 1} price`}
+                  value={v.price ?? ''}
+                  onChange={(e) => update(i, { price: e.target.value })}
+                  placeholder="280000"
+                  className={`${field} pl-5`}
+                />
+              </div>
+              <button
+                type="button"
+                onClick={() => removeRow(i)}
+                aria-label={`Remove size ${i + 1}`}
+                className="flex h-7 w-7 items-center justify-center rounded-full border border-plum-700 text-plum-400 hover:border-red-700 hover:text-red-300"
+              >
+                <X size={12} strokeWidth={2} />
+              </button>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  )
+}
+
+
 function ImageCell({ product, onImageSaved }) {
   const inputRef = useRef(null)
   const [uploading, setUploading] = useState(false)
@@ -128,7 +233,7 @@ const PRODUCT_TYPES = [
   { value: 'cake-loaf',  label: 'Cake Loaf (loaf cake)' },
 ]
 
-function ProductRow({ product: initial, onImageSaved }) {
+function ProductRow({ product: initial, onImageSaved, onEditVariants }) {
   const [p, setP] = useState(initial)
   const [editing, setEditing] = useState(false)
   const [draft, setDraft] = useState({ price: initial.price, stock: initial.stock, productType: initial.productType || 'cake' })
@@ -201,7 +306,12 @@ function ProductRow({ product: initial, onImageSaved }) {
             <input type="number" min="0" step="1" value={draft.price} onChange={(e) => setDraft((d) => ({ ...d, price: e.target.value }))} className="w-24 rounded-lg border border-plum-600 bg-plum-900 px-2 py-1 text-sm text-ivory focus:border-plum-400 focus:outline-none" />
           </div>
         ) : (
-          <span className="text-ivory">{money(p.price)}</span>
+          <div>
+            <span className="text-ivory">{money(p.price)}</span>
+            {Array.isArray(p.variants) && p.variants.length > 0 && (
+              <p className="mt-0.5 text-[0.65rem] text-plum-400">{p.variants.length} sizes · from {money(Math.min(...p.variants.map((v) => Number(v.price) || 0)))}</p>
+            )}
+          </div>
         )}
       </td>
 
@@ -243,6 +353,16 @@ function ProductRow({ product: initial, onImageSaved }) {
               <button onClick={() => { setDraft({ price: p.price, stock: p.stock, productType: p.productType || 'cake' }); setEditing(true) }} className="rounded-full border border-plum-700 px-3 py-1.5 text-xs text-plum-300 hover:text-ivory">
                 {saved ? '✓ Saved' : 'Edit'}
               </button>
+              {(p.productType || 'cake') === 'cake' && (
+                <button
+                  onClick={() => onEditVariants?.(p)}
+                  title="Edit size variations"
+                  className="flex items-center gap-1 rounded-full border border-plum-700 px-3 py-1.5 text-xs text-plum-300 hover:text-ivory"
+                >
+                  <Layers size={12} strokeWidth={2} />
+                  Sizes
+                </button>
+              )}
               <button onClick={toggleActive} disabled={saving} title={p.active ? 'Hide from store' : 'Show in store'} className="flex h-7 w-7 items-center justify-center rounded-full border border-plum-700 text-plum-400 hover:text-ivory disabled:opacity-60">
                 {p.active ? <Eye size={13} /> : <EyeOff size={13} />}
               </button>
@@ -256,13 +376,19 @@ function ProductRow({ product: initial, onImageSaved }) {
 
 export default function AdminInventory() {
   const [products, setProducts] = useState(null)
-  const [form, setForm] = useState({ name: '', price: '', stock: '', productType: 'cake', collectionName: '', occasion: '', summary: '' })
+  const [form, setForm] = useState({ name: '', price: '', stock: '', productType: 'cake', collectionName: '', occasion: '', summary: '', tiered: false })
+  const [formVariants, setFormVariants] = useState([])
   const [formImage, setFormImage] = useState('')
   const [adding, setAdding] = useState(false)
   const [addErr, setAddErr] = useState('')
   const [addSaved, setAddSaved] = useState(false)
   const [seeding, setSeeding] = useState(false)
   const [seedMsg, setSeedMsg] = useState('')
+  // Size-variation editor modal (edit existing product)
+  const [variantsFor, setVariantsFor] = useState(null)
+  const [variantDraft, setVariantDraft] = useState([])
+  const [variantSaving, setVariantSaving] = useState(false)
+  const [variantErr, setVariantErr] = useState('')
 
   // Seed Firestore from the static cakes.js catalogue
   const seedInventory = async () => {
@@ -289,6 +415,8 @@ export default function AdminInventory() {
             summary: cake.summary,
             description: cake.description,
             paletteKey: cake.paletteKey,
+            tiered: !!cake.tiered,
+            variants: cake.variants || [],
           })
           added++
         } catch {
@@ -314,6 +442,15 @@ export default function AdminInventory() {
     if (!name) { setAddErr('Product name is required.'); return }
     if (Number.isNaN(price) || price < 0) { setAddErr('Enter a valid price.'); return }
     if (Number.isNaN(stock) || stock < 0) { setAddErr('Enter a valid stock number.'); return }
+
+    const variants = form.productType === 'cake' && form.tiered
+      ? normalizeVariants(formVariants)
+      : []
+    if (form.productType === 'cake' && form.tiered && variants.length === 0) {
+      setAddErr('Add at least one size variation with a label and price, or turn off tiered cake.')
+      return
+    }
+
     setAdding(true)
     try {
       const slug = name.toLowerCase().replace(/[^a-z0-9]+/g, '-')
@@ -328,8 +465,11 @@ export default function AdminInventory() {
         active: true,
         image: formImage || '',
         imageUrl: formImage || '',
+        tiered: variants.length > 0,
+        variants,
       })
-      setForm({ name: '', price: '', stock: '', productType: 'cake', collectionName: '', occasion: '', summary: '' })
+      setForm({ name: '', price: '', stock: '', productType: 'cake', collectionName: '', occasion: '', summary: '', tiered: false })
+      setFormVariants([])
       setFormImage('')
       setAddSaved(true)
       setTimeout(() => setAddSaved(false), 3000)
@@ -349,6 +489,37 @@ export default function AdminInventory() {
 
   const handleImageSaved = (id, url) => {
     setProducts((prev) => prev ? prev.map((p) => p.id === id ? { ...p, image: url, imageUrl: url } : p) : prev)
+  }
+
+  // ---- Size variations modal ----
+  const openVariants = (product) => {
+    setVariantsFor(product)
+    setVariantDraft((product.variants || []).map((v) => ({ ...v })))
+    setVariantErr('')
+  }
+
+  const saveVariants = async () => {
+    const normalized = normalizeVariants(variantDraft)
+    if (variantDraft.length > 0 && normalized.length === 0) {
+      setVariantErr('Each size needs a label and a valid price.')
+      return
+    }
+    setVariantSaving(true)
+    setVariantErr('')
+    try {
+      await dataApi.updateProduct(variantsFor.id, {
+        variants: normalized,
+        tiered: normalized.length > 0,
+      })
+      setProducts((prev) => prev
+        ? prev.map((p) => p.id === variantsFor.id ? { ...p, variants: normalized, tiered: normalized.length > 0 } : p)
+        : prev)
+      setVariantsFor(null)
+    } catch (e) {
+      setVariantErr(e.message || 'Could not save size variations.')
+    } finally {
+      setVariantSaving(false)
+    }
   }
 
   // Counts by type
@@ -407,7 +578,10 @@ export default function AdminInventory() {
               </div>
               <div>
                 <label className="mb-1 block text-xs text-plum-400">Product type *</label>
-                <select value={form.productType} onChange={(e) => setForm((d) => ({ ...d, productType: e.target.value }))} className="w-full rounded-lg border border-plum-700 bg-plum-950 px-3 py-2 text-sm text-ivory focus:border-plum-400 focus:outline-none">
+                <select value={form.productType} onChange={(e) => {
+                  const productType = e.target.value
+                  setForm((d) => ({ ...d, productType, tiered: productType === 'cake' ? d.tiered : false }))
+                }} className="w-full rounded-lg border border-plum-700 bg-plum-950 px-3 py-2 text-sm text-ivory focus:border-plum-400 focus:outline-none">
                   {PRODUCT_TYPES.map((t) => <option key={t.value} value={t.value}>{t.label}</option>)}
                 </select>
               </div>
@@ -429,6 +603,34 @@ export default function AdminInventory() {
               </div>
             </div>
           </div>
+
+          {form.productType === 'cake' && (
+            <div className="space-y-3">
+              <label className="flex items-center gap-2 text-xs text-plum-300">
+                <input
+                  type="checkbox"
+                  checked={form.tiered}
+                  onChange={(e) => {
+                    const tiered = e.target.checked
+                    setForm((d) => ({ ...d, tiered }))
+                    if (tiered && formVariants.length === 0) {
+                      setFormVariants(buildTierVariants(Number(form.price) || 0))
+                    }
+                  }}
+                  className="h-4 w-4 rounded border-plum-600 bg-plum-950 text-plum-500 focus:ring-plum-500"
+                />
+                Tiered cake — offer size variations with individual prices
+              </label>
+              {form.tiered && (
+                <VariantsEditor
+                  value={formVariants}
+                  onChange={setFormVariants}
+                  basePrice={Number(form.price) || 0}
+                />
+              )}
+            </div>
+          )}
+
           <div className="flex items-center gap-3">
             <button type="submit" disabled={adding} className="rounded-full bg-plum-500 px-5 py-2 text-sm font-medium text-ivory hover:bg-plum-400 disabled:opacity-60">
               {adding ? 'Adding…' : 'Add product'}
@@ -463,7 +665,12 @@ export default function AdminInventory() {
             </thead>
             <tbody className="bg-plum-900">
               {products.map((p) => (
-                <ProductRow key={p.id} product={p} onImageSaved={handleImageSaved} />
+                <ProductRow
+                  key={p.id}
+                  product={p}
+                  onImageSaved={handleImageSaved}
+                  onEditVariants={openVariants}
+                />
               ))}
             </tbody>
           </table>
@@ -472,8 +679,66 @@ export default function AdminInventory() {
 
       <p className="mt-6 text-xs text-plum-500">
         "Seed from catalogue" imports all products from the codebase. Use "Edit" to update type, price and stock.
-        Click the <Camera size={11} strokeWidth={2} className="inline" /> icon to update a product image.
+        Use "Sizes" on a cake to create tier variations. Click the <Camera size={11} strokeWidth={2} className="inline" /> icon to update a product image.
       </p>
+
+      {/* ── Size variations modal ── */}
+      {variantsFor && (
+        <div className="fixed inset-0 z-[80] flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => !variantSaving && setVariantsFor(null)} />
+          <div className="relative z-10 w-full max-w-2xl rounded-2xl border border-plum-700 bg-plum-900 p-6 shadow-2xl">
+            <div className="mb-4 flex items-start justify-between gap-4">
+              <div>
+                <p className="text-xs uppercase tracking-wide text-plum-400">Size variations</p>
+                <h2 className="mt-1 font-display text-xl font-medium text-ivory">{variantsFor.name}</h2>
+                <p className="mt-1 text-xs text-plum-400">
+                  Add the tier combinations customers can choose. Each size has its own price.
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setVariantsFor(null)}
+                disabled={variantSaving}
+                className="flex h-8 w-8 items-center justify-center rounded-full text-plum-400 hover:bg-plum-800 hover:text-ivory"
+                aria-label="Close"
+              >
+                <X size={18} strokeWidth={1.7} />
+              </button>
+            </div>
+
+            <VariantsEditor
+              value={variantDraft}
+              onChange={setVariantDraft}
+              basePrice={variantsFor.price}
+            />
+
+            {variantErr && <p className="mt-3 text-xs text-red-400">{variantErr}</p>}
+
+            <div className="mt-5 flex items-center gap-3">
+              <button
+                type="button"
+                onClick={saveVariants}
+                disabled={variantSaving}
+                className="flex items-center gap-1.5 rounded-full bg-plum-500 px-5 py-2 text-sm font-medium text-ivory hover:bg-plum-400 disabled:opacity-60"
+              >
+                <Save size={14} strokeWidth={2} />
+                {variantSaving ? 'Saving…' : 'Save sizes'}
+              </button>
+              <button
+                type="button"
+                onClick={() => setVariantsFor(null)}
+                disabled={variantSaving}
+                className="rounded-full border border-plum-700 px-5 py-2 text-sm text-plum-300 hover:text-ivory disabled:opacity-60"
+              >
+                Cancel
+              </button>
+              <p className="ml-auto text-xs text-plum-500">
+                Leave empty to use single-tier sizes instead.
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

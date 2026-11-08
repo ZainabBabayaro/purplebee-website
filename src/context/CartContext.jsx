@@ -36,6 +36,8 @@ export function CartProvider({ children }) {
         ...prev,
         {
           id: product.id,
+          // The inventory product id (line id can include customisation).
+          productId: product.productId || product.id || product.slug,
           slug: product.slug || product.id,
           name: product.name,
           price: product.price,

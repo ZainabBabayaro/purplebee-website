@@ -10,6 +10,7 @@ import { dataApi } from '../services/db.js'
 import PlaceholderArt from '../components/PlaceholderArt.jsx'
 import { getPalette } from '../utils/images.js'
 import { site } from '../data/site.js'
+import { eventTypeOptions, celebrantGenderOptions } from '../data/cakes.js'
 
 const PAYSTACK_PUBLIC_KEY = 'pk_live_b985e33142096821d0278cbcb768a549384c6d17'
 
@@ -49,6 +50,8 @@ export default function Checkout() {
     email: user?.email || '',
     phone: '',
     eventDate: '',
+    eventType: '',
+    celebrantGender: '',
     delivery: 'collection',
     flavour: '',
     notes: '',
@@ -77,6 +80,7 @@ export default function Checkout() {
       if (Number.isNaN(d.getTime())) e.eventDate = 'Invalid date.'
       else if (d < new Date()) e.eventDate = 'Choose a future date.'
     }
+    if (!values.eventType) e.eventType = 'Please choose the occasion.'
     return e
   }
 
@@ -101,10 +105,23 @@ export default function Checkout() {
         customerEmail: values.email,
         customerPhone: values.phone,
         eventDate: values.eventDate,
+        eventType: values.eventType,
+        celebrantGender: values.celebrantGender,
         delivery: values.delivery,
         flavour: values.flavour,
         notes: values.notes,
-        items: items.map((i) => ({ id: i.id, name: i.name, price: i.price, qty: i.qty })),
+        // Preserve the full per-item customisation (size variant, flavour,
+        // filling, covering, celebrant details) so it reaches the admin.
+        items: items.map((i) => ({
+          id: i.productId || i.slug || i.id,
+          lineId: i.id,
+          name: i.name,
+          price: i.price,
+          qty: i.qty,
+          productType: i.productType,
+          customisation: i.customisation || null,
+          description: i.description || '',
+        })),
         total,
         status: 'pending_payment',
       }
@@ -219,6 +236,27 @@ export default function Checkout() {
                   <Input id="eventDate" type="date" label="Event date" required value={values.eventDate} onChange={set('eventDate')} error={errors.eventDate} hint="Approximate is fine." />
                 </div>
 
+                <div className="grid gap-5 sm:grid-cols-2">
+                  <Select
+                    id="eventType"
+                    label="Event / occasion"
+                    required
+                    placeholder="Select the occasion"
+                    options={eventTypeOptions}
+                    value={values.eventType}
+                    onChange={set('eventType')}
+                    error={errors.eventType}
+                  />
+                  <Select
+                    id="celebrantGender"
+                    label="Celebrant's gender (optional)"
+                    placeholder="Select the celebrant's gender"
+                    options={celebrantGenderOptions}
+                    value={values.celebrantGender}
+                    onChange={set('celebrantGender')}
+                  />
+                </div>
+
                 <Select
                   id="delivery"
                   label="Collection or delivery"
@@ -239,11 +277,11 @@ export default function Checkout() {
 
                 <Textarea
                   id="notes"
-                  label="Design notes or special requests (optional)"
-                  rows={3}
+                  label="More details (optional)"
+                  rows={4}
                   value={values.notes}
                   onChange={set('notes')}
-                  placeholder="Colour preferences, dietary requirements, anything else…"
+                  placeholder="Colour preferences, message on the cake, dietary requirements, names, anything else that helps us get it right…"
                 />
               </div>
 
@@ -265,6 +303,16 @@ export default function Checkout() {
                         </div>
                         <div className="flex-1 min-w-0">
                           <p className="truncate text-sm font-medium text-ink">{item.name}</p>
+                          {item.customisation && (
+                            <p className="truncate text-xs text-stone">
+                              {[
+                                item.customisation.size,
+                                item.customisation.flavour,
+                                item.customisation.filling,
+                                item.customisation.covering,
+                              ].filter(Boolean).join(' · ')}
+                            </p>
+                          )}
                           <p className="text-xs text-stone">Qty: {item.qty}</p>
                         </div>
                         <span className="text-sm text-ink">{money(item.price * item.qty)}</span>
