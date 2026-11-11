@@ -282,7 +282,7 @@ export default function CakeEnquiry() {
                   />
 
                   {/* Reference image upload */}
-                  <div>
+                  {/* <div>
                     <label htmlFor="reference" className="text-sm font-medium text-ink">
                       Reference images (optional)
                     </label>
@@ -306,7 +306,7 @@ export default function CakeEnquiry() {
                       onChange={handleFiles}
                     />
                     <p className="mt-1.5 text-xs text-stone">You can upload up to 5 images. These help us understand the look you are after.</p>
-                  </div>
+                  </div> */}
 
                   <Textarea
                     id="message"

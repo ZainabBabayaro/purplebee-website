@@ -349,7 +349,7 @@ export default function Enquiry() {
                   />
 
                   {/* Reference image (optional, not yet wired to storage) */}
-                  <div>
+                  {/* <div>
                     <label htmlFor="reference" className="text-sm font-medium text-ink">
                       Reference image (optional)
                     </label>
@@ -375,7 +375,7 @@ export default function Enquiry() {
                     <p className="mt-1.5 text-xs text-stone">
                       Optional. Filenames are stored with your enquiry so we know what to expect if you send images separately.
                     </p>
-                  </div>
+                  </div> */}
 
                   <div className="pt-2">
                     <button type="submit" disabled={status === 'submitting'} className="btn btn-primary w-full sm:w-auto">

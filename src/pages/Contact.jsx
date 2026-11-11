@@ -153,7 +153,7 @@ export default function Contact() {
                       <p className="font-medium text-ink">Chat with us on WhatsApp</p>
                     </div>
                     <p className="mt-2 text-sm text-stone">
-                      For quick questions, design inspiration or to start a conversation about your cake — WhatsApp is the fastest way to reach us.
+                      For questions, design inspiration or to start a conversation about your cake.
                     </p>
                     <a
                       href={waUrl}

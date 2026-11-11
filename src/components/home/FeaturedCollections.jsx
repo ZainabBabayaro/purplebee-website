@@ -20,8 +20,7 @@ export default function FeaturedCollections() {
               Our collections
             </h2>
             <p className="mt-5 text-pretty leading-relaxed text-stone">
-              From bespoke commissions and wedding centrepieces to signature designs
-              and everyday indulgences — browse by collection or explore everything we offer.
+             A birthday, anniversary, graduation or a milestone worth marking. Give your celebration a centrepiece that feels as special as the occasion.
             </p>
           </Reveal>
           <Reveal delay={120}>

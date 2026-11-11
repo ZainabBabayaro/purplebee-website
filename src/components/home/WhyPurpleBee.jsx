@@ -32,7 +32,7 @@ export default function WhyPurpleBee() {
 
         {/* Header */}
         <Reveal className="max-w-2xl">
-          <p className="eyebrow text-plum-300">The Purple Bee Difference</p>
+          <p className="eyebrow text-plum-300">The Purple Bee Experience</p>
           <h2 className="mt-5 font-display text-4xl font-medium leading-tight text-ivory md:text-5xl lg:text-[3.2rem]">
             The difference is in what goes into every cake.
           </h2>
@@ -69,7 +69,7 @@ export default function WhyPurpleBee() {
         {/* Bottom tagline + CTA */}
         <Reveal delay={160} className="mt-16 flex flex-col items-start gap-6 border-t border-plum-800 pt-12 md:flex-row md:items-center md:justify-between">
           <blockquote className="max-w-lg font-display text-xl font-medium italic leading-snug text-plum-200 md:text-2xl">
-            "Beautifully designed to be admired, thoughtfully crafted to be savoured."
+            "A mix of Art and Indulgence"
           </blockquote>
           <Link
             to="/store"

@@ -44,10 +44,9 @@ export default function Home() {
       <Hero />
       <BrandPhilosophy />
       <FeaturedCollections />
-      <OrderingExperience />
-
+      {/* <OrderingExperience /> */}
       <SignatureFlavours />
-      <WhyPurpleBee />
+      {/* <WhyPurpleBee /> */}
       <Testimonials />
       <BespokeEnquiry />
       <FounderStory />
