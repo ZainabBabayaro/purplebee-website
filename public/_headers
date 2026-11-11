@@ -1,6 +1,6 @@
-# Prevent stale HTML caching while keeping hashed assets cached long-term.
+# Prevent any cache from storing stale HTML.
 /**/*.html
-  Cache-Control: public, must-revalidate, max-age=0
+  Cache-Control: no-store, no-cache, must-revalidate, max-age=0
 
 /index.html
-  Cache-Control: public, must-revalidate, max-age=0
+  Cache-Control: no-store, no-cache, must-revalidate, max-age=0

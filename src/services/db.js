@@ -171,7 +171,8 @@ function parseFirestoreValue(v) {
 
 async function restList(collectionName) {
   const url = `https://firestore.googleapis.com/v1/projects/${FIRESTORE_PROJECT}/databases/(default)/documents/${collectionName}`
-  const res = await fetch(url)
+  // Force a fresh read from the server; never rely on a cached REST response.
+  const res = await fetch(url, { cache: 'no-store' })
   if (!res.ok) throw new Error(`Firestore REST error: ${res.status}`)
   const json = await res.json()
   if (!json.documents) return []
@@ -186,8 +187,9 @@ async function restList(collectionName) {
 
 async function sdkList(collectionName) {
   const { db } = await getFirebase()
-  const { collection, getDocs } = await import('firebase/firestore')
-  const snap = await getDocs(collection(db, collectionName))
+  const { collection, getDocsFromServer } = await import('firebase/firestore')
+  // getDocsFromServer ignores any local cache and reads directly from Firestore.
+  const snap = await getDocsFromServer(collection(db, collectionName))
   return snap.docs.map((d) => ({ id: d.id, ...d.data() }))
 }
 
