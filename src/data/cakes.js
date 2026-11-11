@@ -118,11 +118,10 @@ export function isPurchasable(product) {
 
 export function purchaseTypeFor(product) {
   if (!product) return 'simple'
-  // Collection membership is the source of truth: anything outside the
-  // purchasable collections is always an enquiry, regardless of any explicit
-  // purchaseType stored on the product.
+  // Collection membership is the source of truth. We ignore any explicit
+  // purchaseType stored on the product so that old seeds or accidental admin
+  // edits cannot override the collection behaviour.
   if (!isPurchasable(product)) return 'quotation'
-  if (product.purchaseType) return product.purchaseType
   return product.productType === 'cake' ? 'configurable' : 'simple'
 }
 
