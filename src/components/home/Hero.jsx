@@ -20,7 +20,7 @@ export default function Hero() {
       <div className="relative mx-auto grid max-w-7xl items-center gap-10 px-5 pb-20 md:grid-cols-12 md:gap-8 md:px-8 md:pb-28">
 
         {/* ── Text ── */}
-        <div className="md:col-span-5 md:pr-6">
+        <div className="order-2 md:order-1 md:col-span-5 md:pr-6">
           <Reveal>
             <p className="eyebrow">Purplebee Cakes · Abuja, Nigeria</p>
           </Reveal>
@@ -67,7 +67,7 @@ export default function Hero() {
         </div>
 
         {/* ── Image mosaic ── */}
-        <Reveal delay={160} className="md:col-span-7">
+        <Reveal delay={160} className="order-1 md:order-2 md:col-span-7">
           <div className="grid grid-cols-12 grid-rows-2 gap-3 md:gap-4">
 
             {/* Main full-cake image — spans 7 cols, both rows */}
