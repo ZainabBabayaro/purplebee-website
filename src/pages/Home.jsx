@@ -1,4 +1,5 @@
-import SEO, { organizationLd, bakeryLd } from '../components/SEO.jsx'
+import { Helmet } from 'react-helmet-async'
+import SEO from '../components/SEO.jsx'
 import Hero from '../components/home/Hero.jsx'
 import FeaturedCollections from '../components/home/FeaturedCollections.jsx'
 import BrandPhilosophy from '../components/home/BrandPhilosophy.jsx'
@@ -25,11 +26,20 @@ import CTASection from '../components/CTASection.jsx'
 export default function Home() {
   return (
     <>
+      <Helmet>
+        <link
+          rel="preload"
+          as="image"
+          href="/images/hero/img-6550-2.webp"
+          type="image/webp"
+          imagesrcset="/images/hero/img-6550-2.webp"
+        />
+      </Helmet>
       <SEO
         title="Purplebee Cakes Abuja"
         description="Purple Bee Cakes crafts beautifully designed celebration, wedding and bespoke cakes in Abuja — thoughtful design, exceptional flavour, for the moments that matter."
         canonicalPath="/"
-        structured={[organizationLd(), bakeryLd()]}
+        structured={[]}
       />
       <Hero />
       <BrandPhilosophy />

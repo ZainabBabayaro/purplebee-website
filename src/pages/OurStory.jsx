@@ -1,4 +1,4 @@
-import SEO, { breadcrumbLd, organizationLd } from '../components/SEO.jsx'
+import SEO, { breadcrumbLd } from '../components/SEO.jsx'
 import PageHero from '../components/PageHero.jsx'
 import OptimizedImage from '../components/OptimizedImage.jsx'
 import Reveal from '../components/Reveal.jsx'
@@ -31,7 +31,6 @@ export default function OurStory() {
         description="The story, values and approach behind Purple Bee Cakes — a bespoke cake design studio focused on thoughtful design, flavour made from scratch and meticulous detail."
         canonicalPath="/our-story"
         structured={[
-          organizationLd(),
           breadcrumbLd([{ name: 'Home', path: '/' }, { name: 'Our Story', path: '/our-story' }]),
         ]}
       />

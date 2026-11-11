@@ -1,4 +1,5 @@
 import { useRef, useState } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import { Check, Upload, ArrowRight } from 'lucide-react'
 import SEO, { breadcrumbLd } from '../components/SEO.jsx'
 import PageHero from '../components/PageHero.jsx'
@@ -6,11 +7,9 @@ import Reveal from '../components/Reveal.jsx'
 import { Input, Textarea, Select } from '../components/form/Inputs.jsx'
 import { site } from '../data/site.js'
 import { flavourOptions, servingGuides } from '../data/cakes.js'
-
-// ⚠️ Set to a form-service endpoint (Formspree, Web3Forms, etc.) to enable
-// real submissions. While empty, the form validates and shows a local
-// confirmation without sending data.
-const FORM_ENDPOINT = ''
+import { dataApi } from '../services/db.js'
+import { compressImage } from '../utils/files.js'
+import { enquiryNotificationMail } from '../utils/mail.js'
 
 const occasions = [
   { value: 'Birthday', label: 'Birthday' },
@@ -98,8 +97,15 @@ function validate(values) {
 }
 
 export default function CakeEnquiry() {
-  const [values, setValues] = useState(initial)
+  const [searchParams] = useSearchParams()
+  const productSlug = searchParams.get('product') || ''
+  const prefillFlavour = searchParams.get('flavour') || ''
+  const [values, setValues] = useState(() => ({
+    ...initial,
+    flavour: prefillFlavour,
+  }))
   const [errors, setErrors]   = useState({})
+  const [files, setFiles]     = useState([])
   const [fileNames, setFileNames] = useState([])
   const [submitting, setSubmitting] = useState(false)
   const [submitted, setSubmitted]   = useState(false)
@@ -115,8 +121,9 @@ export default function CakeEnquiry() {
   }
 
   const handleFiles = (e) => {
-    const files = Array.from(e.target.files || [])
-    setFileNames(files.map((f) => f.name))
+    const selected = Array.from(e.target.files || []).slice(0, 5)
+    setFiles(selected)
+    setFileNames(selected.map((f) => f.name))
   }
 
   const handleSubmit = async (e) => {
@@ -133,24 +140,35 @@ export default function CakeEnquiry() {
     setSubmitting(true)
     setServerErr('')
     try {
-      if (FORM_ENDPOINT) {
-        const fd = new FormData()
-        Object.entries(values).forEach(([k, v]) => fd.append(k, v))
-        const files = fileRef.current?.files
-        if (files) Array.from(files).forEach((f) => fd.append('reference', f))
-        const res = await fetch(FORM_ENDPOINT, {
-          method: 'POST',
-          body: fd,
-          headers: { Accept: 'application/json' },
-        })
-        if (!res.ok) throw new Error('Submission failed')
-      } else {
-        await new Promise((r) => setTimeout(r, 700))
+      const referenceImages = await Promise.all(
+        files.map(async (f) => ({
+          name: f.name,
+          type: f.type,
+          size: f.size,
+          url: await compressImage(f),
+        })),
+      )
+      await dataApi.addEnquiry({
+        ...values,
+        productSlug,
+        referenceImages,
+        source: productSlug ? 'product-quotation' : 'cake-enquiry',
+      })
+      // Queue an admin notification email. If it fails, we still show the
+      // success screen because the enquiry itself was saved.
+      try {
+        await dataApi.addMail(enquiryNotificationMail({ ...values, source: productSlug ? 'product-quotation' : 'cake-enquiry' }))
+      } catch (notifyErr) {
+        console.error('[enquiry] Notification email failed:', notifyErr)
       }
       setSubmitted(true)
-    } catch {
+    } catch (err) {
       submittedRef.current = false
-      setServerErr('Something went wrong. Please email us directly or message via WhatsApp.')
+      setServerErr(
+        err?.message
+          ? `We could not send your enquiry: ${err.message}. Please email us directly or message via WhatsApp.`
+          : 'Something went wrong. Please email us directly or message via WhatsApp.',
+      )
     } finally {
       setSubmitting(false)
     }
@@ -214,6 +232,12 @@ export default function CakeEnquiry() {
                 <form onSubmit={handleSubmit} noValidate className="space-y-6">
                   {serverErr && (
                     <p role="alert" className="rounded-xl bg-red-50 px-4 py-3 text-sm text-red-700">{serverErr}</p>
+                  )}
+
+                  {productSlug && (
+                    <p className="rounded-xl bg-plum-50 px-4 py-3 text-sm text-plum-700">
+                      Enquiring about <span className="font-medium">{productSlug.replace(/-/g, ' ')}</span>. Tell us how you would like it adapted.
+                    </p>
                   )}
 
                   <h2 className="font-display text-xl font-medium text-ink">Your details</h2>

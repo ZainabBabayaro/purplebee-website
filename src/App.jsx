@@ -3,44 +3,48 @@ import { Route, Routes } from 'react-router-dom'
 import Layout from './components/Layout.jsx'
 import ScrollToTop from './components/ScrollToTop.jsx'
 import { AdminRoute } from './components/auth/Guards.jsx'
+import { pageLoaders } from './routes/pageLoaders.js'
 
 // Eagerly loaded — homepage must render fast
 import Home from './pages/Home.jsx'
 
-// Lazy-loaded public pages
-const OurCakes          = lazy(() => import('./pages/OurCakes.jsx'))
-const Collections       = lazy(() => import('./pages/Collections.jsx'))
-const CollectionDetail  = lazy(() => import('./pages/CollectionDetail.jsx'))
-const CakeDetail        = lazy(() => import('./pages/CakeDetail.jsx'))
-const OurStory          = lazy(() => import('./pages/OurStory.jsx'))
-const Journal           = lazy(() => import('./pages/Journal.jsx'))
-const JournalArticle    = lazy(() => import('./pages/JournalArticle.jsx'))
-const Contact           = lazy(() => import('./pages/Contact.jsx'))
-const Enquiry           = lazy(() => import('./pages/Enquiry.jsx'))
-const Privacy           = lazy(() => import('./pages/Privacy.jsx'))
-const NotFound          = lazy(() => import('./pages/NotFound.jsx'))
-const Store             = lazy(() => import('./pages/Store.jsx'))
-const Shop              = lazy(() => import('./pages/Shop.jsx'))
-const Checkout          = lazy(() => import('./pages/Checkout.jsx'))
-const OrderConfirmation = lazy(() => import('./pages/OrderConfirmation.jsx'))
-const ThankYou          = lazy(() => import('./pages/ThankYou.jsx'))
-const Account           = lazy(() => import('./pages/Account.jsx'))
+// Lazy-loaded pages. The loaders live in one place so main.jsx can preload the
+// current route's chunk before hydrating prerendered HTML.
+const OurCakes          = lazy(pageLoaders.OurCakes)
+const Collections       = lazy(pageLoaders.Collections)
+const CollectionDetail  = lazy(pageLoaders.CollectionDetail)
+const CakeDetail        = lazy(pageLoaders.CakeDetail)
+const OurStory          = lazy(pageLoaders.OurStory)
+const Journal           = lazy(pageLoaders.Journal)
+const JournalArticle    = lazy(pageLoaders.JournalArticle)
+const Contact           = lazy(pageLoaders.Contact)
+const Enquiry           = lazy(pageLoaders.Enquiry)
+const Privacy           = lazy(pageLoaders.Privacy)
+const NotFound          = lazy(pageLoaders.NotFound)
+const Store             = lazy(pageLoaders.Store)
+const Shop              = lazy(pageLoaders.Shop)
+const Checkout          = lazy(pageLoaders.Checkout)
+const OrderConfirmation = lazy(pageLoaders.OrderConfirmation)
+const ThankYou          = lazy(pageLoaders.ThankYou)
+const Account           = lazy(pageLoaders.Account)
 
 // New pages
-const SignatureFlavours = lazy(() => import('./pages/SignatureFlavours.jsx'))
-const CustomCakes       = lazy(() => import('./pages/CustomCakes.jsx'))
-const FAQs              = lazy(() => import('./pages/FAQs.jsx'))
-const CakeEnquiry       = lazy(() => import('./pages/CakeEnquiry.jsx'))
+const SignatureFlavours = lazy(pageLoaders.SignatureFlavours)
+const CustomCakes       = lazy(pageLoaders.CustomCakes)
+const FAQs              = lazy(pageLoaders.FAQs)
+const CakeEnquiry       = lazy(pageLoaders.CakeEnquiry)
 
 // Admin
-const AdminLogin        = lazy(() => import('./pages/admin/AdminLogin.jsx'))
-const AdminLayout       = lazy(() => import('./pages/admin/AdminLayout.jsx'))
-const AdminDashboard    = lazy(() => import('./pages/admin/AdminDashboard.jsx'))
-const AdminOrders       = lazy(() => import('./pages/admin/AdminOrders.jsx'))
-const AdminInventory    = lazy(() => import('./pages/admin/AdminInventory.jsx'))
-const AdminBlog         = lazy(() => import('./pages/admin/AdminBlog.jsx'))
-const AdminBlogEditor   = lazy(() => import('./pages/admin/AdminBlogEditor.jsx'))
-const AdminComments     = lazy(() => import('./pages/admin/AdminComments.jsx'))
+const AdminLogin        = lazy(pageLoaders.AdminLogin)
+const AdminLayout       = lazy(pageLoaders.AdminLayout)
+const AdminDashboard    = lazy(pageLoaders.AdminDashboard)
+const AdminOrders       = lazy(pageLoaders.AdminOrders)
+const AdminInventory    = lazy(pageLoaders.AdminInventory)
+const AdminBlog         = lazy(pageLoaders.AdminBlog)
+const AdminBlogEditor   = lazy(pageLoaders.AdminBlogEditor)
+const AdminComments     = lazy(pageLoaders.AdminComments)
+const AdminCollections  = lazy(pageLoaders.AdminCollections)
+const AdminEnquiries    = lazy(pageLoaders.AdminEnquiries)
 
 function PageLoader() {
   return (
@@ -64,6 +68,7 @@ export default function App() {
             <Route path="/collections"         element={<Collections />} />
             <Route path="/collections/:slug"   element={<CollectionDetail />} />
             <Route path="/cakes/:slug"         element={<CakeDetail />} />
+            <Route path="/product/:slug"       element={<CakeDetail />} />
             <Route path="/our-story"           element={<OurStory />} />
             <Route path="/journal"             element={<Journal />} />
             <Route path="/journal/:slug"       element={<JournalArticle />} />
@@ -93,6 +98,8 @@ export default function App() {
             <Route path="dashboard"  element={<AdminDashboard />} />
             <Route path="orders"     element={<AdminOrders />} />
             <Route path="inventory"  element={<AdminInventory />} />
+            <Route path="collections" element={<AdminCollections />} />
+            <Route path="enquiries"  element={<AdminEnquiries />} />
             <Route path="blog"       element={<AdminBlog />} />
             <Route path="blog/new"   element={<AdminBlogEditor />} />
             <Route path="blog/:slug" element={<AdminBlogEditor />} />

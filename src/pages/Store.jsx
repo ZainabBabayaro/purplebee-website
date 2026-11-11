@@ -1,17 +1,23 @@
-import { memo, useEffect, useMemo, useState } from 'react'
+import { memo, useMemo, useState } from 'react'
+import { Link } from 'react-router-dom'
 import { ShoppingBag } from 'lucide-react'
 import SEO, { breadcrumbLd } from '../components/SEO.jsx'
 import PageHero from '../components/PageHero.jsx'
 import PlaceholderArt from '../components/PlaceholderArt.jsx'
 import { getPalette } from '../utils/images.js'
-import { useCart } from '../context/CartContext.jsx'
-import { dataApi } from '../services/db.js'
 import CakeCustomiser from '../components/CakeCustomiser.jsx'
 import SimpleAddToCart from '../components/SimpleAddToCart.jsx'
 import ProductTypeTag from '../components/ProductTypeTag.jsx'
-import { productPriceFrom, withDefaultVariants } from '../data/cakes.js'
+import { useCatalogue } from '../services/catalogue.js'
+import { productPriceFrom, productMainImage, purchaseTypeFor } from '../data/cakes.js'
 
 const OCCASIONS = ['All', 'Birthday', 'Wedding', 'Celebration']
+const TYPES = [
+  { value: 'all', label: 'All types' },
+  { value: 'cake', label: 'Cakes' },
+  { value: 'cake-slice', label: 'Slices' },
+  { value: 'cake-loaf', label: 'Loaves' },
+]
 const SORT_OPTS = [
   { value: 'az',         label: 'Name A–Z' },
   { value: 'price-asc',  label: 'Price: low–high' },
@@ -24,24 +30,25 @@ function money(n) {
 
 // memo: only re-renders when the product object changes.
 const StoreCard = memo(function StoreCard({ product, index, onCustomise }) {
-  const outOfStock = product.stock <= 0 || !product.active
-  const isFullCake = product.productType === 'cake'
+  const outOfStock = (product.stock ?? 0) <= 0 || product.active === false || product.available === false
+  const purchaseType = purchaseTypeFor(product)
   const hasVariants = Array.isArray(product.variants) && product.variants.length > 0
   const displayPrice = productPriceFrom(product)
+  const image = productMainImage(product)
 
   return (
     <div className="group flex flex-col rounded-2xl border border-line bg-ivory overflow-hidden transition-shadow hover:shadow-lg">
-      <div className="relative overflow-hidden bg-cream aspect-[4/4]">
-        {product.image ? (
+      <Link to={`/cakes/${product.slug}`} className="relative block overflow-hidden bg-cream aspect-[4/4]">
+        {image ? (
           <img
-            src={product.image}
+            src={image}
             alt={product.name}
             width={400}
             height={400}
             className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-[1.04]"
             loading={index < 4 ? 'eager' : 'lazy'}
             decoding="async"
-            fetchPriority={index === 0 ? 'high' : 'auto'}
+            fetchpriority={index === 0 ? 'high' : 'auto'}
           />
         ) : (
           <PlaceholderArt
@@ -60,25 +67,40 @@ const StoreCard = memo(function StoreCard({ product, index, onCustomise }) {
             <span className="rounded-full bg-stone/20 px-4 py-1.5 text-xs font-medium uppercase tracking-wide text-stone">Sold out</span>
           </div>
         )}
-        {product.stock > 0 && product.stock <= 3 && (
+        {!outOfStock && product.stock > 0 && product.stock <= 3 && (
           <span className="absolute right-3 top-3 rounded-full bg-honey-500 px-2.5 py-1 text-[0.65rem] font-semibold text-ivory">
             Only {product.stock} left
           </span>
         )}
-      </div>
+      </Link>
 
       {/* Details */}
       <div className="flex flex-1 flex-col p-5">
         <span className="text-[0.7rem] uppercase tracking-[0.18em] text-plum-600">{product.collectionName}</span>
-        <h2 className="mt-1 font-display text-xl font-medium text-ink">{product.name}</h2>
+        <Link to={`/cakes/${product.slug}`}>
+          <h2 className="mt-1 font-display text-xl font-medium text-ink transition-colors hover:text-plum-600">{product.name}</h2>
+        </Link>
         <p className="mt-1.5 flex-1 text-sm leading-snug text-stone">{product.summary}</p>
 
         <div className="mt-4 flex items-center justify-between gap-3">
           <span className="font-display text-2xl font-medium text-ink">
-            {hasVariants && <span className="mr-1 text-xs font-normal uppercase tracking-wide text-stone">From</span>}
-            {money(displayPrice)}
+            {purchaseType === 'quotation' ? (
+              <span className="text-base">Price on enquiry</span>
+            ) : (
+              <>
+                {hasVariants && <span className="mr-1 text-xs font-normal uppercase tracking-wide text-stone">From</span>}
+                {money(displayPrice)}
+              </>
+            )}
           </span>
-          {isFullCake ? (
+          {purchaseType === 'quotation' ? (
+            <Link
+              to={`/cake-enquiry?product=${encodeURIComponent(product.slug)}`}
+              className="flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-full bg-plum-600 px-3 py-1.5 text-xs font-medium text-ivory transition-colors hover:bg-plum-700"
+            >
+              Enquire
+            </Link>
+          ) : purchaseType === 'configurable' ? (
             <button
               type="button"
               onClick={() => !outOfStock && onCustomise(product)}
@@ -101,36 +123,22 @@ const StoreCard = memo(function StoreCard({ product, index, onCustomise }) {
 })
 
 export default function Store() {
-  const [products, setProducts] = useState([])
-  const [loading, setLoading] = useState(true)
+  const { visibleProducts, loading } = useCatalogue()
   const [occasion, setOccasion] = useState('All')
+  const [type, setType] = useState('all')
   const [sort, setSort] = useState('az')
   const [customising, setCustomising] = useState(null) // product being customised
 
-  useEffect(() => {
-    let active = true
-    dataApi.getInventory()
-      .then((inv) => {
-        if (!active) return
-        setProducts(inv && inv.length > 0 ? inv.map(withDefaultVariants) : [])
-        setLoading(false)
-      })
-      .catch((err) => {
-        console.warn('Store: could not load inventory.', err?.message)
-        if (active) setLoading(false)
-      })
-    return () => { active = false }
-  }, [])
-
   const filtered = useMemo(() => {
-    let list = products.filter((p) => p.active !== false)
+    let list = visibleProducts.filter((p) => p.active !== false && p.available !== false)
     if (occasion !== 'All') list = list.filter((p) => p.occasion === occasion)
+    if (type !== 'all') list = list.filter((p) => (p.productType || 'cake') === type)
     return [...list].sort((a, b) => {
       if (sort === 'price-asc') return productPriceFrom(a) - productPriceFrom(b)
       if (sort === 'price-desc') return productPriceFrom(b) - productPriceFrom(a)
-      return a.name.localeCompare(b.name)
+      return (a.name || '').localeCompare(b.name || '')
     })
-  }, [products, occasion, sort])
+  }, [visibleProducts, occasion, type, sort])
 
   return (
     <>
@@ -174,7 +182,19 @@ export default function Store() {
               ))}
             </div>
 
-            <div className="ml-auto">
+            <div className="ml-auto flex flex-wrap items-center gap-2">
+              <label htmlFor="type-select" className="sr-only">Filter by product type</label>
+              <select
+                id="type-select"
+                value={type}
+                onChange={(e) => setType(e.target.value)}
+                className="rounded-full border border-line bg-ivory px-4 py-1.5 text-sm text-ink focus:border-plum-400 focus:outline-none"
+              >
+                {TYPES.map((t) => (
+                  <option key={t.value} value={t.value}>{t.label}</option>
+                ))}
+              </select>
+
               <label htmlFor="sort-select" className="sr-only">Sort by</label>
               <select
                 id="sort-select"
@@ -194,7 +214,7 @@ export default function Store() {
           </div>
 
           {/* Grid */}
-          {loading ? (
+          {loading && visibleProducts.length === 0 ? (
             <div className="flex items-center justify-center py-24">
               <div className="h-10 w-10 animate-spin rounded-full border-2 border-plum-200 border-t-plum-600" />
             </div>
@@ -203,7 +223,7 @@ export default function Store() {
               No designs match this filter.{' '}
               <button
                 type="button"
-                onClick={() => setOccasion('All')}
+                onClick={() => { setOccasion('All'); setType('all') }}
                 className="text-plum-600 underline"
               >
                 Show all

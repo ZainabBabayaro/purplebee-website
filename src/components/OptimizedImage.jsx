@@ -48,7 +48,7 @@ export default function OptimizedImage({
         alt={alt}
         loading={priority ? 'eager' : 'lazy'}
         decoding="async"
-        fetchPriority={priority ? 'high' : 'auto'}
+        fetchpriority={priority ? 'high' : 'auto'}
         sizes={sizes}
         className={`h-full w-full object-cover ${imgClassName}`}
       />

@@ -39,6 +39,26 @@ const FLAVOUR_OPTS = [
   'Almond & raspberry', 'Earl grey & honey', 'Coconut & lime',
 ].map((f) => ({ value: f, label: f }))
 
+// Ask the server to verify a Paystack reference before any paid status is set.
+// The server is the only place that may mark an order paid.
+async function verifyPayment(orderId, reference) {
+  try {
+    const res = await fetch('/api/paystack-verify', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ orderId, reference }),
+    })
+    const contentType = res.headers.get('content-type') || ''
+    if (!contentType.includes('application/json')) return { verified: false, pending: true }
+    const data = await res.json()
+    return { verified: data.verified === true, pending: !res.ok }
+  } catch {
+    // The Pages Function may not exist in local dev. Never mark paid from the
+    // browser — leave it pending for the webhook / server verification.
+    return { verified: false, pending: true }
+  }
+}
+
 export default function Checkout() {
   const { items, total, clear } = useCart()
   const { user } = useAuth()
@@ -98,8 +118,11 @@ export default function Checkout() {
     setServerErr('')
 
     try {
-      // ── Step 1: Save order to Firestore ──────────────────────────────────
-      const order = {
+      // ── Step 1: Server-authoritative order creation ───────────────────────
+      // The server re-reads every product, validates availability/stock and
+      // recomputes every line price. The returned total is the only total we
+      // are allowed to charge.
+      const payload = {
         uid: user?.uid || 'guest',
         customerName: values.name,
         customerEmail: values.email,
@@ -110,49 +133,42 @@ export default function Checkout() {
         delivery: values.delivery,
         flavour: values.flavour,
         notes: values.notes,
-        // Preserve the full per-item customisation (size variant, flavour,
-        // filling, covering, celebrant details) so it reaches the admin.
         items: items.map((i) => ({
-          id: i.productId || i.slug || i.id,
+          productId: i.productId || i.slug || i.id,
           lineId: i.id,
           name: i.name,
-          price: i.price,
           qty: i.qty,
+          variantId: i.variantId || i.customisation?.variantId || null,
           productType: i.productType,
+          purchaseType: i.purchaseType,
           customisation: i.customisation || null,
           description: i.description || '',
         })),
-        total,
-        status: 'pending_payment',
       }
 
-      console.log('[Checkout] Creating order in Firestore...', order)
-      let orderId
-      try {
-        const result = await dataApi.createOrder(order)
-        orderId = result.id
-        console.log('[Checkout] ✓ Order created in Firestore. Order ID:', orderId)
-      } catch (firestoreErr) {
-        console.error('[Checkout] ✗ Failed to create order in Firestore:', firestoreErr.message)
-        throw firestoreErr
+      const order = await dataApi.checkout(payload)
+      const orderId = order.id
+      const payableTotal = Number(order.total)
+      if (!orderId || !Number.isFinite(payableTotal) || payableTotal <= 0) {
+        throw new Error('We could not calculate a valid order total. Please refresh and try again.')
       }
 
-      // ── Step 2: Launch Paystack ───────────────────────────────────────────
+      // ── Step 2: Launch Paystack for the server-calculated total ──────────
       if (!window.PaystackPop) {
-        console.warn('[Checkout] PaystackPop not available — redirecting without payment')
+        // Order is saved as pending payment; the customer can pay later.
         clear()
-        navigate('/order-confirmation', { state: { orderId, name: values.name } })
+        navigate('/order-confirmation', {
+          state: { orderId, name: values.name, paymentPending: true },
+        })
         return
       }
-
-      console.log('[Checkout] Opening Paystack popup for order:', orderId)
 
       const handler = window.PaystackPop.setup({
         key: PAYSTACK_PUBLIC_KEY,
         email: values.email,
-        amount: Math.round(total * 100), // kobo
+        amount: Math.round(payableTotal * 100), // kobo
         currency: 'NGN',
-        ref: orderId, // Use Firestore order ID directly — same ID on Paystack, Firestore and admin
+        ref: orderId, // Firestore order ID — same reference on Paystack and in admin
         metadata: {
           orderId,
           customerName: values.name,
@@ -161,25 +177,24 @@ export default function Checkout() {
             { display_name: 'Customer', variable_name: 'customer', value: values.name },
           ],
         },
-        callback: (response) => {
-          console.log('[Checkout] ✓ Payment successful!')
-          console.log('[Checkout] Paystack reference:', response.reference)
-          console.log('[Checkout] Order ID:', orderId)
-
-          // Update order status directly from client after confirmed payment.
-          dataApi.updateOrderStatus(orderId, 'confirmed')
-            .then(() => console.log('[Checkout] ✓ Order status updated to confirmed in Firestore'))
-            .catch((err) => console.warn('[Checkout] Could not update status from client:', err.message))
-
+        callback: async (response) => {
+          // Verify server-side. The browser must never set a paid status.
+          const { verified } = await verifyPayment(orderId, response.reference)
           clear()
           navigate('/order-confirmation', {
-            state: { orderId, name: values.name, paystackRef: response.reference },
+            state: {
+              orderId,
+              name: values.name,
+              paystackRef: response.reference,
+              paymentPending: !verified,
+            },
           })
         },
         onClose: () => {
-          console.warn('[Checkout] Paystack popup closed without payment. Order remains as pending_payment.')
           setBusy(false)
-          setServerErr('Payment was not completed. Your order has been saved — you can try again.')
+          setServerErr(
+            'Payment was not completed. Your order has been saved and is awaiting payment — you can try again.',
+          )
         },
       })
 
@@ -315,24 +330,26 @@ export default function Checkout() {
                           )}
                           <p className="text-xs text-stone">Qty: {item.qty}</p>
                         </div>
-                        <span className="text-sm text-ink">{money(item.price * item.qty)}</span>
+                        <span className="text-sm text-ink">{money((Number(item.unitPrice ?? item.price) || 0) * item.qty)}</span>
                       </li>
                     ))}
                   </ul>
 
                   <div className="mt-4 flex items-center justify-between border-t border-line pt-4">
-                    <span className="text-stone">Subtotal</span>
+                    <span className="text-stone">Estimated total</span>
                     <span className="font-display text-2xl text-ink">{money(total)}</span>
                   </div>
-                  <p className="mt-1 text-xs text-stone">Delivery cost (if applicable) confirmed separately. No payment taken now.</p>
+                  <p className="mt-1 text-xs text-stone">
+                    Your final total is recalculated securely on our server before payment. Delivery cost (if applicable) confirmed separately.
+                  </p>
 
                   <div className="mt-5 flex items-center gap-2 text-xs text-stone">
                     <Lock size={13} strokeWidth={1.8} />
-                    Your details are handled securely.
+                    Your details are handled securely. Payment is verified server-side.
                   </div>
 
                   <button type="submit" disabled={busy} className="btn btn-primary mt-5 w-full">
-                    {busy ? 'Placing order…' : 'Place order'}
+                    {busy ? 'Placing order…' : 'Place order & pay'}
                   </button>
                 </div>
               </div>

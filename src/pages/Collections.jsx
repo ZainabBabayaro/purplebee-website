@@ -4,9 +4,11 @@ import SEO, { breadcrumbLd } from '../components/SEO.jsx'
 import PageHero from '../components/PageHero.jsx'
 import OptimizedImage from '../components/OptimizedImage.jsx'
 import Reveal from '../components/Reveal.jsx'
-import { collections } from '../data/collections.js'
+import { useCatalogue } from '../services/catalogue.js'
 
 export default function Collections() {
+  const { visibleCollections, loading } = useCatalogue()
+
   return (
     <>
       <SEO
@@ -24,33 +26,40 @@ export default function Collections() {
 
       <section className="section-y bg-ivory pt-0">
         <div className="mx-auto max-w-7xl px-5 md:px-8">
-          <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-3 md:gap-10">
-            {collections.map((c, i) => (
-              <Reveal key={c.slug} delay={(i % 2) * 100}>
-                <Link to={`/collections/${c.slug}`} className="group block">
-                  <div className="relative overflow-hidden rounded-2xl">
-                    <OptimizedImage
-                      seed={`collection-${c.slug}`}
-                      paletteKey={c.paletteKey}
-                      alt={`${c.name} collection — ${c.subtitle}, design direction illustration`}
-                      aspect="16 / 11"
-                      className="transition-transform duration-700 ease-out group-hover:scale-[1.03]"
-                    />
-                    <span className="absolute right-5 top-5 flex h-11 w-11 items-center justify-center rounded-full bg-ivory/90 text-plum-700 opacity-0 transition-all duration-500 group-hover:opacity-100">
-                      <ArrowUpRight size={20} strokeWidth={1.6} />
-                    </span>
-                  </div>
-                  <div className="mt-6 max-w-lg">
-                    <h2 className="font-display text-2xl font-medium text-ink transition-colors group-hover:text-plum-600 md:text-3xl">
-                      {c.name}
-                    </h2>
-                    <p className="mt-1 text-sm uppercase tracking-wide text-plum-600">{c.subtitle}</p>
-                    <p className="mt-4 text-pretty leading-relaxed text-stone">{c.description}</p>
-                  </div>
-                </Link>
-              </Reveal>
-            ))}
-          </div>
+          {loading && visibleCollections.length === 0 ? (
+            <div className="flex items-center justify-center py-24">
+              <div className="h-10 w-10 animate-spin rounded-full border-2 border-plum-200 border-t-plum-600" />
+            </div>
+          ) : (
+            <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-3 md:gap-10">
+              {visibleCollections.map((c, i) => (
+                <Reveal key={c.slug} delay={(i % 2) * 100}>
+                  <Link to={`/collections/${c.slug}`} className="group block">
+                    <div className="relative overflow-hidden rounded-2xl">
+                      <OptimizedImage
+                        src={c.bannerImage}
+                        seed={`collection-${c.slug}`}
+                        paletteKey={c.paletteKey}
+                        alt={`${c.name} collection — ${c.subtitle}, design direction illustration`}
+                        aspect="16 / 11"
+                        className="transition-transform duration-700 ease-out group-hover:scale-[1.03]"
+                      />
+                      <span className="absolute right-5 top-5 flex h-11 w-11 items-center justify-center rounded-full bg-ivory/90 text-plum-700 opacity-0 transition-all duration-500 group-hover:opacity-100">
+                        <ArrowUpRight size={20} strokeWidth={1.6} />
+                      </span>
+                    </div>
+                    <div className="mt-6 max-w-lg">
+                      <h2 className="font-display text-2xl font-medium text-ink transition-colors group-hover:text-plum-600 md:text-3xl">
+                        {c.name}
+                      </h2>
+                      <p className="mt-1 text-sm uppercase tracking-wide text-plum-600">{c.subtitle}</p>
+                      <p className="mt-4 text-pretty leading-relaxed text-stone">{c.description}</p>
+                    </div>
+                  </Link>
+                </Reveal>
+              ))}
+            </div>
+          )}
         </div>
       </section>
     </>

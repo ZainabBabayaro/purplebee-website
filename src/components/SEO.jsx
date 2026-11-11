@@ -1,5 +1,6 @@
 import { Helmet } from 'react-helmet-async'
 import { site } from '../data/site.js'
+import { organizationLd, bakeryLd, websiteLd } from '../utils/structuredData.js'
 
 // Re-export all structured data helpers from their own file so any page can
 // import both SEO and the builders from the same path as before.
@@ -9,6 +10,7 @@ export {
   breadcrumbLd,
   cakeProductLd,
   articleLd,
+  websiteLd,
 } from '../utils/structuredData.js'
 
 function jsonLd(obj) {
@@ -28,8 +30,15 @@ export default function SEO({
   const fullTitle = title ? `${title} — ${site.name}` : `${site.name} — ${site.tagline}`
   const ogImage = image || `${site.url}/og-image.svg`
 
+  // Global structured data included on every public page.
+  const defaultStructured = [organizationLd(), bakeryLd(), websiteLd()]
+  const allStructured = [...defaultStructured, ...structured]
+
+  // defer={false} commits head tags synchronously on client navigation. The
+  // default (requestAnimationFrame) is paused in background tabs, which leaves
+  // the previous page's title/canonical in place until the tab is focused.
   return (
-    <Helmet>
+    <Helmet defer={false}>
       <title>{fullTitle}</title>
       {description && <meta name="description" content={description} />}
       <link rel="canonical" href={canonical} />
@@ -47,7 +56,7 @@ export default function SEO({
       {description && <meta name="twitter:description" content={description} />}
       <meta name="twitter:image" content={ogImage} />
 
-      {structured.map((obj, i) => (
+      {allStructured.map((obj, i) => (
         <script key={i} type="application/ld+json">
           {jsonLd(obj)}
         </script>

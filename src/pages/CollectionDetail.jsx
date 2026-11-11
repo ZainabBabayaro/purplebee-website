@@ -9,17 +9,17 @@ import CTASection from '../components/CTASection.jsx'
 import CakeCustomiser from '../components/CakeCustomiser.jsx'
 import SimpleAddToCart from '../components/SimpleAddToCart.jsx'
 import ProductTypeTag from '../components/ProductTypeTag.jsx'
-import { getCollectionBySlug } from '../data/collections.js'
-import { getCakesByCollection, productPriceFrom } from '../data/cakes.js'
+import { useCollection, useCatalogue, productsForCollection } from '../services/catalogue.js'
+import { productPriceFrom, productMainImage, purchaseTypeFor } from '../data/cakes.js'
 
 function money(n) {
   return `₦${Number(n).toLocaleString('en-NG', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
 }
 
-// Product card — branches add-to-cart action by productType.
+// Product card — branches add-to-cart action by purchase type.
 function ProductCard({ cake, onCustomise }) {
   const outOfStock = (cake.stock ?? 1) <= 0
-  const isFullCake = cake.productType === 'cake'
+  const purchaseType = purchaseTypeFor(cake)
   const hasVariants = Array.isArray(cake.variants) && cake.variants.length > 0
 
   return (
@@ -29,7 +29,7 @@ function ProductCard({ cake, onCustomise }) {
         {/* Image — links to product page */}
         <Link to={`/cakes/${cake.slug}`} className="relative block overflow-hidden bg-cream">
           <OptimizedImage
-            src={cake.image}
+            src={productMainImage(cake)}
             seed={`cake-${cake.slug}`}
             paletteKey={cake.paletteKey}
             alt={`${cake.name} — ${cake.summary}`}
@@ -58,12 +58,25 @@ function ProductCard({ cake, onCustomise }) {
 
           <div className="mt-4 flex items-center justify-between gap-3">
             <span className="font-display text-xl font-medium text-ink">
-              {hasVariants && <span className="mr-1 text-[0.65rem] font-normal uppercase tracking-wide text-stone">From</span>}
-              {money(productPriceFrom(cake))}
+              {purchaseType === 'quotation' ? (
+                <span className="text-base">Price on enquiry</span>
+              ) : (
+                <>
+                  {hasVariants && <span className="mr-1 text-[0.65rem] font-normal uppercase tracking-wide text-stone">From</span>}
+                  {money(productPriceFrom(cake))}
+                </>
+              )}
             </span>
 
-            {/* Branch: full cake opens customiser; slices/loaves add directly */}
-            {isFullCake ? (
+            {/* Branch: quotation CTA, configurable opens customiser, simple adds directly */}
+            {purchaseType === 'quotation' ? (
+              <Link
+                to={`/cake-enquiry?product=${encodeURIComponent(cake.slug)}`}
+                className="flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-full bg-plum-600 px-3 py-1.5 text-xs font-medium text-ivory transition-colors hover:bg-plum-700"
+              >
+                Enquire
+              </Link>
+            ) : purchaseType === 'configurable' ? (
               <button
                 type="button"
                 onClick={() => !outOfStock && onCustomise(cake)}
@@ -87,8 +100,17 @@ function ProductCard({ cake, onCustomise }) {
 
 export default function CollectionDetail() {
   const { slug } = useParams()
-  const collection = getCollectionBySlug(slug)
+  const { collection, loading } = useCollection(slug)
+  const { products, loading: catalogueLoading } = useCatalogue()
   const [customising, setCustomising] = useState(null)
+
+  if (!collection && (loading || catalogueLoading)) {
+    return (
+      <div className="flex min-h-[70vh] items-center justify-center bg-ivory">
+        <div className="h-10 w-10 animate-spin rounded-full border-2 border-plum-200 border-t-plum-600" />
+      </div>
+    )
+  }
 
   if (!collection) {
     return (
@@ -99,14 +121,15 @@ export default function CollectionDetail() {
     )
   }
 
-  const products = getCakesByCollection(slug)
+  const collectionProducts = productsForCollection(products, collection)
 
   return (
     <>
       <SEO
-        title={`${collection.name} | Purple Bee Cakes`}
+        title={collection.name}
         description={`${collection.name} — ${collection.subtitle}. ${collection.description}`}
         canonicalPath={`/collections/${slug}`}
+        image={collection.bannerImage || undefined}
         structured={[breadcrumbLd([
           { name: 'Home', path: '/' },
           { name: 'Collections', path: '/collections' },
@@ -124,16 +147,18 @@ export default function CollectionDetail() {
           { name: collection.name, to: `/collections/${slug}` },
         ]}
       >
-        <div className="mt-6 flex flex-wrap gap-2">
-          {collection.occasions.map((o) => (
-            <span key={o} className="rounded-full border border-line bg-cream/60 px-4 py-1.5 text-sm text-stone">{o}</span>
-          ))}
-        </div>
+        {collection.occasions.length > 0 && (
+          <div className="mt-6 flex flex-wrap gap-2">
+            {collection.occasions.map((o) => (
+              <span key={o} className="rounded-full border border-line bg-cream/60 px-4 py-1.5 text-sm text-stone">{o}</span>
+            ))}
+          </div>
+        )}
       </PageHero>
 
       <section className="section-y bg-ivory pt-0">
         <div className="mx-auto max-w-7xl px-5 md:px-8">
-          {products.length === 0 ? (
+          {collectionProducts.length === 0 ? (
             <div className="py-20 text-center">
               <p className="text-stone">No products in this collection yet.</p>
               <Link to="/store" className="btn btn-outline mt-6">Browse all cakes</Link>
@@ -142,7 +167,7 @@ export default function CollectionDetail() {
             <>
               <div className="mb-6 flex items-center justify-between">
                 <p className="text-sm text-stone">
-                  {products.length} product{products.length !== 1 ? 's' : ''}
+                  {collectionProducts.length} product{collectionProducts.length !== 1 ? 's' : ''}
                 </p>
                 <Link to="/store" className="inline-flex items-center gap-1.5 text-sm font-medium text-plum-600 hover:text-plum-700">
                   Explore all <ArrowRight size={15} strokeWidth={1.8} />
@@ -150,7 +175,7 @@ export default function CollectionDetail() {
               </div>
 
               <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-                {products.map((product) => (
+                {collectionProducts.map((product) => (
                   <ProductCard
                     key={product.slug}
                     cake={product}

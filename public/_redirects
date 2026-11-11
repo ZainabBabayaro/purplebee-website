@@ -1,1 +1,8 @@
+# Redirect product alias to canonical cake URL
+/product/:slug /cakes/:slug 301
+
+# Redirect legacy /shop to canonical store URL
+/shop /store 301
+
+# SPA fallback (must be last)
 /*    /index.html    200

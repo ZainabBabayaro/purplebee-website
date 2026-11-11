@@ -1,16 +1,14 @@
-import { useState } from 'react'
-import { Check, Mail, Upload, Info } from 'lucide-react'
+import { useRef, useState } from 'react'
+import { Check, Mail, Upload } from 'lucide-react'
 import SEO, { breadcrumbLd } from '../components/SEO.jsx'
 import PageHero from '../components/PageHero.jsx'
 import Reveal from '../components/Reveal.jsx'
 import { Input, Textarea, Select } from '../components/form/Inputs.jsx'
 import { site, enquiryInfo } from '../data/site.js'
 import { flavourOptions, servingGuides } from '../data/cakes.js'
-
-// ⚠️ NOT YET CONNECTED. Set this to a form-service endpoint (e.g. Formspree /
-// Web3Forms) to enable real submissions. While empty, the form validates and
-// shows an honest confirmation that no data has been sent.
-const FORM_ENDPOINT = ''
+import { dataApi } from '../services/db.js'
+import { compressImage } from '../utils/files.js'
+import { enquiryNotificationMail } from '../utils/mail.js'
 
 const occasions = [
   { value: 'Birthday', label: 'Birthday' },
@@ -91,21 +89,31 @@ export default function Enquiry() {
   const [values, setValues] = useState(initial)
   const [errors, setErrors] = useState({})
   const [submitted, setSubmitted] = useState(false)
-  const [fileName, setFileName] = useState('')
+  const [files, setFiles] = useState([])
+  const [fileNames, setFileNames] = useState([])
   const [status, setStatus] = useState('idle') // idle | submitting | done
+  const [serverErr, setServerErr] = useState('')
+  const submittedRef = useRef(false)
 
   const update = (field) => (e) => {
     const value = e.target.value
     setValues((v) => ({ ...v, [field]: value }))
     if (errors[field]) setErrors((er) => ({ ...er, [field]: undefined }))
+    setServerErr('')
+  }
+
+  const handleFiles = (e) => {
+    const selected = Array.from(e.target.files || []).slice(0, 5)
+    setFiles(selected)
+    setFileNames(selected.map((f) => f.name))
   }
 
   const handleSubmit = async (e) => {
     e.preventDefault()
+    if (submittedRef.current) return
     const found = validate(values)
     setErrors(found)
     if (Object.keys(found).length > 0) {
-      // move focus to the first invalid field for accessibility
       const firstKey = Object.keys(found)[0]
       const el = document.getElementById(firstKey)
       if (el) {
@@ -115,26 +123,39 @@ export default function Enquiry() {
       return
     }
 
+    submittedRef.current = true
     setStatus('submitting')
+    setServerErr('')
     try {
-      if (FORM_ENDPOINT) {
-        const formData = new FormData()
-        Object.entries(values).forEach(([k, v]) => formData.append(k, v))
-        const res = await fetch(FORM_ENDPOINT, {
-          method: 'POST',
-          body: formData,
-          headers: { Accept: 'application/json' },
-        })
-        if (!res.ok) throw new Error('Request failed')
-      } else {
-        // Simulate a short delay so the UI feedback feels real.
-        await new Promise((r) => setTimeout(r, 600))
+      const referenceImages = await Promise.all(
+        files.map(async (f) => ({
+          name: f.name,
+          type: f.type,
+          size: f.size,
+          url: await compressImage(f),
+        })),
+      )
+      await dataApi.addEnquiry({
+        ...values,
+        message: values.description,
+        referenceImages,
+        source: 'general-enquiry',
+      })
+      try {
+        await dataApi.addMail(enquiryNotificationMail({ ...values, message: values.description, source: 'general-enquiry' }))
+      } catch (notifyErr) {
+        console.error('[enquiry] Notification email failed:', notifyErr)
       }
       setStatus('done')
       setSubmitted(true)
-    } catch {
+    } catch (err) {
+      submittedRef.current = false
       setStatus('idle')
-      setErrors({ form: 'Something went wrong sending your enquiry. Please email us directly.' })
+      setServerErr(
+        err?.message
+          ? `We could not send your enquiry: ${err.message}. Please email us directly or message via WhatsApp.`
+          : 'Something went wrong sending your enquiry. Please email us directly or message via WhatsApp.',
+      )
     }
   }
 
@@ -156,8 +177,7 @@ export default function Enquiry() {
               Thank you, {values.name.split(' ')[0] || 'there'}.
             </h1>
             <p className="mt-5 text-pretty leading-relaxed text-stone">
-              Your enquiry details are below for your records. If you have not
-              already, please email us directly to be sure we have it.
+              Your enquiry has been sent to {site.name}. We will review it and get back to you as soon as we can.
             </p>
 
             <dl className="mt-9 grid gap-x-6 gap-y-4 rounded-2xl border border-line bg-cream/40 p-6 text-left text-sm sm:grid-cols-2">
@@ -171,17 +191,6 @@ export default function Enquiry() {
               {values.delivery && <div><dt className="text-stone-light">Collection / delivery</dt><dd className="mt-0.5 text-ink">{values.delivery}</dd></div>}
             </dl>
 
-            <div className="mt-7 flex items-start gap-3 rounded-xl border border-dashed border-honey-500/60 bg-honey-400/10 px-5 py-4 text-left">
-              <Info size={18} className="mt-0.5 shrink-0 text-honey-600" />
-              <p className="text-sm leading-relaxed text-ink">
-                <strong>Development preview.</strong> This form is not yet
-                connected to a submission service, so the enquiry above has{' '}
-                <em>not</em> been sent to {site.name}. To enable real submissions,
-                set a form endpoint at the top of{' '}
-                <code className="rounded bg-cream px-1.5 py-0.5 text-xs">src/pages/Enquiry.jsx</code>.
-              </p>
-            </div>
-
             <div className="mt-8 flex flex-col items-center gap-4 sm:flex-row sm:justify-center">
               <a href={`mailto:${site.contact.email}`} className="btn btn-primary">
                 <Mail size={16} strokeWidth={1.8} />
@@ -193,7 +202,9 @@ export default function Enquiry() {
                   setSubmitted(false)
                   setStatus('idle')
                   setValues(initial)
-                  setFileName('')
+                  setFiles([])
+                  setFileNames([])
+                  submittedRef.current = false
                 }}
                 className="btn btn-ghost"
               >
@@ -228,9 +239,9 @@ export default function Enquiry() {
             <div className="lg:col-span-7">
               <Reveal>
                 <form onSubmit={handleSubmit} noValidate className="space-y-6">
-                  {errors.form && (
+                  {(errors.form || serverErr) && (
                     <p role="alert" className="rounded-xl bg-red-50 px-4 py-3 text-sm text-red-700">
-                      {errors.form}
+                      {serverErr || errors.form}
                     </p>
                   )}
 
@@ -347,21 +358,22 @@ export default function Enquiry() {
                       className="mt-2 flex cursor-pointer items-center gap-3 rounded-xl border border-dashed border-line bg-cream/40 px-4 py-4 text-sm text-stone transition-colors hover:border-plum-300 hover:bg-cream"
                     >
                       <Upload size={18} strokeWidth={1.6} className="text-plum-500" />
-                      {fileName ? (
-                        <span className="text-ink">{fileName}</span>
+                      {fileNames.length ? (
+                        <span className="text-ink">{fileNames.join(', ')}</span>
                       ) : (
-                        <span>Click to upload an image (PNG, JPG)</span>
+                        <span>Click to upload reference images (PNG, JPG)</span>
                       )}
                     </label>
                     <input
                       id="reference"
                       type="file"
                       accept="image/*"
+                      multiple
                       className="sr-only"
-                      onChange={(e) => setFileName(e.target.files?.[0]?.name || '')}
+                      onChange={handleFiles}
                     />
                     <p className="mt-1.5 text-xs text-stone">
-                      Optional. Not yet connected to storage — for preview only.
+                      Optional. Filenames are stored with your enquiry so we know what to expect if you send images separately.
                     </p>
                   </div>
 

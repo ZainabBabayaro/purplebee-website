@@ -1,4 +1,5 @@
 // AppSSR — static imports for prerender. Mirrors App.jsx exactly.
+import { Suspense } from 'react'
 import { Route, Routes } from 'react-router-dom'
 import Layout from './components/Layout.jsx'
 import ScrollToTop from './components/ScrollToTop.jsx'
@@ -34,11 +35,23 @@ import AdminInventory   from './pages/admin/AdminInventory.jsx'
 import AdminBlog        from './pages/admin/AdminBlog.jsx'
 import AdminBlogEditor  from './pages/admin/AdminBlogEditor.jsx'
 import AdminComments    from './pages/admin/AdminComments.jsx'
+import AdminCollections from './pages/admin/AdminCollections.jsx'
+import AdminEnquiries   from './pages/admin/AdminEnquiries.jsx'
+
+// Must match App.jsx's fallback markup so the Suspense boundary hydrates.
+function PageLoader() {
+  return (
+    <div className="flex min-h-[60vh] items-center justify-center bg-ivory">
+      <div className="h-8 w-8 animate-spin rounded-full border-2 border-plum-200 border-t-plum-600" />
+    </div>
+  )
+}
 
 export default function AppSSR() {
   return (
     <>
       <ScrollToTop />
+      <Suspense fallback={<PageLoader />}>
       <Routes>
         <Route element={<Layout />}>
           <Route path="/"                    element={<Home />} />
@@ -47,6 +60,7 @@ export default function AppSSR() {
           <Route path="/collections"         element={<Collections />} />
           <Route path="/collections/:slug"   element={<CollectionDetail />} />
           <Route path="/cakes/:slug"         element={<CakeDetail />} />
+          <Route path="/product/:slug"       element={<CakeDetail />} />
           <Route path="/our-story"           element={<OurStory />} />
           <Route path="/journal"             element={<Journal />} />
           <Route path="/journal/:slug"       element={<JournalArticle />} />
@@ -71,12 +85,15 @@ export default function AppSSR() {
           <Route path="dashboard"  element={<AdminDashboard />} />
           <Route path="orders"     element={<AdminOrders />} />
           <Route path="inventory"  element={<AdminInventory />} />
+          <Route path="collections" element={<AdminCollections />} />
+          <Route path="enquiries"  element={<AdminEnquiries />} />
           <Route path="blog"       element={<AdminBlog />} />
           <Route path="blog/new"   element={<AdminBlogEditor />} />
           <Route path="blog/:slug" element={<AdminBlogEditor />} />
           <Route path="comments"   element={<AdminComments />} />
         </Route>
       </Routes>
+      </Suspense>
     </>
   )
 }

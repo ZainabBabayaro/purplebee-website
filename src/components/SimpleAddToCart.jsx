@@ -8,9 +8,10 @@ export default function SimpleAddToCart({ product, compact = false }) {
   const { add } = useCart()
   const [qty, setQty] = useState(1)
   const [added, setAdded] = useState(false)
-  const outOfStock = (product.stock ?? 1) <= 0
+  const trackStock = product.trackStock !== false
+  const outOfStock = trackStock && (Number(product.stock) || 0) <= 0
 
-  const increment = () => setQty((q) => Math.min(q + 1, product.stock ?? 99))
+  const increment = () => setQty((q) => Math.min(q + 1, trackStock ? (Number(product.stock) || 99) : 99))
   const decrement = () => setQty((q) => Math.max(1, q - 1))
 
   const handleAdd = () => {
@@ -24,6 +25,7 @@ export default function SimpleAddToCart({ product, compact = false }) {
       paletteKey: product.paletteKey,
       imageUrl: product.image || product.imageUrl || '',
       productType: product.productType,
+      purchaseType: product.purchaseType || 'simple',
       description: product.summary || '',
     }, qty)
     setAdded(true)
@@ -56,6 +58,7 @@ export default function SimpleAddToCart({ product, compact = false }) {
             paletteKey: product.paletteKey,
             imageUrl: product.image || product.imageUrl || '',
             productType: product.productType,
+            purchaseType: product.purchaseType || 'simple',
             description: product.summary || '',
           }, 1)
           setAdded(true)

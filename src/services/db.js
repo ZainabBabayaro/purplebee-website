@@ -10,6 +10,12 @@ import {
   initFirebase,
 } from '../config/firebase.js'
 import { localdb } from './localdb.js'
+import { collections as staticCollections } from '../data/collections.js'
+import { normalizeCollection } from '../data/collections.js'
+import {
+  normalizeProduct,
+  isProductAvailable,
+} from '../data/cakes.js'
 
 // Re-export for convenience.
 export { isFirebaseConfigured }
@@ -29,6 +35,10 @@ export async function getAuth() {
   const { auth } = await getFirebase()
   return auth
 }
+
+// ── Order status vocabulary ──────────────────────────────────────────────────
+// Payment and fulfilment are deliberately separate. The legacy `status` field
+// is still written for backward compatibility with older order records.
 export const STATUS = {
   PENDING: 'pending_payment',
   NEW: 'new',
@@ -57,62 +67,168 @@ export const STATUS_LABEL = {
   cancelled: 'Cancelled',
 }
 
+export const PAYMENT_STATUS = {
+  PENDING: 'pending',
+  PAID: 'paid',
+  FAILED: 'failed',
+  REFUNDED: 'refunded',
+}
+export const PAYMENT_STATUS_LABEL = {
+  pending: 'Pending',
+  paid: 'Paid',
+  failed: 'Failed',
+  refunded: 'Refunded',
+}
+
+export const FULFILMENT_STATUS = {
+  AWAITING_PAYMENT: 'awaiting_payment',
+  CONFIRMED: 'confirmed',
+  IN_PRODUCTION: 'in_production',
+  READY_FOR_COLLECTION: 'ready_for_collection',
+  OUT_FOR_DELIVERY: 'out_for_delivery',
+  COMPLETED: 'completed',
+  CANCELLED: 'cancelled',
+}
+export const FULFILMENT_FLOW = [
+  FULFILMENT_STATUS.AWAITING_PAYMENT,
+  FULFILMENT_STATUS.CONFIRMED,
+  FULFILMENT_STATUS.IN_PRODUCTION,
+  FULFILMENT_STATUS.READY_FOR_COLLECTION,
+  FULFILMENT_STATUS.OUT_FOR_DELIVERY,
+  FULFILMENT_STATUS.COMPLETED,
+  FULFILMENT_STATUS.CANCELLED,
+]
+export const FULFILMENT_LABEL = {
+  awaiting_payment: 'Awaiting payment',
+  confirmed: 'Confirmed',
+  in_production: 'In production',
+  ready_for_collection: 'Ready for collection',
+  out_for_delivery: 'Out for delivery',
+  completed: 'Completed',
+  cancelled: 'Cancelled',
+}
+
+const LEGACY_TO_FULFILMENT = {
+  pending_payment: FULFILMENT_STATUS.AWAITING_PAYMENT,
+  new: FULFILMENT_STATUS.CONFIRMED,
+  confirmed: FULFILMENT_STATUS.CONFIRMED,
+  baking: FULFILMENT_STATUS.IN_PRODUCTION,
+  ready: FULFILMENT_STATUS.READY_FOR_COLLECTION,
+  completed: FULFILMENT_STATUS.COMPLETED,
+  cancelled: FULFILMENT_STATUS.CANCELLED,
+}
+
+const PAID_LEGACY_STATUSES = new Set(['confirmed', 'baking', 'ready', 'completed'])
+
+export function normalizeOrder(order) {
+  if (!order) return order
+  const o = { ...order }
+  o.paymentStatus = o.paymentStatus || (PAID_LEGACY_STATUSES.has(o.status) ? PAYMENT_STATUS.PAID : PAYMENT_STATUS.PENDING)
+  o.fulfilmentStatus = o.fulfilmentStatus || LEGACY_TO_FULFILMENT[o.status] || FULFILMENT_STATUS.AWAITING_PAYMENT
+  o.items = (o.items || []).map((item) => {
+    const unitPrice = Number(item.unitPrice ?? item.price) || 0
+    const qty = Number(item.qty) || 1
+    return {
+      ...item,
+      unitPrice,
+      price: Number(item.price ?? unitPrice) || 0,
+      qty,
+      subtotal: Number(item.subtotal ?? unitPrice * qty) || 0,
+    }
+  })
+  o.subtotal = Number(o.subtotal ?? o.total) || 0
+  o.deliveryFee = Number(o.deliveryFee) || 0
+  o.total = Number(o.total) || 0
+  return o
+}
+
 // ---- Local fallback --------------------------------------------------------
 const local = localdb
 
-// ---- Firebase implementation ----------------------------------------------
-async function fbGetInventory() {
-  // Use the Firestore REST API for public inventory reads — no auth required.
-  // This ensures the store loads for everyone including guests.
-  const projectId = 'purplebeecakes01'
+// ---- Firestore REST helpers ------------------------------------------------
+// Public inventory/collection reads use the Firestore REST API so guests can
+// browse without signing in. Writes still go through the Firebase SDK + rules.
+const FIRESTORE_PROJECT = 'purplebeecakes01'
+
+function parseFirestoreValue(v) {
+  if (!v || typeof v !== 'object') return null
+  if (v.stringValue !== undefined) return v.stringValue
+  if (v.integerValue !== undefined) return Number(v.integerValue)
+  if (v.doubleValue !== undefined) return Number(v.doubleValue)
+  if (v.booleanValue !== undefined) return v.booleanValue
+  if (v.nullValue !== undefined) return null
+  if (v.timestampValue !== undefined) return v.timestampValue
+  if (v.arrayValue) return (v.arrayValue.values || []).map(parseFirestoreValue)
+  if (v.mapValue) {
+    const obj = {}
+    Object.entries(v.mapValue.fields || {}).forEach(([k, val]) => {
+      obj[k] = parseFirestoreValue(val)
+    })
+    return obj
+  }
+  return null
+}
+
+async function restList(collectionName) {
+  const url = `https://firestore.googleapis.com/v1/projects/${FIRESTORE_PROJECT}/databases/(default)/documents/${collectionName}`
+  const res = await fetch(url)
+  if (!res.ok) throw new Error(`Firestore REST error: ${res.status}`)
+  const json = await res.json()
+  if (!json.documents) return []
+  return json.documents.map((doc) => {
+    const id = doc.name.split('/').pop()
+    const fields = doc.fields || {}
+    const record = { id }
+    Object.entries(fields).forEach(([k, v]) => { record[k] = parseFirestoreValue(v) })
+    return record
+  })
+}
+
+async function sdkList(collectionName) {
+  const { db } = await getFirebase()
+  const { collection, getDocs } = await import('firebase/firestore')
+  const snap = await getDocs(collection(db, collectionName))
+  return snap.docs.map((d) => ({ id: d.id, ...d.data() }))
+}
+
+async function listCollection(collectionName) {
   try {
-    const url = `https://firestore.googleapis.com/v1/projects/${projectId}/databases/(default)/documents/inventory`
-    const res = await fetch(url)
-    if (!res.ok) throw new Error(`Firestore REST error: ${res.status}`)
-    const json = await res.json()
-    if (!json.documents) return []
-    return json.documents.map((doc) => {
-      const id = doc.name.split('/').pop()
-      const fields = doc.fields || {}
-      // Convert Firestore field format to plain JS object
-      const parse = (v) => {
-        if (v.stringValue !== undefined) return v.stringValue
-        if (v.integerValue !== undefined) return Number(v.integerValue)
-        if (v.doubleValue !== undefined) return Number(v.doubleValue)
-        if (v.booleanValue !== undefined) return v.booleanValue
-        if (v.arrayValue) return (v.arrayValue.values || []).map(parse)
-        if (v.mapValue) {
-          const obj = {}
-          Object.entries(v.mapValue.fields || {}).forEach(([k, val]) => { obj[k] = parse(val) })
-          return obj
-        }
-        return null
-      }
-      const product = { id }
-      Object.entries(fields).forEach(([k, v]) => { product[k] = parse(v) })
-      return product
-    }).sort((a, b) => (a.name || '').localeCompare(b.name || ''))
+    return await restList(collectionName)
   } catch (err) {
-    console.error('[Inventory] REST fetch failed, trying SDK:', err.message)
-    // Fallback to SDK if REST fails
+    console.error(`[${collectionName}] REST fetch failed, trying SDK:`, err.message)
     try {
-      const { db } = await getFirebase()
-      const { collection, getDocs } = await import('firebase/firestore')
-      const snap = await getDocs(collection(db, 'inventory'))
-      return snap.docs.map((d) => ({ id: d.id, ...d.data() }))
+      return await sdkList(collectionName)
     } catch (sdkErr) {
-      console.error('[Inventory] SDK fallback also failed:', sdkErr.message)
+      console.error(`[${collectionName}] SDK fallback also failed:`, sdkErr.message)
       return []
     }
   }
 }
 
+// ---- Firebase implementation ----------------------------------------------
+async function fbGetInventory() {
+  const rows = await listCollection('inventory')
+  return rows
+    .map(normalizeProduct)
+    .filter(Boolean)
+    .sort((a, b) => (a.displayOrder || 0) - (b.displayOrder || 0) || (a.name || '').localeCompare(b.name || ''))
+}
+
 async function fbAddProduct(product) {
   const { db } = await getFirebase()
   const { collection, doc, setDoc } = await import('firebase/firestore')
-  const id = product.slug || product.name.toLowerCase().replace(/\s+/g, '-')
+  const now = new Date().toISOString()
+  const id = product.id || product.slug || product.name.toLowerCase().replace(/[^a-z0-9]+/g, '-')
   await setDoc(doc(collection(db, 'inventory'), id), {
-    ...product, id, stock: product.stock ?? 0, active: product.active !== false,
+    ...product,
+    id,
+    slug: product.slug || id,
+    stock: product.stock ?? 0,
+    active: product.active !== false,
+    available: product.available !== false,
+    trackStock: product.trackStock !== false,
+    createdAt: product.createdAt || now,
+    updatedAt: now,
   })
   return { id }
 }
@@ -120,13 +236,24 @@ async function fbAddProduct(product) {
 async function fbUpdateProduct(id, patch) {
   const { db } = await getFirebase()
   const { doc, updateDoc } = await import('firebase/firestore')
-  // patch may include price, stock, active, imageUrl, etc. Firestore merges top-level keys.
-  await updateDoc(doc(db, 'inventory', id), patch)
+  await updateDoc(doc(db, 'inventory', id), { ...patch, updatedAt: new Date().toISOString() })
+}
+
+async function fbDeleteProduct(id) {
+  const { db } = await getFirebase()
+  const { doc, deleteDoc } = await import('firebase/firestore')
+  await deleteDoc(doc(db, 'inventory', id))
+}
+
+async function fbArchiveProduct(id) {
+  return fbUpdateProduct(id, { active: false, archived: true })
 }
 
 // Upload an image — prefers Cloudflare R2 (/api/upload), with fallback to Firebase Storage.
 // Accepts a base64 data-URL (from the image picker) or a File/Blob.
 async function fbUploadProductImage(productId, file) {
+  const errors = []
+
   // 1. Try Cloudflare Pages R2 endpoint (/api/upload)
   try {
     const { auth } = await getFirebase()
@@ -146,15 +273,18 @@ async function fbUploadProductImage(productId, file) {
       body: formData,
     })
 
-    if (res.ok) {
+    const contentType = res.headers.get('content-type') || ''
+    if (res.ok && contentType.includes('application/json')) {
       const data = await res.json()
       if (data?.url) return data.url
     } else {
-      const errJson = await res.json().catch(() => ({}))
-      console.warn('Cloudflare R2 upload returned status ' + res.status + ':', errJson.error || res.statusText)
+      const errJson = contentType.includes('application/json')
+        ? await res.json().catch(() => ({}))
+        : {}
+      errors.push(`R2: ${errJson.error || `HTTP ${res.status}`}`)
     }
   } catch (err) {
-    console.warn('Cloudflare R2 endpoint unavailable, attempting Firebase Storage fallback:', err)
+    errors.push(`R2: ${err.message}`)
   }
 
   // 2. Fallback to Firebase Storage if R2 is not reachable or not yet configured
@@ -168,9 +298,13 @@ async function fbUploadProductImage(productId, file) {
     const snap = await uploadBytes(storageRef, blob)
     return getDownloadURL(snap.ref)
   } catch (fbErr) {
-    console.error('All storage upload attempts failed:', fbErr)
-    throw new Error('Failed to upload product image to both Cloudflare R2 and Firebase Storage: ' + fbErr.message)
+    errors.push(`Firebase Storage: ${fbErr.message}`)
   }
+
+  throw new Error(
+    `Image upload failed. ${errors.join(' · ')}. ` +
+    'Check the R2 bucket binding or Firebase Storage rules in the deployment settings.',
+  )
 }
 
 // Convert a base64 data-URL, File, or Blob into a Blob.
@@ -187,42 +321,171 @@ async function toBlob(file) {
 
 async function fbSeedInventory(items) {
   const { db } = await getFirebase()
-  const { collection, doc, setDoc } = await import('firebase/firestore')
-  await Promise.all(items.map((it) => setDoc(doc(collection(db, 'inventory'), it.id), it)))
+  const { collection, doc, getDoc, setDoc } = await import('firebase/firestore')
+  const now = new Date().toISOString()
+  let added = 0
+  let skipped = 0
+  for (const it of items) {
+    const ref = doc(collection(db, 'inventory'), it.id)
+    const existing = await getDoc(ref)
+    if (existing.exists()) { skipped++; continue }
+    await setDoc(ref, {
+      ...it,
+      createdAt: now,
+      updatedAt: now,
+    })
+    added++
+  }
+  return { added, skipped }
 }
 
+// ---- Collections -----------------------------------------------------------
+async function fbGetCollections() {
+  const rows = await listCollection('collections')
+  return rows
+    .map(normalizeCollection)
+    .filter(Boolean)
+    .sort((a, b) => (a.displayOrder || 0) - (b.displayOrder || 0) || a.name.localeCompare(b.name))
+}
+
+async function fbAddCollection(collection) {
+  const { db } = await getFirebase()
+  const { doc, setDoc } = await import('firebase/firestore')
+  const now = new Date().toISOString()
+  const id = collection.id || collection.slug || collection.name.toLowerCase().replace(/[^a-z0-9]+/g, '-')
+  await setDoc(doc(db, 'collections', id), {
+    ...collection,
+    id,
+    slug: collection.slug || id,
+    visible: collection.visible !== false,
+    published: collection.published !== false,
+    productIds: Array.isArray(collection.productIds) ? collection.productIds : [],
+    displayOrder: Number(collection.displayOrder) || 0,
+    createdAt: collection.createdAt || now,
+    updatedAt: now,
+  })
+  return { id }
+}
+
+async function fbUpdateCollection(id, patch) {
+  const { db } = await getFirebase()
+  const { doc, updateDoc } = await import('firebase/firestore')
+  await updateDoc(doc(db, 'collections', id), { ...patch, updatedAt: new Date().toISOString() })
+}
+
+async function fbDeleteCollection(id) {
+  const { db } = await getFirebase()
+  const { doc, deleteDoc } = await import('firebase/firestore')
+  await deleteDoc(doc(db, 'collections', id))
+}
+
+async function fbSeedCollections() {
+  const { db } = await getFirebase()
+  const { doc, getDoc, setDoc } = await import('firebase/firestore')
+  const now = new Date().toISOString()
+  let added = 0
+  let skipped = 0
+  for (const c of staticCollections) {
+    const ref = doc(db, 'collections', c.slug)
+    const existing = await getDoc(ref)
+    if (existing.exists()) { skipped++; continue }
+    await setDoc(ref, { ...c, id: c.slug, createdAt: now, updatedAt: now })
+    added++
+  }
+  return { added, skipped }
+}
+
+// ---- Enquiries -------------------------------------------------------------
+async function fbAddEnquiry(enquiry) {
+  const { db } = await getFirebase()
+  const { collection, addDoc } = await import('firebase/firestore')
+  const now = new Date().toISOString()
+  const ref = await addDoc(collection(db, 'enquiries'), {
+    ...enquiry,
+    status: 'new',
+    createdAt: now,
+    updatedAt: now,
+  })
+  return { id: ref.id }
+}
+
+async function fbAddMail(mail) {
+  const { db } = await getFirebase()
+  const { collection, addDoc } = await import('firebase/firestore')
+  const ref = await addDoc(collection(db, 'mail'), {
+    ...mail,
+    createdAt: new Date().toISOString(),
+  })
+  return { id: ref.id }
+}
+
+async function fbGetEnquiries() {
+  const rows = await listCollection('enquiries')
+  return rows.sort((a, b) => (b.createdAt || '').localeCompare(a.createdAt || ''))
+}
+
+async function fbUpdateEnquiry(id, patch) {
+  const { db } = await getFirebase()
+  const { doc, updateDoc } = await import('firebase/firestore')
+  await updateDoc(doc(db, 'enquiries', id), { ...patch, updatedAt: new Date().toISOString() })
+}
+
+// ---- Orders ----------------------------------------------------------------
 async function fbCreateOrder(order) {
   const { db } = await getFirebase()
   const { collection, doc, runTransaction, increment } = await import('firebase/firestore')
   const orderRef = doc(collection(db, 'orders'))
-  // Use the Firestore-generated ID as the canonical order ID everywhere
   const orderId = orderRef.id
+
+  const stockLines = (order.items || []).filter((i) => i.trackStock !== false && i.custom !== true && i.id)
+
   await runTransaction(db, async (tx) => {
-    const refs = order.items.map((i) => doc(db, 'inventory', i.id))
+    const refs = stockLines.map((i) => doc(db, 'inventory', i.id))
     const snaps = await Promise.all(refs.map((r) => tx.get(r)))
-    for (let i = 0; i < order.items.length; i++) {
-      const item = order.items[i]
+    for (let i = 0; i < stockLines.length; i++) {
+      const item = stockLines[i]
       const data = snaps[i].data()
-      if (!data || (data.stock ?? 0) < item.qty) {
-        throw new Error(`"${item.name}" is no longer available in that quantity.`)
+      if (!data) throw new Error(`"${item.name}" is no longer available.`)
+      if (data.active === false || data.available === false) {
+        throw new Error(`"${item.name}" is not currently available.`)
       }
-      tx.update(refs[i], { stock: increment(-item.qty) })
+      const tracked = data.trackStock !== false
+      if (tracked && (data.stock ?? 0) < item.qty) {
+        throw new Error(`Only ${data.stock ?? 0} × "${item.name}" left in stock.`)
+      }
+      if (tracked) tx.update(refs[i], { stock: increment(-item.qty) })
     }
     tx.set(orderRef, {
       ...order,
       id: orderId,
-      status: 'pending_payment',
+      status: order.status || 'pending_payment',
+      paymentStatus: order.paymentStatus || PAYMENT_STATUS.PENDING,
+      fulfilmentStatus: order.fulfilmentStatus || FULFILMENT_STATUS.AWAITING_PAYMENT,
       createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
     })
   })
   return { id: orderId }
+}
+
+async function fbGetOrder(id) {
+  const { db } = await getFirebase()
+  const { doc, getDoc } = await import('firebase/firestore')
+  const snap = await getDoc(doc(db, 'orders', id))
+  return snap.exists() ? normalizeOrder({ id: snap.id, ...snap.data() }) : null
+}
+
+async function fbUpdateOrder(id, patch) {
+  const { db } = await getFirebase()
+  const { doc, updateDoc } = await import('firebase/firestore')
+  await updateDoc(doc(db, 'orders', id), { ...patch, updatedAt: new Date().toISOString() })
 }
 
 async function fbGetMyOrders(uid) {
   const { db } = await getFirebase()
   const { collection, query, where, getDocs, orderBy } = await import('firebase/firestore')
   const snap = await getDocs(query(collection(db, 'orders'), where('uid', '==', uid), orderBy('createdAt', 'desc')))
-  return snap.docs.map((d) => ({ id: d.id, ...d.data() }))
+  return snap.docs.map((d) => normalizeOrder({ id: d.id, ...d.data() }))
 }
 
 async function fbGetAllOrders() {
@@ -230,13 +493,13 @@ async function fbGetAllOrders() {
   const { collection, getDocs, orderBy, query } = await import('firebase/firestore')
   try {
     const snap = await getDocs(query(collection(db, 'orders'), orderBy('createdAt', 'desc')))
-    return snap.docs.map((d) => ({ id: d.id, ...d.data() }))
+    return snap.docs.map((d) => normalizeOrder({ id: d.id, ...d.data() }))
   } catch {
     // Fallback if index not ready — fetch all and sort client-side
     const { getDocs: gd, collection: col } = await import('firebase/firestore')
     const snap = await getDocs(col(db, 'orders'))
     return snap.docs
-      .map((d) => ({ id: d.id, ...d.data() }))
+      .map((d) => normalizeOrder({ id: d.id, ...d.data() }))
       .sort((a, b) => (b.createdAt || '').localeCompare(a.createdAt || ''))
   }
 }
@@ -244,9 +507,117 @@ async function fbGetAllOrders() {
 async function fbUpdateOrderStatus(id, status) {
   const { db } = await getFirebase()
   const { doc, updateDoc } = await import('firebase/firestore')
-  await updateDoc(doc(db, 'orders', id), { status })
+  await updateDoc(doc(db, 'orders', id), {
+    status,
+    fulfilmentStatus: LEGACY_TO_FULFILMENT[status] || status,
+    updatedAt: new Date().toISOString(),
+  })
 }
 
+// ---- Payment requests (admin-initiated Paystack link) ----------------------
+async function fbRequestPayment(orderId) {
+  const { auth } = await getFirebase()
+  const token = auth?.currentUser ? await auth.currentUser.getIdToken() : null
+  const res = await fetch('/api/paystack-initialize', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    },
+    body: JSON.stringify({ orderId }),
+  })
+  const contentType = res.headers.get('content-type') || ''
+  if (!contentType.includes('application/json')) {
+    throw new Error('Payment requests are not available in this environment.')
+  }
+  const data = await res.json().catch(() => ({}))
+  if (!res.ok) throw new Error(data.error || 'Could not create a payment request.')
+  return data
+}
+
+// ---- Checkout (server-authoritative, with local fallback) ------------------
+async function clientCheckout(payload) {
+  const inventory = await fbGetInventory()
+  const lines = Array.isArray(payload.items) ? payload.items : []
+  if (!lines.length) throw new Error('Your basket is empty.')
+
+  const items = []
+  for (const line of lines) {
+    const productId = line.productId || line.id
+    const product = inventory.find((p) => p.id === productId || p.slug === productId)
+    if (!product) throw new Error(`"${line.name || 'An item'}" is no longer available.`)
+    const p = normalizeProduct(product)
+    if (!isProductAvailable(p)) throw new Error(`"${p.name}" is not currently available.`)
+    const qty = Math.max(1, parseInt(line.qty, 10) || 1)
+    if (p.trackStock && p.stock < qty) {
+      throw new Error(`Only ${p.stock} × "${p.name}" left in stock.`)
+    }
+    const variantId = line.variantId || line.customisation?.variantId
+    const variant = variantId ? (p.variants || []).find((v) => v.id === variantId) : null
+    const unitPrice = variant ? Number(variant.price) : Number(p.price)
+    if (!Number.isFinite(unitPrice) || unitPrice < 0) {
+      throw new Error(`"${p.name}" has no valid price.`)
+    }
+    items.push({
+      id: p.id,
+      productId: p.id,
+      lineId: line.lineId || line.id || `${p.id}-${variantId || 'standard'}`,
+      slug: p.slug,
+      name: p.name,
+      productType: p.productType,
+      purchaseType: p.purchaseType,
+      imageUrl: p.image || '',
+      qty,
+      unitPrice,
+      price: unitPrice,
+      subtotal: unitPrice * qty,
+      customisation: line.customisation || null,
+      description: line.description || '',
+    })
+  }
+
+  const subtotal = items.reduce((n, i) => n + i.subtotal, 0)
+  const deliveryFee = Number(payload.deliveryFee) || 0
+  const total = subtotal + deliveryFee
+  const order = {
+    ...payload,
+    items,
+    subtotal,
+    deliveryFee,
+    total,
+    status: 'pending_payment',
+    paymentStatus: PAYMENT_STATUS.PENDING,
+    fulfilmentStatus: FULFILMENT_STATUS.AWAITING_PAYMENT,
+  }
+  const { id } = await fbCreateOrder(order)
+  return { id, total, subtotal, deliveryFee, items }
+}
+
+async function fbCheckout(payload) {
+  try {
+    const res = await fetch('/api/checkout', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    })
+    const contentType = res.headers.get('content-type') || ''
+    if (res.ok && contentType.includes('application/json')) {
+      return await res.json()
+    }
+    // No Pages Function in local dev — fall back to the client implementation,
+    // which still re-reads inventory and recomputes every price.
+    if (res.status === 404 || res.status === 405 || !contentType.includes('application/json')) {
+      return clientCheckout(payload)
+    }
+    const errJson = await res.json().catch(() => ({}))
+    throw new Error(errJson.error || 'Checkout could not be completed.')
+  } catch (err) {
+    if (err instanceof TypeError) return clientCheckout(payload)
+    throw err
+  }
+}
+
+// ---- Admin / auth ----------------------------------------------------------
 async function fbIsAdmin(uid) {
   const { db } = await getFirebase()
   const { doc, getDoc } = await import('firebase/firestore')
@@ -255,6 +626,7 @@ async function fbIsAdmin(uid) {
   return snap.exists() && snap.data()?.isAdmin === true
 }
 
+// ---- Blog ------------------------------------------------------------------
 async function fbGetPosts(adminMode = false) {
   const { db } = await getFirebase()
   const { collection, getDocs, query, where, orderBy } = await import('firebase/firestore')
@@ -367,15 +739,31 @@ async function localUploadProductImage(productId, file) {
 // ---- Public API (picks implementation) -------------------------------------
 export const dataApi = isFirebaseConfigured
   ? {
+      isLocal: false,
       getInventory: fbGetInventory,
-      getProduct: (id) => fbGetInventory().then((l) => l.find((p) => p.id === id) || null),
+      getProduct: (id) => fbGetInventory().then((l) => l.find((p) => p.id === id || p.slug === id) || null),
       addProduct: fbAddProduct,
       updateProduct: fbUpdateProduct,
+      deleteProduct: fbDeleteProduct,
+      archiveProduct: fbArchiveProduct,
       uploadProductImage: fbUploadProductImage,
       seedInventory: fbSeedInventory,
+      getCollections: fbGetCollections,
+      addCollection: fbAddCollection,
+      updateCollection: fbUpdateCollection,
+      deleteCollection: fbDeleteCollection,
+      seedCollections: fbSeedCollections,
+      addEnquiry: fbAddEnquiry,
+      addMail: fbAddMail,
+      getEnquiries: fbGetEnquiries,
+      updateEnquiry: fbUpdateEnquiry,
+      checkout: fbCheckout,
+      requestPayment: fbRequestPayment,
       createOrder: fbCreateOrder,
+      getOrder: fbGetOrder,
       getMyOrders: fbGetMyOrders,
       getAllOrders: fbGetAllOrders,
+      updateOrder: fbUpdateOrder,
       updateOrderStatus: fbUpdateOrderStatus,
       isAdmin: fbIsAdmin,
       getPosts: (adminMode) => fbGetPosts(adminMode),
@@ -391,15 +779,31 @@ export const dataApi = isFirebaseConfigured
       subscribe: () => () => {},
     }
   : {
+      isLocal: true,
       getInventory: local.getInventory,
       getProduct: local.getProduct,
       addProduct: local.addProduct,
       updateProduct: local.updateProduct,
+      deleteProduct: local.deleteProduct,
+      archiveProduct: local.archiveProduct,
       uploadProductImage: localUploadProductImage,
-      seedInventory: async () => {},
+      seedInventory: local.seedInventory,
+      getCollections: local.getCollections,
+      addCollection: local.addCollection,
+      updateCollection: local.updateCollection,
+      deleteCollection: local.deleteCollection,
+      seedCollections: local.seedCollections,
+      addEnquiry: local.addEnquiry,
+      addMail: local.addMail,
+      getEnquiries: local.getEnquiries,
+      updateEnquiry: local.updateEnquiry,
+      checkout: local.checkout,
+      requestPayment: local.requestPayment,
       createOrder: local.createOrder,
+      getOrder: local.getOrder,
       getMyOrders: local.getMyOrders,
       getAllOrders: local.getAllOrders,
+      updateOrder: local.updateOrder,
       updateOrderStatus: local.updateOrderStatus,
       isAdmin: async () => false,
       getPosts: () => local.getPosts(),

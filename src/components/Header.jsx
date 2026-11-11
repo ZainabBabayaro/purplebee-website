@@ -65,70 +65,73 @@ export default function Header() {
   }, [menuOpen])
 
   return (
-    <header
-      className={`fixed inset-x-0 top-0 z-50 transition-colors duration-500 ${
-        scrolled
-          ? 'border-b border-line/70 bg-ivory/90 backdrop-blur-md'
-          : 'border-b border-transparent bg-transparent'
-      }`}
-    >
-      <div className="mx-auto flex max-w-7xl items-center justify-between px-5 py-4 md:px-8 md:py-5">
-        <Wordmark />
+    <>
+      <header
+        className={`fixed inset-x-0 top-0 z-50 transition-colors duration-500 ${
+          scrolled
+            ? 'border-b border-line/70 bg-ivory/90 backdrop-blur-md'
+            : 'border-b border-transparent bg-transparent'
+        }`}
+      >
+        <div className="mx-auto flex max-w-7xl items-center justify-between px-5 py-4 md:px-8 md:py-5">
+          <Wordmark />
 
-        <nav className="hidden items-center gap-8 md:flex" aria-label="Primary">
-          {navItems.map((item) => (
-            <NavLink
-              key={item.to}
-              to={item.to}
-              end={item.to === '/'}
-              className={({ isActive }) =>
-                `link-underline text-sm font-medium tracking-wide transition-colors ${
-                  isActive ? 'text-plum-600' : 'text-ink hover:text-plum-600'
-                }`
-              }
+          <nav className="hidden items-center gap-8 md:flex" aria-label="Primary">
+            {navItems.map((item) => (
+              <NavLink
+                key={item.to}
+                to={item.to}
+                end={item.to === '/'}
+                className={({ isActive }) =>
+                  `link-underline text-sm font-medium tracking-wide transition-colors ${
+                    isActive ? 'text-plum-600' : 'text-ink hover:text-plum-600'
+                  }`
+                }
+              >
+                {item.label}
+              </NavLink>
+            ))}
+          </nav>
+
+          {/* Right actions */}
+          <div className="flex items-center gap-2">
+            <CartButton scrolled={scrolled} />
+
+            {/* Account icon */}
+            <Link
+              to={user ? '/account' : '/account'}
+              className="flex h-10 w-10 items-center justify-center rounded-full text-ink transition-colors hover:bg-plum-50"
+              aria-label={user ? `My account (${user.displayName || user.email})` : 'Sign in'}
             >
-              {item.label}
-            </NavLink>
-          ))}
-        </nav>
-
-        {/* Right actions */}
-        <div className="flex items-center gap-2">
-          <CartButton scrolled={scrolled} />
-
-          {/* Account icon */}
-          <Link
-            to={user ? '/account' : '/account'}
-            className="flex h-10 w-10 items-center justify-center rounded-full text-ink transition-colors hover:bg-plum-50"
-            aria-label={user ? `My account (${user.displayName || user.email})` : 'Sign in'}
-          >
-            <User size={20} strokeWidth={1.6} />
-            {user && (
-              <span className="absolute mt-6 ml-6 h-2.5 w-2.5 rounded-full bg-plum-500 ring-2 ring-ivory" />
-            )}
-          </Link>
-
-          {/* Enquire CTA — desktop only */}
-          <div className="hidden md:block ml-2">
-            <Link to={primaryAction.to} className="btn btn-primary">
-              {primaryAction.label}
+              <User size={20} strokeWidth={1.6} />
+              {user && (
+                <span className="absolute mt-6 ml-6 h-2.5 w-2.5 rounded-full bg-plum-500 ring-2 ring-ivory" />
+              )}
             </Link>
+
+            {/* Enquire CTA — desktop only */}
+            <div className="hidden md:block ml-2">
+              <Link to={primaryAction.to} className="btn btn-primary">
+                {primaryAction.label}
+              </Link>
+            </div>
+
+            {/* Mobile menu toggle */}
+            <button
+              type="button"
+              onClick={() => setMenuOpen(true)}
+              className="flex h-10 w-10 items-center justify-center rounded-full text-ink md:hidden"
+              aria-label="Open menu"
+              aria-expanded={menuOpen}
+            >
+              <Menu size={22} strokeWidth={1.6} />
+            </button>
           </div>
-
-          {/* Mobile menu toggle */}
-          <button
-            type="button"
-            onClick={() => setMenuOpen(true)}
-            className="flex h-10 w-10 items-center justify-center rounded-full text-ink md:hidden"
-            aria-label="Open menu"
-            aria-expanded={menuOpen}
-          >
-            <Menu size={22} strokeWidth={1.6} />
-          </button>
         </div>
-      </div>
+      </header>
 
+      {/* Rendered as a sibling so it sits above the header, cart drawer and WhatsApp button. */}
       <MobileMenu open={menuOpen} onClose={() => setMenuOpen(false)} />
-    </header>
+    </>
   )
 }

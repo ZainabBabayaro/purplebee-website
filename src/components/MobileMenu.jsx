@@ -38,7 +38,7 @@ export default function MobileMenu({ open, onClose }) {
 
   return (
     <div
-      className={`fixed inset-0 z-50 md:hidden transition-opacity duration-300 ${
+      className={`fixed inset-0 z-[80] md:hidden transition-opacity duration-300 ${
         open ? 'pointer-events-auto opacity-100' : 'pointer-events-none opacity-0'
       }`}
       aria-hidden={!open}

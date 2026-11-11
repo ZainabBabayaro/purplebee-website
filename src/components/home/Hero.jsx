@@ -72,42 +72,51 @@ export default function Hero() {
 
             {/* Main full-cake image — spans 7 cols, both rows */}
             <div className="col-span-7 row-span-2 overflow-hidden rounded-2xl shadow-[0_24px_50px_-20px_rgba(55,42,74,0.35)]">
-              <img
-                src="/images/hero/img-6550-2.jpg"
-                alt="Three-tier wedding cake with crimson lace texture, hand-crafted sugar flowers in sage and burgundy, and gold leaf detail"
-                width={880}
-                height={1120}
-                fetchPriority="high"
-                loading="eager"
-                decoding="async"
-                className="h-full w-full object-cover"
-              />
+              <picture>
+                <source srcSet="/images/hero/img-6550-2.webp" type="image/webp" />
+                <img
+                  src="/images/hero/img-6550-2.jpg"
+                  alt="Three-tier wedding cake with crimson lace texture, hand-crafted sugar flowers in sage and burgundy, and gold leaf detail"
+                  width={880}
+                  height={1120}
+                  fetchpriority="high"
+                  loading="eager"
+                  decoding="async"
+                  className="h-full w-full object-cover"
+                />
+              </picture>
             </div>
 
             {/* Detail 1 — lace embossing on top tier */}
             <div className="col-span-5 row-span-1 overflow-hidden rounded-xl shadow-md">
-              <img
-                src="/images/hero/img-6565.jpg"
-                alt="Close-up of ivory lace embossing on the top tier with crimson sugar flowers"
-                width={540}
-                height={480}
-                loading="lazy"
-                decoding="async"
-                className="h-full w-full object-cover object-top"
-              />
+              <picture>
+                <source srcSet="/images/hero/img-6565.webp" type="image/webp" />
+                <img
+                  src="/images/hero/img-6565.jpg"
+                  alt="Close-up of ivory lace embossing on the top tier with crimson sugar flowers"
+                  width={540}
+                  height={480}
+                  loading="lazy"
+                  decoding="async"
+                  className="h-full w-full object-cover object-top"
+                />
+              </picture>
             </div>
 
             {/* Detail 2 — sugar flowers and lace collar */}
             <div className="col-span-5 row-span-1 overflow-hidden rounded-xl shadow-md">
-              <img
-                src="/images/hero/img-6564.jpg"
-                alt="Hand-crafted sage and burgundy sugar flowers with delicate lace collar detail"
-                width={540}
-                height={480}
-                loading="lazy"
-                decoding="async"
-                className="h-full w-full object-cover object-center"
-              />
+              <picture>
+                <source srcSet="/images/hero/img-6564.webp" type="image/webp" />
+                <img
+                  src="/images/hero/img-6564.jpg"
+                  alt="Hand-crafted sage and burgundy sugar flowers with delicate lace collar detail"
+                  width={540}
+                  height={480}
+                  loading="lazy"
+                  decoding="async"
+                  className="h-full w-full object-cover object-center"
+                />
+              </picture>
             </div>
 
           </div>

@@ -4,12 +4,13 @@ import { useCart } from '../context/CartContext.jsx'
 import OptimizedImage from './OptimizedImage.jsx'
 import { Textarea } from './form/Inputs.jsx'
 import {
-  flavourOptions,
-  fillingOptions,
-  coveringOptions,
+  flavourOptions as defaultFlavourOptions,
+  fillingOptions as defaultFillingOptions,
+  coveringOptions as defaultCoveringOptions,
   servingGuides,
   eventTypeOptions,
   celebrantGenderOptions,
+  productMainImage,
 } from '../data/cakes.js'
 
 // ── CakeCustomiser
@@ -71,16 +72,33 @@ export default function CakeCustomiser({ cake, onClose }) {
   const [errors, setErrors] = useState({})
   const [added, setAdded] = useState(false)
 
-  const variants = Array.isArray(cake.variants) ? cake.variants : []
+  const config = cake.config || {}
+  const flavourOptions = Array.isArray(config.flavours) && config.flavours.length
+    ? config.flavours
+    : defaultFlavourOptions
+  const fillingOptions = Array.isArray(config.fillings) && config.fillings.length
+    ? config.fillings
+    : defaultFillingOptions
+  const coveringOptions = Array.isArray(config.coverings) && config.coverings.length
+    ? config.coverings
+    : defaultCoveringOptions
+
+  const variants = Array.isArray(cake.variants) && cake.variants.length
+    ? cake.variants
+    : Array.isArray(config.sizes)
+      ? config.sizes
+      : []
   const isTiered = variants.length > 0
 
-  // Size choices: product-specific tier variations, or the standard single-tier
-  // serving guide. Tier variations carry their own price.
+  // Size choices: product-specific size variations, or the standard single-tier
+  // serving guide. Variations carry their own price.
   const sizeOptions = isTiered
-    ? variants.map((v) => ({ value: v.id, label: `${v.label} — ${money(v.price)}` }))
+    ? variants.map((v) => ({ value: v.id || v.label, label: `${v.label} — ${money(v.price)}` }))
     : servingGuides.map((s) => ({ value: s.size, label: `${s.size} — ${s.servings}` }))
 
-  const selectedVariant = isTiered ? variants.find((v) => v.id === form.size) : null
+  const selectedVariant = isTiered
+    ? variants.find((v) => (v.id || v.label) === form.size)
+    : null
   const selectedGuide = !isTiered ? servingGuides.find((s) => s.size === form.size) : null
   const selectedPrice = selectedVariant ? Number(selectedVariant.price) : cake.price
   const selectedLabel = selectedVariant?.label || form.size
@@ -118,6 +136,7 @@ export default function CakeCustomiser({ cake, onClose }) {
     if (Object.keys(errs).length) return
 
     const coveringLabel = coveringOptions.find((c) => c.value === form.covering)?.label || form.covering
+    const variantId = selectedVariant ? (selectedVariant.id || selectedVariant.label) : null
     const lineId = `${cake.slug}-${form.size}-${form.flavour}-${form.filling}-${form.covering}`
       .toLowerCase()
       .replace(/\s+/g, '-')
@@ -130,10 +149,12 @@ export default function CakeCustomiser({ cake, onClose }) {
       name: cake.name,
       price: selectedPrice,
       paletteKey: cake.paletteKey,
-      imageUrl: cake.image || '',
+      imageUrl: productMainImage(cake),
       productType: 'cake',
+      purchaseType: 'configurable',
+      variantId,
       customisation: {
-        variantId: form.size,
+        ...(variantId ? { variantId } : {}),
         size: selectedLabel,
         servings: selectedServings,
         flavour: form.flavour,
@@ -192,7 +213,7 @@ export default function CakeCustomiser({ cake, onClose }) {
           <div className="mb-6 flex items-center gap-4 rounded-2xl border border-line bg-cream/40 p-4">
             <div className="h-16 w-16 shrink-0 overflow-hidden rounded-xl">
               <OptimizedImage
-                src={cake.image}
+                src={productMainImage(cake)}
                 seed={`cake-${cake.slug}`}
                 paletteKey={cake.paletteKey}
                 alt={cake.name}

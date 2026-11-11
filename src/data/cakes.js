@@ -98,6 +98,87 @@ export const productTypeLabel = {
   'cake-loaf':  'Cake Loaf',
 }
 
+// ── Purchasing behaviour ─────────────────────────────────────────────────────
+// Kept separate from productType: a cake can be fixed-price, configurable or
+// quotation-only, and that choice is managed in the admin.
+export const purchaseTypeOptions = [
+  { value: 'simple',       label: 'Simple purchase (quantity only)' },
+  { value: 'configurable', label: 'Configurable (size, flavour, finish…)' },
+  { value: 'quotation',    label: 'Quotation required (enquiry)' },
+]
+
+// Only products in these collections can be added to the cart and checked out.
+// Everything else is treated as a bespoke enquiry.
+export const PURCHASABLE_COLLECTIONS = ['celebration-cakes', 'slices-and-loaves']
+
+export function isPurchasable(product) {
+  const slugs = product?.collectionSlugs || []
+  return slugs.some((slug) => PURCHASABLE_COLLECTIONS.includes(slug))
+}
+
+export function purchaseTypeFor(product) {
+  if (!product) return 'simple'
+  // Collection membership is the source of truth: anything outside the
+  // purchasable collections is always an enquiry, regardless of any explicit
+  // purchaseType stored on the product.
+  if (!isPurchasable(product)) return 'quotation'
+  if (product.purchaseType) return product.purchaseType
+  return product.productType === 'cake' ? 'configurable' : 'simple'
+}
+
+// Normalise the different image shapes used across the catalogue, Firestore and
+// the admin (main image, imageUrl, images array).
+export function productImages(product) {
+  const list = Array.isArray(product?.images) ? product.images : []
+  const urls = list
+    .map((img) => (typeof img === 'string' ? img : img?.url))
+    .filter(Boolean)
+  const main = product?.image || product?.imageUrl
+  if (main && !urls.includes(main)) urls.unshift(main)
+  return urls
+}
+
+export function productMainImage(product) {
+  return productImages(product)[0] || ''
+}
+
+export function collectionSlugsFor(product) {
+  const list = Array.isArray(product?.collectionSlugs)
+    ? product.collectionSlugs.filter(Boolean)
+    : []
+  if (product?.collectionSlug && !list.includes(product.collectionSlug)) {
+    list.unshift(product.collectionSlug)
+  }
+  return list
+}
+
+export function isProductAvailable(product) {
+  return product?.active !== false && product?.available !== false
+}
+
+// Single normalisation entry point for products coming from Firestore, the
+// static catalogue or local storage. Pages should always run products through
+// this so missing legacy fields do not break rendering or purchasing.
+export function normalizeProduct(product) {
+  if (!product) return null
+  const p = { ...product }
+  p.id = p.id || p.slug
+  p.slug = p.slug || p.id
+  p.productType = p.productType || 'cake'
+  p.purchaseType = purchaseTypeFor(p)
+  p.collectionSlugs = collectionSlugsFor(p)
+  p.images = productImages(p)
+  p.image = p.image || p.imageUrl || p.images[0] || ''
+  p.imageUrl = p.imageUrl || p.image
+  p.price = Number(p.price) || 0
+  p.stock = Number.isFinite(Number(p.stock)) ? Number(p.stock) : 0
+  p.active = p.active !== false
+  p.available = p.available !== false
+  p.trackStock = p.trackStock !== false
+  p.displayOrder = Number.isFinite(Number(p.displayOrder)) ? Number(p.displayOrder) : 0
+  return withDefaultVariants(p)
+}
+
 // ── Full celebration cakes ────────────────────────────────────────────────────
 const rawCakes = [
   {
@@ -331,12 +412,22 @@ const storeMeta = {
 
 export const cakes = rawCakes.map((c) => {
   const basePrice = storeMeta[c.slug]?.price ?? 50000
+  const image = c.image || ''
   return {
     ...c,
+    id: c.slug,
     price: basePrice,
     stock: storeMeta[c.slug]?.stock ?? 10,
     active: true,
-    image: c.image || '',
+    available: true,
+    trackStock: true,
+    displayOrder: 0,
+    image,
+    images: image ? [{ url: image, alt: c.name, order: 0 }] : [],
+    collectionSlugs: c.collectionSlug ? [c.collectionSlug] : [],
+    // purchaseType is derived at runtime from collection membership; we do not
+    // store a default here so that changing a product's collection updates its
+    // behaviour without a separate migration.
     // Tiered cakes expose size variations; single-tier cakes use servingGuides.
     variants: c.tiered ? buildTierVariants(basePrice) : [],
   }

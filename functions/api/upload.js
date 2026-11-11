@@ -42,6 +42,22 @@ function base64UrlToUint8Array(base64Url) {
   return bytes
 }
 
+function base64ToUint8Array(base64) {
+  const padded = base64.length % 4 === 0 ? base64 : base64 + '='.repeat(4 - (base64.length % 4))
+  const binary = atob(padded)
+  const bytes = new Uint8Array(binary.length)
+  for (let i = 0; i < binary.length; i++) {
+    bytes[i] = binary.charCodeAt(i)
+  }
+  return bytes
+}
+
+function decodeJwtPart(part) {
+  const base64 = part.replace(/-/g, '+').replace(/_/g, '/')
+  const pad = base64.length % 4 === 0 ? '' : '='.repeat(4 - (base64.length % 4))
+  return JSON.parse(atob(base64 + pad))
+}
+
 // Verify Firebase Auth ID token
 async function verifyFirebaseToken(token, projectId, adminEmails) {
   if (!token) return { valid: false, error: 'No token provided' }
@@ -50,8 +66,8 @@ async function verifyFirebaseToken(token, projectId, adminEmails) {
 
   let header, payload
   try {
-    header = JSON.parse(atob(parts[0].replace(/-/g, '+').replace(/_/g, '/')))
-    payload = JSON.parse(atob(parts[1].replace(/-/g, '+').replace(/_/g, '/')))
+    header = decodeJwtPart(parts[0])
+    payload = decodeJwtPart(parts[1])
   } catch {
     return { valid: false, error: 'Could not parse token payload' }
   }
@@ -84,28 +100,30 @@ async function verifyFirebaseToken(token, projectId, adminEmails) {
   try {
     const keys = await getGoogleJwks()
     const matchingKey = keys.find((k) => k.kid === header.kid)
-    if (matchingKey) {
-      const cryptoKey = await crypto.subtle.importKey(
-        'jwk',
-        matchingKey,
-        { name: 'RSASSA-PKCS1-v1_5', hash: 'SHA-256' },
-        false,
-        ['verify']
-      )
-      const signedData = new TextEncoder().encode(`${parts[0]}.${parts[1]}`)
-      const signatureBytes = base64UrlToUint8Array(parts[2])
-      const verified = await crypto.subtle.verify(
-        'RSASSA-PKCS1-v1_5',
-        cryptoKey,
-        signatureBytes,
-        signedData
-      )
-      if (!verified) {
-        return { valid: false, error: 'Token signature verification failed' }
-      }
+    if (!matchingKey) {
+      return { valid: false, error: 'Unknown token signing key' }
+    }
+    const cryptoKey = await crypto.subtle.importKey(
+      'jwk',
+      matchingKey,
+      { name: 'RSASSA-PKCS1-v1_5', hash: 'SHA-256' },
+      false,
+      ['verify']
+    )
+    const signedData = new TextEncoder().encode(`${parts[0]}.${parts[1]}`)
+    const signatureBytes = base64UrlToUint8Array(parts[2])
+    const verified = await crypto.subtle.verify(
+      'RSASSA-PKCS1-v1_5',
+      cryptoKey,
+      signatureBytes,
+      signedData
+    )
+    if (!verified) {
+      return { valid: false, error: 'Token signature verification failed' }
     }
   } catch (err) {
     console.warn('Signature verification check error:', err)
+    return { valid: false, error: 'Token signature verification failed' }
   }
 
   return { valid: true, user: payload }
@@ -201,12 +219,7 @@ export async function onRequestPost(context) {
       if (rawImage.startsWith('data:')) {
         const [header, base64] = rawImage.split(',', 2)
         mimeType = (header.match(/:(.*?);/) || [])[1] || mimeType
-        const binary = atob(base64)
-        const bytes = new Uint8Array(binary.length)
-        for (let i = 0; i < binary.length; i++) {
-          bytes[i] = binary.charCodeAt(i)
-        }
-        fileBuffer = bytes.buffer
+        fileBuffer = base64ToUint8Array(base64).buffer
       } else {
         return new Response(
           JSON.stringify({ error: 'Image must be a data: URI' }),
@@ -233,6 +246,27 @@ export async function onRequestPost(context) {
   else if (mimeType.includes('svg')) ext = 'svg'
   else if (mimeType.includes('gif')) ext = 'gif'
   else if (mimeType.includes('avif')) ext = 'avif'
+
+  if (!mimeType.startsWith('image/')) {
+    return new Response(
+      JSON.stringify({ error: 'Only image uploads are allowed.' }),
+      { status: 415, headers: { ...corsHeaders(), 'Content-Type': 'application/json' } }
+    )
+  }
+
+  if (!fileBuffer || fileBuffer.byteLength === 0) {
+    return new Response(
+      JSON.stringify({ error: 'The uploaded image is empty.' }),
+      { status: 400, headers: { ...corsHeaders(), 'Content-Type': 'application/json' } }
+    )
+  }
+
+  if (fileBuffer.byteLength > 10 * 1024 * 1024) {
+    return new Response(
+      JSON.stringify({ error: 'Images must be smaller than 10 MB.' }),
+      { status: 413, headers: { ...corsHeaders(), 'Content-Type': 'application/json' } }
+    )
+  }
 
   const cleanSlug = productId.toLowerCase().replace(/[^a-z0-9_-]/g, '-')
   const timestamp = Date.now()

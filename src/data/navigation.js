@@ -2,7 +2,6 @@
 export const navItems = [
   { label: 'Home',      to: '/' },
   { label: 'Our Cakes', to: '/our-cakes' },
-  { label: 'Collections', to: '/collections' },
   { label: 'Store',     to: '/store' },
   { label: 'Our Story', to: '/our-story' },
   { label: 'Blog',      to: '/journal' },

@@ -5,48 +5,66 @@ export const useCart = () => useContext(CartContext)
 
 const STORAGE_KEY = 'pb_cart'
 
+function loadCart() {
+  if (typeof window === 'undefined') return []
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY)
+    return raw ? JSON.parse(raw) : []
+  } catch {
+    return []
+  }
+}
+
 export function CartProvider({ children }) {
+  // Start empty so the first client render matches the prerendered HTML (the
+  // cart lives only in localStorage, which the server cannot read). The saved
+  // basket is applied in an effect immediately after hydration.
   const [items, setItems] = useState([])
   const [open, setOpen] = useState(false)
+  const [hydrated, setHydrated] = useState(false)
 
-  // Load persisted cart on the client only (SSR-safe).
   useEffect(() => {
-    try {
-      const raw = localStorage.getItem(STORAGE_KEY)
-      if (raw) setItems(JSON.parse(raw))
-    } catch {
-      /* ignore */
-    }
+    setItems(loadCart())
+    setHydrated(true)
   }, [])
 
+  // Persist only after the saved basket has been loaded. Writing before that
+  // would overwrite storage with an empty cart (and StrictMode remounts the
+  // effects, so the order matters).
   useEffect(() => {
+    if (!hydrated) return
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(items))
     } catch {
       /* ignore */
     }
-  }, [items])
+  }, [items, hydrated])
   const add = (product, qty = 1) => {
+    const lineId = product.lineId || product.id
+    const safeQty = Math.max(1, parseInt(qty, 10) || 1)
     setItems((prev) => {
-      const existing = prev.find((i) => i.id === product.id)
+      const existing = prev.find((i) => i.id === lineId)
       if (existing) {
-        return prev.map((i) => (i.id === product.id ? { ...i, qty: i.qty + qty } : i))
+        return prev.map((i) => (i.id === lineId ? { ...i, qty: i.qty + safeQty } : i))
       }
       return [
         ...prev,
         {
-          id: product.id,
+          id: lineId,
           // The inventory product id (line id can include customisation).
           productId: product.productId || product.id || product.slug,
           slug: product.slug || product.id,
           name: product.name,
-          price: product.price,
+          price: Number(product.price) || 0,
+          unitPrice: Number(product.price) || 0,
           paletteKey: product.paletteKey,
           imageUrl: product.imageUrl || product.image || '',
           description: product.description || '',
           customisation: product.customisation || null,
           productType: product.productType || 'cake',
-          qty,
+          purchaseType: product.purchaseType || 'simple',
+          variantId: product.variantId || product.customisation?.variantId || null,
+          qty: safeQty,
         },
       ]
     })

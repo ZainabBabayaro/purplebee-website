@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { ArrowRight, ShoppingBag } from 'lucide-react'
 import SEO, { breadcrumbLd, cakeProductLd } from '../components/SEO.jsx'
@@ -9,7 +9,18 @@ import CTASection from '../components/CTASection.jsx'
 import CakeCustomiser from '../components/CakeCustomiser.jsx'
 import SimpleAddToCart from '../components/SimpleAddToCart.jsx'
 import ProductTypeTag from '../components/ProductTypeTag.jsx'
-import { getCakeBySlug, cakes, flavourOptions, fillingOptions, coveringOptions, servingGuides, productPriceFrom } from '../data/cakes.js'
+import { Select } from '../components/form/Inputs.jsx'
+import { useProduct, useCatalogue } from '../services/catalogue.js'
+import {
+  flavourOptions,
+  fillingOptions,
+  coveringOptions,
+  servingGuides,
+  productPriceFrom,
+  productImages,
+  productMainImage,
+  purchaseTypeFor,
+} from '../data/cakes.js'
 
 function money(n) {
   return `₦${Number(n).toLocaleString('en-NG', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
@@ -19,6 +30,10 @@ function money(n) {
 function FullCakePurchase({ cake, onCustomise }) {
   const variants = Array.isArray(cake.variants) ? cake.variants : []
   const isTiered = variants.length > 0
+  const config = cake.config || {}
+  const flavours = Array.isArray(config.flavours) && config.flavours.length ? config.flavours : flavourOptions
+  const fillings = Array.isArray(config.fillings) && config.fillings.length ? config.fillings : fillingOptions
+  const coverings = Array.isArray(config.coverings) && config.coverings.length ? config.coverings : coveringOptions
 
   return (
     <>
@@ -26,7 +41,7 @@ function FullCakePurchase({ cake, onCustomise }) {
       <div className="mt-10 rounded-2xl border border-line bg-cream/40 p-6">
         <h2 className="font-display text-lg font-medium text-ink">Sponge flavours</h2>
         <ul className="mt-4 flex flex-wrap gap-2">
-          {flavourOptions.map((f) => (
+          {flavours.map((f) => (
             <li key={f} className="rounded-full border border-line bg-ivory px-4 py-1.5 text-sm text-stone">{f}</li>
           ))}
         </ul>
@@ -36,7 +51,7 @@ function FullCakePurchase({ cake, onCustomise }) {
       <div className="mt-4 rounded-2xl border border-line bg-cream/40 p-6">
         <h2 className="font-display text-lg font-medium text-ink">Fillings</h2>
         <ul className="mt-4 flex flex-wrap gap-2">
-          {fillingOptions.map((f) => (
+          {fillings.map((f) => (
             <li key={f} className="rounded-full border border-line bg-ivory px-4 py-1.5 text-sm text-stone">{f}</li>
           ))}
         </ul>
@@ -46,12 +61,16 @@ function FullCakePurchase({ cake, onCustomise }) {
       <div className="mt-4 rounded-2xl border border-line bg-cream/40 p-6">
         <h2 className="font-display text-lg font-medium text-ink">Coverings</h2>
         <ul className="mt-4 space-y-2">
-          {coveringOptions.map((c) => (
-            <li key={c.value} className="text-sm text-stone">
-              <span className="font-medium text-ink">{c.label.split('—')[0].trim()}</span>
-              {c.label.includes('—') && <span className="text-stone"> — {c.label.split('—')[1].trim()}</span>}
-            </li>
-          ))}
+          {coverings.map((c) => {
+            const value = typeof c === 'string' ? c : c.value
+            const label = typeof c === 'string' ? c : c.label
+            return (
+              <li key={value} className="text-sm text-stone">
+                <span className="font-medium text-ink">{label.split('—')[0].trim()}</span>
+                {label.includes('—') && <span className="text-stone"> — {label.split('—')[1].trim()}</span>}
+              </li>
+            )
+          })}
         </ul>
       </div>
 
@@ -92,7 +111,7 @@ function FullCakePurchase({ cake, onCustomise }) {
           <ShoppingBag size={16} strokeWidth={1.8} />
           Customise &amp; add to basket
         </button>
-        <Link to="/enquiry" className="btn btn-outline">
+        <Link to="/cake-enquiry" className="btn btn-outline">
           Enquire about this cake
           <ArrowRight size={16} strokeWidth={1.8} />
         </Link>
@@ -121,7 +140,7 @@ function SimplePurchase({ cake }) {
                 : 'Made fresh to order. Keeps well for 3–4 days at room temperature.'}
             </p>
           </div>
-          <span className="font-display text-2xl font-medium text-ink shrink-0">
+          <span className="shrink-0 font-display text-2xl font-medium text-ink">
             {money(cake.price)}
           </span>
         </div>
@@ -134,11 +153,66 @@ function SimplePurchase({ cake }) {
   )
 }
 
+// ── Quotation-required section ────────────────────────────────────────────────
+function QuotationPurchase({ cake }) {
+  const config = cake.config || {}
+  const flavourOpts = Array.isArray(config.flavours) && config.flavours.length
+    ? config.flavours
+    : flavourOptions.map((f) => ({ value: f, label: f }))
+
+  const [flavour, setFlavour] = useState('')
+  const enquiryLink = `/cake-enquiry?product=${encodeURIComponent(cake.slug)}${flavour ? `&flavour=${encodeURIComponent(flavour)}` : ''}`
+
+  return (
+    <>
+      <div className="mt-10 rounded-2xl border border-line bg-cream/40 p-6">
+        <h2 className="font-display text-lg font-medium text-ink">Made to your brief</h2>
+        <p className="mt-2 text-sm leading-relaxed text-stone">
+          This design is quoted individually. Choose a preferred flavour and tell us about your occasion
+          and we will come back to you with a personal quote.
+        </p>
+
+        <div className="mt-5">
+          <Select
+            id="enquiry-flavour"
+            label="Preferred flavour (optional)"
+            placeholder="Open to suggestions"
+            options={flavourOpts}
+            value={flavour}
+            onChange={(e) => setFlavour(e.target.value)}
+          />
+        </div>
+      </div>
+      <div className="mt-6 flex flex-col gap-3 sm:flex-row">
+        <Link to={enquiryLink} className="btn btn-primary">
+          Request a quote
+          <ArrowRight size={16} strokeWidth={1.8} />
+        </Link>
+        <Link to="/collections" className="btn btn-outline">
+          Browse collections
+        </Link>
+      </div>
+    </>
+  )
+}
+
 // ── Page ──────────────────────────────────────────────────────────────────────
 export default function CakeDetail() {
   const { slug } = useParams()
-  const cake = getCakeBySlug(slug)
+  const { product: cake, loading } = useProduct(slug)
+  const { products } = useCatalogue()
   const [customising, setCustomising] = useState(false)
+  const [activeImage, setActiveImage] = useState(0)
+
+  const images = useMemo(() => (cake ? productImages(cake) : []), [cake])
+
+  if (!cake && loading) {
+    return (
+      <div className="flex min-h-[70vh] items-center justify-center bg-ivory">
+        <div className="h-10 w-10 animate-spin rounded-full border-2 border-plum-200 border-t-plum-600" />
+      </div>
+    )
+  }
 
   if (!cake) {
     return (
@@ -149,26 +223,32 @@ export default function CakeDetail() {
     )
   }
 
-  const isFullCake = cake.productType === 'cake'
+  const purchaseType = purchaseTypeFor(cake)
   const hasVariants = Array.isArray(cake.variants) && cake.variants.length > 0
-  const related = cakes
-    .filter((c) => c.collectionSlug === cake.collectionSlug && c.slug !== cake.slug)
+  const related = products
+    .filter((c) => c.slug !== cake.slug && (
+      c.collectionSlugs?.includes(cake.collectionSlugs?.[0]) ||
+      c.collectionSlug === cake.collectionSlug
+    ))
     .slice(0, 3)
-  const relatedCakes = related.length ? related : cakes.filter((c) => c.slug !== cake.slug).slice(0, 3)
+  const relatedCakes = related.length ? related : products.filter((c) => c.slug !== cake.slug).slice(0, 3)
+
+  const productPath = `/cakes/${cake.slug}`
 
   return (
     <>
       <SEO
         title={cake.name}
         description={cake.summary}
-        canonicalPath={`/cakes/${slug}`}
+        canonicalPath={productPath}
+        image={productMainImage(cake) || undefined}
         type="article"
         structured={[
           cakeProductLd(cake),
           breadcrumbLd([
             { name: 'Home', path: '/' },
             { name: 'Our Cakes', path: '/our-cakes' },
-            { name: cake.name, path: `/cakes/${slug}` },
+            { name: cake.name, path: productPath },
           ]),
         ]}
       />
@@ -180,7 +260,7 @@ export default function CakeDetail() {
             trail={[
               { name: 'Home', to: '/' },
               { name: 'Our Cakes', to: '/our-cakes' },
-              { name: cake.name, to: `/cakes/${slug}` },
+              { name: cake.name, to: productPath },
             ]}
           />
         </div>
@@ -191,16 +271,36 @@ export default function CakeDetail() {
         <div className="mx-auto max-w-7xl px-5 md:px-8">
           <div className="grid gap-12 md:grid-cols-2 md:gap-16">
 
-            {/* Image */}
+            {/* Image gallery */}
             <Reveal>
-              <div className="overflow-hidden rounded-2xl shadow-[0_30px_70px_-35px_rgba(55,42,74,0.4)] md:sticky md:top-28">
-                <OptimizedImage
-                  src={cake.image}
-                  seed={`cake-${slug}`}
-                  paletteKey={cake.paletteKey}
-                  alt={`${cake.name} — ${cake.summary}`}
-                  aspect="4 / 5"
-                />
+              <div className="md:sticky md:top-28">
+                <div className="overflow-hidden rounded-2xl shadow-[0_30px_70px_-35px_rgba(55,42,74,0.4)]">
+                  <OptimizedImage
+                    src={images[activeImage] || productMainImage(cake)}
+                    seed={`cake-${cake.slug}`}
+                    paletteKey={cake.paletteKey}
+                    alt={`${cake.name} — ${cake.summary}`}
+                    aspect="4 / 5"
+                  />
+                </div>
+                {images.length > 1 && (
+                  <div className="mt-3 flex gap-2 overflow-x-auto pb-1">
+                    {images.map((src, i) => (
+                      <button
+                        key={`${src}-${i}`}
+                        type="button"
+                        onClick={() => setActiveImage(i)}
+                        aria-label={`View image ${i + 1} of ${cake.name}`}
+                        aria-pressed={activeImage === i}
+                        className={`h-16 w-16 shrink-0 overflow-hidden rounded-lg border-2 transition-colors ${
+                          activeImage === i ? 'border-plum-500' : 'border-transparent hover:border-plum-300'
+                        }`}
+                      >
+                        <img src={src} alt="" className="h-full w-full object-cover" loading="lazy" />
+                      </button>
+                    ))}
+                  </div>
+                )}
               </div>
             </Reveal>
 
@@ -211,6 +311,11 @@ export default function CakeDetail() {
                 <span className="eyebrow">{cake.collectionName}</span>
                 <span className="text-stone-light">·</span>
                 <ProductTypeTag productType={cake.productType} />
+                {purchaseType === 'quotation' && (
+                  <span className="inline-block rounded-full bg-honey-400/20 px-2.5 py-0.5 text-[0.65rem] font-semibold uppercase tracking-[0.12em] text-honey-600">
+                    Quotation required
+                  </span>
+                )}
               </div>
 
               <h1 className="mt-5 font-display text-4xl font-medium leading-tight text-ink md:text-5xl">
@@ -219,8 +324,14 @@ export default function CakeDetail() {
 
               {/* Price — always visible */}
               <p className="mt-4 font-display text-3xl font-medium text-ink">
-                {hasVariants && <span className="mr-2 align-middle text-sm font-normal uppercase tracking-wide text-stone">From</span>}
-                {money(productPriceFrom(cake))}
+                {purchaseType === 'quotation' ? (
+                  <span className="text-2xl">Price on enquiry</span>
+                ) : (
+                  <>
+                    {hasVariants && <span className="mr-2 align-middle text-sm font-normal uppercase tracking-wide text-stone">From</span>}
+                    {money(productPriceFrom(cake))}
+                  </>
+                )}
               </p>
 
               <p className="mt-4 text-lg leading-relaxed text-stone">{cake.summary}</p>
@@ -229,8 +340,10 @@ export default function CakeDetail() {
                 <p>{cake.description}</p>
               </div>
 
-              {/* Purchase section — branches by product type */}
-              {isFullCake ? (
+              {/* Purchase section — branches by purchase type */}
+              {purchaseType === 'quotation' ? (
+                <QuotationPurchase cake={cake} />
+              ) : purchaseType === 'configurable' ? (
                 <FullCakePurchase cake={cake} onCustomise={() => setCustomising(true)} />
               ) : (
                 <SimplePurchase cake={cake} />
@@ -253,9 +366,9 @@ export default function CakeDetail() {
             {relatedCakes.map((c, i) => (
               <Reveal key={c.slug} delay={i * 90}>
                 <Link to={`/cakes/${c.slug}`} className="group block">
-                  <div className="overflow-hidden rounded-xl bg-ivory relative">
+                  <div className="relative overflow-hidden rounded-xl bg-ivory">
                     <OptimizedImage
-                      src={c.image}
+                      src={productMainImage(c)}
                       seed={`cake-${c.slug}`}
                       paletteKey={c.paletteKey}
                       alt={`${c.name} — ${c.summary}`}

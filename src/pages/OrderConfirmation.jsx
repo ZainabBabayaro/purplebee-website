@@ -6,6 +6,7 @@ export default function OrderConfirmation() {
   const { state } = useLocation()
   const orderId = state?.orderId || '—'
   const name = state?.name || ''
+  const paymentPending = state?.paymentPending === true
 
   return (
     <>
@@ -23,6 +24,13 @@ export default function OrderConfirmation() {
             Thank you — your order has been received. We will be in touch to confirm your event date,
             flavour details and any finishing touches before we begin.
           </p>
+
+          {paymentPending && (
+            <p className="mt-4 rounded-xl bg-honey-400/15 px-4 py-3 text-sm text-stone">
+              Your payment is being confirmed. We will update your order once it has been verified —
+              you do not need to pay again. If you have any concerns, contact us with your order reference.
+            </p>
+          )}
 
           <div className="mt-8 inline-flex items-center gap-2 rounded-full bg-cream px-6 py-2.5 text-sm text-ink">
             <Package size={16} strokeWidth={1.7} className="text-plum-500" />

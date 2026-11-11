@@ -1,44 +1,78 @@
 import { useEffect, useState } from 'react'
-import { ChevronDown, ChevronUp, Search } from 'lucide-react'
-import { dataApi, STATUS_FLOW, STATUS_LABEL } from '../../services/db.js'
+import { ChevronDown, ChevronUp, Search, CreditCard, PackageCheck } from 'lucide-react'
+import {
+  dataApi, STATUS_LABEL, PAYMENT_STATUS, PAYMENT_STATUS_LABEL,
+  FULFILMENT_FLOW, FULFILMENT_LABEL,
+} from '../../services/db.js'
 
 function money(n) { return `₦${Number(n).toLocaleString('en-NG', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` }
 
-const STATUS_COLORS = {
-  pending_payment: 'bg-yellow-900/40 text-yellow-300 border-yellow-700/30',
-  new: 'bg-sky-900/40 text-sky-300 border-sky-700/30',
-  confirmed: 'bg-plum-700/60 text-plum-200 border-plum-600/30',
-  baking: 'bg-amber-900/40 text-amber-300 border-amber-700/30',
-  ready: 'bg-emerald-900/40 text-emerald-300 border-emerald-700/30',
-  completed: 'bg-plum-800 text-plum-400 border-plum-700/30',
+const PAYMENT_STYLE = {
+  pending: 'bg-yellow-900/40 text-yellow-300 border-yellow-700/30',
+  paid: 'bg-emerald-900/40 text-emerald-300 border-emerald-700/30',
+  failed: 'bg-red-900/40 text-red-300 border-red-700/30',
+  refunded: 'bg-plum-800 text-plum-300 border-plum-700/30',
+}
+
+const FULFILMENT_STYLE = {
+  awaiting_payment: 'bg-yellow-900/40 text-yellow-300 border-yellow-700/30',
+  confirmed: 'bg-sky-900/40 text-sky-300 border-sky-700/30',
+  in_production: 'bg-amber-900/40 text-amber-300 border-amber-700/30',
+  ready_for_collection: 'bg-emerald-900/40 text-emerald-300 border-emerald-700/30',
+  out_for_delivery: 'bg-sky-900/40 text-sky-200 border-sky-700/30',
+  completed: 'bg-plum-800 text-plum-300 border-plum-700/30',
   cancelled: 'bg-red-900/40 text-red-300 border-red-700/30',
 }
 
-function StatusChip({ status }) {
-  return (
-    <span className={`rounded-full border px-2.5 py-0.5 text-xs font-medium ${STATUS_COLORS[status] || 'bg-plum-800 text-plum-400'}`}>
-      {STATUS_LABEL[status] || status}
-    </span>
-  )
+// Keep the legacy `status` field in step with fulfilment for older screens.
+const FULFILMENT_TO_LEGACY = {
+  awaiting_payment: 'pending_payment',
+  confirmed: 'new',
+  in_production: 'baking',
+  ready_for_collection: 'ready',
+  out_for_delivery: 'ready',
+  completed: 'completed',
+  cancelled: 'cancelled',
 }
 
-function OrderRow({ order, onStatusChange }) {
-  const [expanded, setExpanded] = useState(false)
-  const [busy, setBusy] = useState(false)
+function Chip({ label, className }) {
+  return <span className={`rounded-full border px-2.5 py-0.5 text-xs font-medium ${className}`}>{label}</span>
+}
 
-  const advance = async (newStatus) => {
-    setBusy(true)
+function OrderRow({ order, onChanged }) {
+  const [expanded, setExpanded] = useState(false)
+  const [busy, setBusy] = useState('')
+
+  const paymentStatus = order.paymentStatus || 'pending'
+  const fulfilmentStatus = order.fulfilmentStatus || 'awaiting_payment'
+
+  const setPayment = async (next) => {
+    if (next === 'paid' && !window.confirm('Mark this order as paid? Only do this after verifying the payment in Paystack.')) return
+    setBusy('payment')
     try {
-      await dataApi.updateOrderStatus(order.id, newStatus)
-      onStatusChange(order.id, newStatus)
-    } catch (err) {
-      alert(err.message)
+      await dataApi.updateOrder(order.id, { paymentStatus: next })
+      onChanged(order.id, { paymentStatus: next })
+    } catch (e) {
+      alert(e.message)
     } finally {
-      setBusy(false)
+      setBusy('')
     }
   }
 
-  const nextStatus = STATUS_FLOW[STATUS_FLOW.indexOf(order.status) + 1]
+  const setFulfilment = async (next) => {
+    setBusy('fulfilment')
+    try {
+      await dataApi.updateOrder(order.id, {
+        fulfilmentStatus: next,
+        status: FULFILMENT_TO_LEGACY[next] || order.status,
+      })
+      onChanged(order.id, { fulfilmentStatus: next, status: FULFILMENT_TO_LEGACY[next] || order.status })
+    } catch (e) {
+      alert(e.message)
+    } finally {
+      setBusy('')
+    }
+  }
 
   return (
     <>
@@ -51,10 +85,11 @@ function OrderRow({ order, onStatusChange }) {
         <td className="px-5 py-3.5 text-ivory">{order.customerName}</td>
         <td className="hidden px-5 py-3.5 text-plum-300 md:table-cell">{order.customerEmail}</td>
         <td className="hidden px-5 py-3.5 text-plum-300 sm:table-cell">
-          {new Date(order.createdAt).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}
+          {order.createdAt ? new Date(order.createdAt).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }) : '—'}
         </td>
         <td className="px-5 py-3.5 text-ivory">{money(order.total)}</td>
-        <td className="px-5 py-3.5"><StatusChip status={order.status} /></td>
+        <td className="px-5 py-3.5"><Chip label={PAYMENT_STATUS_LABEL[paymentStatus] || paymentStatus} className={PAYMENT_STYLE[paymentStatus] || PAYMENT_STYLE.pending} /></td>
+        <td className="px-5 py-3.5"><Chip label={FULFILMENT_LABEL[fulfilmentStatus] || fulfilmentStatus} className={FULFILMENT_STYLE[fulfilmentStatus] || FULFILMENT_STYLE.awaiting_payment} /></td>
         <td className="px-5 py-3.5 text-plum-400">
           {expanded ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
         </td>
@@ -62,14 +97,14 @@ function OrderRow({ order, onStatusChange }) {
 
       {expanded && (
         <tr className="bg-plum-800/30">
-          <td colSpan={7} className="px-5 py-5">
+          <td colSpan={8} className="px-5 py-5">
             <div className="grid gap-6 md:grid-cols-2">
               {/* Items */}
               <div>
                 <p className="mb-3 text-xs uppercase tracking-wide text-plum-400">Items ordered</p>
                 <ul className="space-y-3">
                   {(order.items || []).map((item, i) => (
-                    <li key={i} className="rounded-xl bg-plum-900/60 p-3">
+                    <li key={item.lineId || i} className="rounded-xl bg-plum-900/60 p-3">
                       <div className="flex justify-between text-sm">
                         <div className="min-w-0">
                           <div className="flex items-center gap-2 flex-wrap">
@@ -83,48 +118,45 @@ function OrderRow({ order, onStatusChange }) {
                               </span>
                             )}
                           </div>
-                          {/* Customisation details for full cakes */}
                           {item.customisation && (
                             <div className="mt-1.5 space-y-0.5">
                               {item.customisation.size && (
-                                <p className="text-xs text-plum-300">Size: {item.customisation.size} ({item.customisation.servings})</p>
+                                <p className="text-xs text-plum-300">Size: {item.customisation.size} {item.customisation.servings ? `(${item.customisation.servings})` : ''}</p>
                               )}
-                              {item.customisation.flavour && (
-                                <p className="text-xs text-plum-300">Sponge: {item.customisation.flavour}</p>
-                              )}
-                              {item.customisation.filling && (
-                                <p className="text-xs text-plum-300">Filling: {item.customisation.filling}</p>
-                              )}
-                              {item.customisation.covering && (
-                                <p className="text-xs text-plum-300">Covering: {item.customisation.covering}</p>
-                              )}
-                              {item.customisation.eventType && (
-                                <p className="text-xs text-plum-300">Occasion: {item.customisation.eventType}</p>
-                              )}
-                              {item.customisation.celebrantGender && (
-                                <p className="text-xs text-plum-300">Celebrant: {item.customisation.celebrantGender}</p>
-                              )}
-                              {item.customisation.details && (
-                                <p className="text-xs text-plum-300">More details: {item.customisation.details}</p>
-                              )}
+                              {item.customisation.flavour && <p className="text-xs text-plum-300">Sponge: {item.customisation.flavour}</p>}
+                              {item.customisation.filling && <p className="text-xs text-plum-300">Filling: {item.customisation.filling}</p>}
+                              {item.customisation.covering && <p className="text-xs text-plum-300">Covering: {item.customisation.covering}</p>}
+                              {item.customisation.eventType && <p className="text-xs text-plum-300">Occasion: {item.customisation.eventType}</p>}
+                              {item.customisation.celebrantGender && <p className="text-xs text-plum-300">Celebrant: {item.customisation.celebrantGender}</p>}
+                              {item.customisation.details && <p className="text-xs text-plum-300">More details: {item.customisation.details}</p>}
                             </div>
                           )}
+                          <p className="mt-1 text-[0.65rem] text-plum-500">
+                            {money(item.unitPrice ?? item.price)} each
+                          </p>
                         </div>
-                        <span className="shrink-0 text-plum-300 ml-3">{money(item.price * item.qty)}</span>
+                        <span className="shrink-0 text-plum-300 ml-3">{money(item.subtotal ?? (item.unitPrice ?? item.price) * item.qty)}</span>
                       </div>
                     </li>
                   ))}
                 </ul>
+
+                <div className="mt-4 space-y-1 text-sm">
+                  <div className="flex justify-between text-plum-300"><span>Subtotal</span><span>{money(order.subtotal ?? order.total)}</span></div>
+                  <div className="flex justify-between text-plum-300"><span>Delivery</span><span>{money(order.deliveryFee || 0)}</span></div>
+                  <div className="flex justify-between font-medium text-ivory"><span>Total</span><span>{money(order.total)}</span></div>
+                </div>
+
                 {order.notes && (
                   <div className="mt-4">
                     <p className="text-xs uppercase tracking-wide text-plum-400">More details</p>
-                    <p className="mt-1 text-sm text-plum-200">{order.notes}</p>
+                    <p className="mt-1 whitespace-pre-line text-sm text-plum-200">{order.notes}</p>
                   </div>
                 )}
               </div>
 
-              {/* Details + status action */}
-              <div className="space-y-3 text-sm">
+              {/* Details + status controls */}
+              <div className="space-y-4 text-sm">
                 <div>
                   <p className="text-xs uppercase tracking-wide text-plum-400">Contact</p>
                   <p className="text-ivory">{order.customerEmail}</p>
@@ -160,20 +192,48 @@ function OrderRow({ order, onStatusChange }) {
                     <p className="text-ivory">{order.flavour}</p>
                   </div>
                 )}
+                {order.sourceEnquiryId && (
+                  <p className="text-xs text-plum-500">Converted from enquiry {order.sourceEnquiryId}</p>
+                )}
 
-                {/* Status progression */}
+                {/* Payment status */}
                 <div className="pt-3 border-t border-plum-700">
-                  <p className="mb-3 text-xs uppercase tracking-wide text-plum-400">Update status</p>
+                  <p className="mb-2 flex items-center gap-1.5 text-xs uppercase tracking-wide text-plum-400">
+                    <CreditCard size={12} /> Payment status
+                  </p>
                   <div className="flex flex-wrap gap-2">
-                    {STATUS_FLOW.filter((s) => s !== order.status).map((s) => (
+                    {Object.values(PAYMENT_STATUS).map((s) => (
                       <button
                         key={s}
                         type="button"
-                        disabled={busy}
-                        onClick={(e) => { e.stopPropagation(); advance(s) }}
-                        className={`rounded-full border px-3 py-1 text-xs font-medium transition-opacity hover:opacity-90 disabled:opacity-50 ${STATUS_COLORS[s] || 'bg-plum-700 text-plum-200'}`}
+                        disabled={busy === 'payment' || s === paymentStatus}
+                        onClick={(e) => { e.stopPropagation(); setPayment(s) }}
+                        className={`rounded-full border px-3 py-1 text-xs font-medium transition-opacity hover:opacity-90 disabled:opacity-50 ${PAYMENT_STYLE[s] || 'bg-plum-700 text-plum-200'}`}
                       >
-                        → {STATUS_LABEL[s]}
+                        {PAYMENT_STATUS_LABEL[s]}
+                      </button>
+                    ))}
+                  </div>
+                  <p className="mt-2 text-[0.65rem] text-plum-500">
+                    Online payments are verified by the server. Only mark paid after checking Paystack.
+                  </p>
+                </div>
+
+                {/* Fulfilment status */}
+                <div className="pt-3 border-t border-plum-700">
+                  <p className="mb-2 flex items-center gap-1.5 text-xs uppercase tracking-wide text-plum-400">
+                    <PackageCheck size={12} /> Fulfilment status
+                  </p>
+                  <div className="flex flex-wrap gap-2">
+                    {FULFILMENT_FLOW.map((s) => (
+                      <button
+                        key={s}
+                        type="button"
+                        disabled={busy === 'fulfilment' || s === fulfilmentStatus}
+                        onClick={(e) => { e.stopPropagation(); setFulfilment(s) }}
+                        className={`rounded-full border px-3 py-1 text-xs font-medium transition-opacity hover:opacity-90 disabled:opacity-50 ${FULFILMENT_STYLE[s] || 'bg-plum-700 text-plum-200'}`}
+                      >
+                        {FULFILMENT_LABEL[s]}
                       </button>
                     ))}
                   </div>
@@ -200,12 +260,13 @@ export default function AdminOrders() {
     return () => unsub()
   }, [])
 
-  const updateLocal = (id, status) => {
-    setOrders((prev) => prev.map((o) => o.id === id ? { ...o, status } : o))
+  const updateLocal = (id, patch) => {
+    setOrders((prev) => prev ? prev.map((o) => o.id === id ? { ...o, ...patch } : o) : prev)
   }
 
   const filtered = (orders || []).filter((o) => {
-    const matchStatus = statusFilter === 'all' || o.status === statusFilter
+    const fulfilment = o.fulfilmentStatus || 'awaiting_payment'
+    const matchStatus = statusFilter === 'all' || fulfilment === statusFilter
     const q = search.toLowerCase()
     const matchSearch = !q || o.customerName?.toLowerCase().includes(q) || o.customerEmail?.toLowerCase().includes(q) || o.id.toLowerCase().includes(q)
     return matchStatus && matchSearch
@@ -233,7 +294,7 @@ export default function AdminOrders() {
           />
         </div>
         <div className="flex flex-wrap gap-2">
-          {['all', ...STATUS_FLOW].map((s) => (
+          {['all', ...FULFILMENT_FLOW].map((s) => (
             <button
               key={s}
               type="button"
@@ -242,7 +303,7 @@ export default function AdminOrders() {
                 statusFilter === s ? 'bg-plum-500 text-ivory' : 'border border-plum-700 text-plum-300 hover:border-plum-500 hover:text-ivory'
               }`}
             >
-              {s === 'all' ? 'All' : STATUS_LABEL[s]}
+              {s === 'all' ? 'All' : FULFILMENT_LABEL[s]}
             </button>
           ))}
         </div>
@@ -259,14 +320,14 @@ export default function AdminOrders() {
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-plum-800 bg-plum-900">
-                {['Ref', 'Customer', 'Email', 'Date', 'Total', 'Status', ''].map((h) => (
+                {['Ref', 'Customer', 'Email', 'Date', 'Total', 'Payment', 'Fulfilment', ''].map((h) => (
                   <th key={h} className={`px-5 py-3 text-left text-xs uppercase tracking-wide text-plum-400 ${!h || h === 'Email' || h === 'Date' ? 'hidden sm:table-cell' : ''}`}>{h}</th>
                 ))}
               </tr>
             </thead>
             <tbody className="divide-y divide-plum-800 bg-plum-900">
               {filtered.map((o) => (
-                <OrderRow key={o.id} order={o} onStatusChange={updateLocal} />
+                <OrderRow key={o.id} order={o} onChanged={updateLocal} />
               ))}
             </tbody>
           </table>

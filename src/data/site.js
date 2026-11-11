@@ -35,8 +35,8 @@ export const site = {
   social: [
     // ⚠️ PLACEHOLDER handles — replace with verified accounts before launch.
     { label: 'Instagram', href: 'https://instagram.com/purplebeecakes', handle: '@purplebeecakes' },
-    { label: 'Facebook', href: 'https://facebook.com/purplebeecakes', handle: 'Purple Bee Cakes' },
-    { label: 'Pinterest', href: 'https://pinterest.com/purplebeecakes', handle: 'Purple Bee Cakes' },
+    { label: 'Facebook', href: 'https://facebook.com/purplebeeC', handle: 'Purple Bee Cakes' },
+    { label: 'Pinterest', href: 'https://pinterest.com/purplebeeC', handle: 'Purple Bee Cakes' },
   ],
 
   // Used for structured data. ⚠️ PLACEHOLDER — replace before launch.

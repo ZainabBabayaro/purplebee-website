@@ -13,27 +13,60 @@ service cloud.firestore {
         && get(/databases/$(database)/documents/admins/$(request.auth.uid)).data.isAdmin == true;
     }
 
-    // ── Inventory ───────────────────────────────────────────────────────────
+    // ── Inventory (single product catalogue) ────────────────────────────────
+    // Products are publicly readable (drafts are filtered by the app), but only
+    // admins may create, edit, archive or delete them.
     match /inventory/{productId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // ── Collections ─────────────────────────────────────────────────────────
+    match /collections/{collectionId} {
       allow read: if true;
       allow write: if isAdmin();
     }
 
     // ── Orders ──────────────────────────────────────────────────────────────
     match /orders/{orderId} {
-      // Anyone (signed in or guest) can create an order.
-      allow create: if request.resource.data.status == 'pending_payment';
+      // Guests may create an order, but only in the initial unpaid state.
+      // Payment state is never accepted from the browser.
+      allow create: if
+        request.resource.data.status == 'pending_payment'
+        && request.resource.data.paymentStatus == 'pending'
+        && request.resource.data.fulfilmentStatus == 'awaiting_payment'
+        && request.resource.data.total is number
+        && request.resource.data.total > 0
+        && request.resource.data.items is list
+        && request.resource.data.items.size() > 0
+        && !request.resource.data.keys().hasAny([
+             'paystackReference', 'amountPaid', 'paidAt', 'paymentRequestUrl',
+             'paymentRequestReference', 'paymentRequestedAt'
+           ]);
 
-      // Allow updating status to 'confirmed' only — this is the post-payment
-      // client-side fallback in case the webhook hasn't fired yet.
-      allow update: if isAdmin()
-        || (resource.data.status == 'pending_payment'
-            && request.resource.data.status == 'confirmed'
-            && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status']));
-
+      // Only admins may change an order after creation. The Paystack webhook
+      // and /api/paystack-verify use server credentials (which bypass rules).
+      allow update: if isAdmin();
       allow read: if isAdmin()
         || (isSignedIn() && resource.data.uid == request.auth.uid);
       allow delete: if false;
+    }
+
+    // ── Cake enquiries ──────────────────────────────────────────────────────
+    match /enquiries/{enquiryId} {
+      // Anyone may submit an enquiry, but not set internal workflow fields.
+      allow create: if
+        request.resource.data.name is string
+        && request.resource.data.name.size() > 0
+        && request.resource.data.email is string
+        && request.resource.data.email.size() > 3
+        && request.resource.data.status == 'new'
+        && !request.resource.data.keys().hasAny([
+             'internalNotes', 'quotedPrice', 'quoteNotes', 'convertedOrderId',
+             'paymentUrl', 'paymentRequestReference'
+           ]);
+
+      allow read, update, delete: if isAdmin();
     }
 
     // ── Blog posts ───────────────────────────────────────────────────────────
@@ -49,6 +82,20 @@ service cloud.firestore {
         request.resource.data.approved == false
         && request.resource.data.keys().hasAll(['postSlug','name','email','body','createdAt','approved']);
       allow update, delete: if isAdmin();
+    }
+
+    // ── Mail queue (Trigger Email extension) ────────────────────────────────
+    // The app creates notification documents here. Only our own address is
+    // allowed as the recipient to prevent the project becoming an email relay.
+    match /mail/{mailId} {
+      allow create: if
+        request.resource.data.to == 'hello@purplebeecakes.com'
+        && request.resource.data.from == 'hello@purplebeecakes.com'
+        && request.resource.data.message is map
+        && request.resource.data.message.subject is string
+        && request.resource.data.message.html is string;
+
+      allow read, update, delete: if false;
     }
 
     // ── Admins ───────────────────────────────────────────────────────────────
