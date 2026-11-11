@@ -2,11 +2,11 @@ import { Link } from 'react-router-dom'
 import { ArrowRight } from 'lucide-react'
 import CollectionCard from '../CollectionCard.jsx'
 import Reveal from '../Reveal.jsx'
-import { useCatalogue } from '../../services/catalogue.js'
+import { collections as staticCollections } from '../../data/collections.js'
 
 export default function FeaturedCollections() {
-  const { visibleCollections } = useCatalogue()
-  const collections = visibleCollections.slice(0, 6)
+  // Homepage uses the static collection list so it never fetches Firestore.
+  const collections = staticCollections.filter((c) => c.visible !== false && c.published !== false).slice(0, 6)
 
   return (
     <section className="section-y bg-ivory">

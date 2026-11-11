@@ -281,6 +281,9 @@ export default function CakeDetail() {
                     paletteKey={cake.paletteKey}
                     alt={`${cake.name} — ${cake.summary}`}
                     aspect="4 / 5"
+                    width={600}
+                    height={900}
+                    priority
                   />
                 </div>
                 {images.length > 1 && (
@@ -296,7 +299,14 @@ export default function CakeDetail() {
                           activeImage === i ? 'border-plum-500' : 'border-transparent hover:border-plum-300'
                         }`}
                       >
-                        <img src={src} alt="" className="h-full w-full object-cover" loading="lazy" />
+                        <OptimizedImage
+                          src={src}
+                          alt=""
+                          aspect="1 / 1"
+                          width={64}
+                          height={64}
+                          className="h-full w-full rounded-lg"
+                        />
                       </button>
                     ))}
                   </div>

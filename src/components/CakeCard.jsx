@@ -12,6 +12,8 @@ export default function CakeCard({ cake, aspect = '4 / 5', className = '' }) {
           paletteKey={cake.paletteKey}
           alt={`${cake.name} cake — ${cake.summary}`}
           aspect={aspect}
+          width={400}
+          height={500}
           className="transition-transform duration-700 ease-out group-hover:scale-[1.04]"
         />
       </div>

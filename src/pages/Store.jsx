@@ -3,8 +3,7 @@ import { Link } from 'react-router-dom'
 import { ShoppingBag } from 'lucide-react'
 import SEO, { breadcrumbLd } from '../components/SEO.jsx'
 import PageHero from '../components/PageHero.jsx'
-import PlaceholderArt from '../components/PlaceholderArt.jsx'
-import { getPalette } from '../utils/images.js'
+import OptimizedImage from '../components/OptimizedImage.jsx'
 import CakeCustomiser from '../components/CakeCustomiser.jsx'
 import SimpleAddToCart from '../components/SimpleAddToCart.jsx'
 import ProductTypeTag from '../components/ProductTypeTag.jsx'
@@ -39,25 +38,17 @@ const StoreCard = memo(function StoreCard({ product, index, onCustomise }) {
   return (
     <div className="group flex flex-col rounded-2xl border border-line bg-ivory overflow-hidden transition-shadow hover:shadow-lg">
       <Link to={`/cakes/${product.slug}`} className="relative block overflow-hidden bg-cream aspect-[4/4]">
-        {image ? (
-          <img
-            src={image}
-            alt={product.name}
-            width={400}
-            height={400}
-            className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-[1.04]"
-            loading={index < 4 ? 'eager' : 'lazy'}
-            decoding="async"
-            fetchpriority={index === 0 ? 'high' : 'auto'}
-          />
-        ) : (
-          <PlaceholderArt
-            seed={`cake-${product.slug}`}
-            palette={getPalette(product.paletteKey)}
-            className="h-full w-full transition-transform duration-700 group-hover:scale-[1.04]"
-            label={`${product.name} illustration`}
-          />
-        )}
+        <OptimizedImage
+          src={image}
+          alt={product.name}
+          width={400}
+          height={400}
+          aspect="4 / 4"
+          priority={index < 2}
+          paletteKey={product.paletteKey}
+          seed={`cake-${product.slug}`}
+          className="transition-transform duration-700 group-hover:scale-[1.04]"
+        />
         {/* Product type tag */}
         <div className="absolute left-3 top-3">
           <ProductTypeTag productType={product.productType || 'cake'} />

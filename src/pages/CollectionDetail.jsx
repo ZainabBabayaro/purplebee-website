@@ -34,6 +34,8 @@ function ProductCard({ cake, onCustomise }) {
             paletteKey={cake.paletteKey}
             alt={`${cake.name} — ${cake.summary}`}
             aspect="4 / 4"
+            width={400}
+            height={400}
             className="transition-transform duration-700 ease-out group-hover:scale-[1.04]"
           />
           {/* Product type tag on image */}

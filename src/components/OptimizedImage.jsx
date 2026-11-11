@@ -4,10 +4,19 @@ import PlaceholderArt from './PlaceholderArt.jsx'
 // ============================================================================
 // OptimizedImage
 // ----------------------------------------------------------------------------
-// When a real `src` (or `imageUrl`) is provided it renders a responsive,
-// lazy-loaded <img>. Otherwise falls back to PlaceholderArt.
-// Accepts an explicit aspect ratio for CLS control.
+// Renders a responsive, lazy-loaded image with WebP source + original-format
+// fallback. Includes explicit width/height to prevent CLS. Falls back to
+// PlaceholderArt when no src is provided.
 // ============================================================================
+
+function webpUrlFor(src) {
+  if (!src || typeof src !== 'string') return null
+  if (src.endsWith('.webp')) return null
+  if (/\.(jpe?g|png)$/i.test(src)) {
+    return src.replace(/\.(jpe?g|png)$/i, '.webp')
+  }
+  return null
+}
 
 export default function OptimizedImage({
   src,
@@ -17,6 +26,8 @@ export default function OptimizedImage({
   seed = 'purple-bee',
   aspect = '4 / 5',
   priority = false,
+  width,
+  height,
   className = '',
   imgClassName = '',
   sizes,
@@ -24,6 +35,7 @@ export default function OptimizedImage({
   const palette = getPalette(paletteKey)
   const resolvedSrc = src || imageUrl || null
   const wrapperStyle = { aspectRatio: aspect }
+  const webpSrc = webpUrlFor(resolvedSrc)
 
   if (!resolvedSrc) {
     return (
@@ -41,17 +53,28 @@ export default function OptimizedImage({
     )
   }
 
+  const img = (
+    <img
+      src={resolvedSrc}
+      alt={alt}
+      width={width}
+      height={height}
+      loading={priority ? 'eager' : 'lazy'}
+      decoding="async"
+      fetchpriority={priority ? 'high' : 'auto'}
+      sizes={sizes}
+      className={`h-full w-full object-cover ${imgClassName}`}
+    />
+  )
+
   return (
     <div className={`relative overflow-hidden ${className}`} style={wrapperStyle}>
-      <img
-        src={resolvedSrc}
-        alt={alt}
-        loading={priority ? 'eager' : 'lazy'}
-        decoding="async"
-        fetchpriority={priority ? 'high' : 'auto'}
-        sizes={sizes}
-        className={`h-full w-full object-cover ${imgClassName}`}
-      />
+      {webpSrc ? (
+        <picture>
+          <source srcSet={webpSrc} type="image/webp" />
+          {img}
+        </picture>
+      ) : img}
     </div>
   )
 }

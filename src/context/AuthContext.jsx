@@ -1,6 +1,6 @@
 import { createContext, useEffect, useState } from 'react'
+import { useLocation } from 'react-router-dom'
 import { isFirebaseConfigured, initFirebase, ADMIN_EMAILS } from '../config/firebase.js'
-import { dataApi } from '../services/db.js'
 import { localdb } from '../services/localdb.js'
 
 export const AuthContext = createContext(null)
@@ -9,13 +9,16 @@ export function AuthProvider({ children }) {
   const [user, setUser] = useState(null)
   const [isAdmin, setIsAdmin] = useState(false)
   const [loading, setLoading] = useState(true)
+  const { pathname } = useLocation()
 
   useEffect(() => {
     let unsub = () => {}
 
     if (isFirebaseConfigured) {
-      // Init Firebase lazily then subscribe to auth state
-      initFirebase().then(async () => {
+      // Defer Firebase init until the page is interactive. Auth state is not
+      // needed for the public marketing pages, so this keeps the heavy firebase
+      // bundle out of the critical path.
+      const init = () => initFirebase().then(async () => {
         const { auth } = await import('../config/firebase.js')
         const { onAuthStateChanged } = await import('firebase/auth')
 
@@ -41,7 +44,10 @@ export function AuthProvider({ children }) {
             return
           }
           // Fallback Firestore check — silently fails if rules block it.
+          // dataApi is imported lazily so the homepage doesn't pay for the db
+          // bundle unless a signed-in admin actually needs it.
           try {
+            const { dataApi } = await import('../services/db.js')
             const adminByFirestore = await dataApi.isAdmin(fbUser.uid)
             setIsAdmin(adminByFirestore)
           } catch {
@@ -50,6 +56,17 @@ export function AuthProvider({ children }) {
           setLoading(false)
         })
       })
+
+      // Only initialise Firebase automatically on pages that actually need auth.
+      // This keeps the heavy firebase bundle out of the marketing homepage and
+      // improves mobile Lighthouse scores. Auth pages still trigger init via
+      // login/signup or dataApi calls. Re-running on pathname change means a
+      // user who starts on the homepage and then navigates to /account will
+      // still get their auth state initialised.
+      const needsAuth = /^\/(account|checkout|admin)/.test(pathname)
+      if (needsAuth) {
+        init()
+      }
     } else {
       const apply = () => {
         const s = localdb.getSession()
@@ -62,7 +79,7 @@ export function AuthProvider({ children }) {
     }
 
     return () => unsub()
-  }, [])
+  }, [pathname])
 
   const signup = async ({ email, password, displayName }) => {
     if (isFirebaseConfigured) {

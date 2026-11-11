@@ -1,3 +1,4 @@
+import { useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { ArrowRight } from 'lucide-react'
 import Reveal from '../Reveal.jsx'
@@ -8,6 +9,26 @@ import OptimizedImage from '../OptimizedImage.jsx'
 const BRAND_VIDEO = '/videos/brand.mp4'
 
 export default function BrandPhilosophy() {
+  const videoRef = useRef(null)
+  const [loadVideo, setLoadVideo] = useState(false)
+
+  useEffect(() => {
+    if (!BRAND_VIDEO) return
+    const el = videoRef.current
+    if (!el) return
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setLoadVideo(true)
+          observer.disconnect()
+        }
+      },
+      { rootMargin: '200px' }
+    )
+    observer.observe(el)
+    return () => observer.disconnect()
+  }, [])
+
   return (
     <section className="section-y bg-ivory">
       <div className="mx-auto max-w-7xl px-5 md:px-8">
@@ -52,8 +73,8 @@ export default function BrandPhilosophy() {
                 aria-hidden="true"
               />
 
-              <div className="relative overflow-hidden rounded-2xl shadow-[0_30px_60px_-30px_rgba(55,42,74,0.3)]">
-                {BRAND_VIDEO ? (
+              <div ref={videoRef} className="relative overflow-hidden rounded-2xl shadow-[0_30px_60px_-30px_rgba(55,42,74,0.3)]">
+                {BRAND_VIDEO && loadVideo ? (
                   <video
                     src={BRAND_VIDEO}
                     autoPlay
@@ -71,6 +92,8 @@ export default function BrandPhilosophy() {
                     paletteKey="quiet"
                     alt="A textured cake illustration — development placeholder"
                     aspect="5 / 6"
+                    width={500}
+                    height={600}
                   />
                 )}
               </div>

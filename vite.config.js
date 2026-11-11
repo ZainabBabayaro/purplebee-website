@@ -13,6 +13,10 @@ export default defineConfig({
   build: {
     outDir: 'dist',
     sourcemap: false,
+    // Do not inject the modulepreload polyfill — it bloats the entry bundle and
+    // is unnecessary for modern browsers. Cloudflare Pages serves hashed assets
+    // with long cache headers.
+    modulePreload: { polyfill: false },
     // Split the bundle so the homepage doesn't load Firebase, admin, or store code.
     rollupOptions: {
       output: {

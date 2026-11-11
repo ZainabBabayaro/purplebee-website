@@ -15,14 +15,13 @@ export default function FounderStory() {
             <div className="relative mx-auto max-w-sm md:max-w-none">
               <div className="absolute -right-4 -bottom-5 hidden h-full w-full rounded-2xl border border-plum-200/70 md:block" aria-hidden="true" />
               <div className="relative overflow-hidden rounded-2xl">
-                <img
+                <OptimizedImage
                   src="/images/team/copy_founder.JPEG"
                   alt="The founder of Purple Bee Cakes"
                   width={593}
                   height={800}
-                  loading="lazy"
-                  decoding="async"
-                  className="h-full w-full object-cover object-top"
+                  aspect="593 / 800"
+                  className="rounded-2xl"
                 />
               </div>
             </div>

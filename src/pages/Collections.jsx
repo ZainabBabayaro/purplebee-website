@@ -42,6 +42,8 @@ export default function Collections() {
                         paletteKey={c.paletteKey}
                         alt={`${c.name} collection — ${c.subtitle}, design direction illustration`}
                         aspect="16 / 11"
+                        width={640}
+                        height={440}
                         className="transition-transform duration-700 ease-out group-hover:scale-[1.03]"
                       />
                       <span className="absolute right-5 top-5 flex h-11 w-11 items-center justify-center rounded-full bg-ivory/90 text-plum-700 opacity-0 transition-all duration-500 group-hover:opacity-100">

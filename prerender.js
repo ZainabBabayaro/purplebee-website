@@ -111,6 +111,21 @@ function injectHtml(template, appHtml, helmet) {
   return html
 }
 
+// Strip eager modulepreload hints for lazy route chunks. Vite preloads every
+// dynamic import it knows about, which makes the homepage download the store
+// and admin bundles before they are needed. Keep only the core entry + react
+// preloads; other chunks are fetched on demand when the user navigates.
+function stripLazyPreloads(html) {
+  return html.replace(
+    /<link rel="modulepreload"[^>]*href="\/assets\/([^"]+)"[^>]*>/g,
+    (match, filename) => {
+      if (/^index-[a-zA-Z0-9_-]+\.js$/.test(filename)) return match
+      if (/^react-[a-zA-Z0-9_-]+\.js$/.test(filename)) return match
+      return ''
+    }
+  )
+}
+
 async function main() {
   if (!fs.existsSync(path.join(distDir, 'index.html'))) {
     throw new Error('dist/index.html not found — run `vite build` before prerendering.')
@@ -137,7 +152,7 @@ async function main() {
         const helmetContext = {}
         const appHtml = render(route, helmetContext)
         const helmet = helmetContext.helmet || {}
-        const html = injectHtml(template, appHtml, helmet)
+        const html = stripLazyPreloads(injectHtml(template, appHtml, helmet))
 
         const file = outFilePath(route)
         fs.mkdirSync(path.dirname(file), { recursive: true })
