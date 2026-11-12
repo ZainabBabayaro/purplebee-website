@@ -158,6 +158,25 @@ export default function CollectionDetail() {
         )}
       </PageHero>
 
+      {collection.bannerImage && (
+        <section className="bg-ivory pb-8 md:pb-12">
+          <div className="mx-auto max-w-7xl px-5 md:px-8">
+            <Reveal>
+              <div className="overflow-hidden rounded-2xl">
+                <OptimizedImage
+                  src={collection.bannerImage}
+                  alt={`${collection.name} collection`}
+                  aspect="16 / 9"
+                  width={1280}
+                  height={720}
+                  className="w-full"
+                />
+              </div>
+            </Reveal>
+          </div>
+        </section>
+      )}
+
       <section className="section-y bg-ivory pt-0">
         <div className="mx-auto max-w-7xl px-5 md:px-8">
           {collectionProducts.length === 0 ? (

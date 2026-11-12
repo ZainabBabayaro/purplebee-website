@@ -55,7 +55,18 @@ export function useCatalogue({ includeHidden = false } = {}) {
           setProducts(productResult.value.map(normalizeProduct).filter(Boolean))
         }
         if (collectionResult.status === 'fulfilled' && Array.isArray(collectionResult.value) && collectionResult.value.length) {
-          setCollections(collectionResult.value.map(normalizeCollection).filter(Boolean))
+          setCollections(
+            collectionResult.value.map((c) => {
+              const fallback = staticCollectionList.find(
+                (sc) => sc.slug === c.slug || sc.id === c.id,
+              )
+              return normalizeCollection({
+                ...fallback,
+                ...c,
+                bannerImage: c.bannerImage || fallback?.bannerImage || '',
+              })
+            }).filter(Boolean),
+          )
         }
       })
       .finally(() => { if (active) setLoading(false) })
@@ -114,9 +125,16 @@ export function useCollection(slug) {
     dataApi.getCollections()
       .then((list) => {
         if (!active) return
-        const found = (list || []).map(normalizeCollection).find((c) => c && (c.slug === slug || c.id === slug))
-        if (found) setCollection(found)
-        else if (!initial) setCollection(null)
+        const found = (list || []).find((c) => c && (c.slug === slug || c.id === slug))
+        if (found) {
+          setCollection(
+            normalizeCollection({
+              ...initial,
+              ...found,
+              bannerImage: found.bannerImage || initial?.bannerImage || '',
+            }),
+          )
+        } else if (!initial) setCollection(null)
       })
       .catch(() => { /* keep static fallback */ })
       .finally(() => { if (active) setLoading(false) })

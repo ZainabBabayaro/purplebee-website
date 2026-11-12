@@ -12,9 +12,10 @@ export default function CollectionCard({ collection, index = 0 }) {
     >
       <div className="relative overflow-hidden rounded-xl">
         <OptimizedImage
+          src={collection.bannerImage}
           seed={`collection-${collection.slug}`}
           paletteKey={collection.paletteKey}
-          alt={`${collection.name} — ${collection.subtitle}, design direction illustration`}
+          alt={`${collection.name} — ${collection.subtitle}`}
           aspect="4 / 5"
           className="transition-transform duration-700 ease-out group-hover:scale-[1.04]"
         />
