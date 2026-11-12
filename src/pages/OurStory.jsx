@@ -6,20 +6,20 @@ import CTASection from '../components/CTASection.jsx'
 
 const values = [
   {
-    title: 'Thoughtful design',
-    body: 'Every cake starts with the occasion, not a catalogue. Design grows out of the brief — colour, scale and detail chosen to suit the day.',
+    title: 'Flavour comes first.',
+    body: 'A beautiful exterior means little if the cake inside doesn\'t deliver. We invest care in developing flavours, fillings and textures that make every slice satisfying.',
   },
   {
-    title: 'Flavour made from scratch',
-    body: 'A cake should taste of something real. Sponges, fillings and finishes are made in the studio, not assembled from a box.',
+    title: 'Design should mean something.',
+    body: 'We don\'t believe decoration should be added simply for the sake of it. Every colour, texture and finishing detail should contribute to the overall design.',
   },
   {
-    title: 'Meticulous detail',
-    body: 'The small things are the whole thing. Clean edges, considered proportions and finishes that hold up close as well as from across the room.',
+    title: 'Quality is in the details.',
+    body: 'From ingredient selection to preparation and presentation, we believe the little things shape the final experience.',
   },
   {
-    title: 'A personal approach',
-    body: 'Commissioning a cake is a conversation. We design with you, not at you, so the finished cake feels like yours.',
+    title: 'Every occasion deserves consideration.',
+    body: 'Whether it\'s an intimate birthday or a significant celebration, your cake should feel appropriate for the moment.',
   },
 ]
 
@@ -37,7 +37,8 @@ export default function OurStory() {
       <PageHero
         eyebrow="The studio"
         title="Our story"
-        intro="Purple Bee Cakes is a bespoke cake design studio. This is the thinking, the values and the approach that sit behind every cake — the personal story that will fill this page is being finalised with the founder."
+        intro="Purple Bee Cakes was built around a simple belief: cake should be an experience, not just another item on the celebration table.
+We believe in beautiful presentation, exceptional flavour and the little details that transform something familiar into something special."
         trail={[{ name: 'Home', to: '/' }, { name: 'Our Story', to: '/our-story' }]}
       />
 
@@ -58,7 +59,7 @@ export default function OurStory() {
             <Reveal delay={120}>
               <p className="eyebrow">How we work</p>
               <h2 className="mt-5 font-display text-3xl font-medium leading-tight text-ink md:text-4xl">
-                Cakes designed once, for one occasion
+               Where artistry meets indulgence
               </h2>
               <div className="mt-6 space-y-5 text-pretty leading-relaxed text-stone">
                 <p>
@@ -121,19 +122,17 @@ export default function OurStory() {
             <Reveal delay={120} className="md:col-span-7">
               <p className="eyebrow">The person</p>
               <h2 className="mt-5 font-display text-3xl font-medium leading-tight text-ink md:text-4xl">
-                Meet the maker
+             The face behind the cakes.
               </h2>
               <div className="mt-6 space-y-5 text-pretty leading-relaxed text-stone">
                 <p>
-                  This is where the founder's introduction will appear — their name,
-                  how the studio began, and what drew them to cake design. A short,
-                  honest story in their own words, with an authentic photograph.
+                 Purple Bee Cakes is a business built on a love for cake making, creativity and the joy of creating something that becomes part of people's most meaningful moments.
                 </p>
-                <p>
-                  Sharing the person behind the work helps customers feel confident
-                  in who is making their cake. This section is being written with
-                  the founder ahead of launch.
-                </p>
+                <p>Over the years, that love has grown into a commitment to creating cakes that bring together beautiful design and exceptional flavour.</p>
+                <p>For me, cake making is about more than following a recipe or recreating a photograph. It's about understanding what makes a cake enjoyable, what makes a design memorable and how the two can work together.</p>
+                <p>I want Purple Bee Cakes to be known for cakes that people look forward to eating just as much as they look forward to showing them off.</p>
+                <p>Every cake we create is an opportunity to deliver on that promise.</p>
+            
               </div>
             
             </Reveal>
