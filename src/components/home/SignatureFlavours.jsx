@@ -10,7 +10,7 @@ const flavours = [
     tagline: 'Chocolate. Caramel. Peanut. Pure indulgence.',
     description:
       'Rich chocolate sponge layered with dark chocolate ganache, homemade salted peanut caramel and peanut buttercream. A deeply indulgent combination for those who love the balance of chocolate, roasted peanuts and buttery caramel.',
-    image: '',
+    image: '/images/cakes/chocolate.webp',
     paletteKey: 'sculptural',
     accentColor: '#5a3220',
     label: 'Chocolate sponge with dark ganache, salted peanut caramel and peanut buttercream layers',
@@ -21,7 +21,7 @@ const flavours = [
     tagline: 'Bright citrus. Juicy berries. Beautifully balanced.',
     description:
       'Delicate lemon sponge soaked in lemon syrup, layered with blueberry filling, cream cheese ganache and toffee lemon filling. A vibrant combination of sweet, tangy and creamy flavours.',
-    image: '',
+    image: '/images/cakes/blue_lemon.webp',
     paletteKey: 'painterly',
     accentColor: '#3d5a8a',
     label: 'Lemon sponge with blueberry filling, cream cheese ganache and lemon curd layers',
@@ -32,7 +32,7 @@ const flavours = [
     tagline: 'A classic, made anything but ordinary.',
     description:
       'Fragrant vanilla bean sponge paired with toffee caramel filling and whipped cream cheesecake. Familiar, comforting and indulgently layered.',
-    image: '',
+    image: '/images/cakes/exotic_vanilla.webp',
     paletteKey: 'quiet',
     accentColor: '#8a6a3a',
     label: 'Vanilla bean sponge with toffee caramel filling and whipped cream cheesecake layers',
