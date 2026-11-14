@@ -42,16 +42,36 @@ const staticRoutes = [
   '/shop',
   '/account',
   '/thank-you',
+  '/order-confirmation',
 ]
 const collectionRoutes = collections.map((c) => `/collections/${c.slug}`)
-const cakeRoutes = cakes.map((c) => `/cakes/${c.slug}`)
+
+// Legacy products that should not be surfaced in the sitemap.
+const excludedCakeSlugs = new Set(['linen', 'alabaster'])
+const cakeRoutes = cakes
+  .filter((c) => !excludedCakeSlugs.has(c.slug))
+  .map((c) => `/cakes/${c.slug}`)
+
 const articleRoutes = journal.map((a) => `/journal/${a.slug}`)
+
+// Map of URL → lastmod override (articles use their publish date).
+const lastmodOverrides = new Map(
+  journal.map((a) => [`/journal/${a.slug}`, a.date])
+)
 
 // Routes to render to HTML. /404 is written to 404.html for hosts that serve it.
 const renderRoutes = [...staticRoutes, ...collectionRoutes, ...cakeRoutes, ...articleRoutes, '/404']
 
-// Routes excluded from the sitemap (noindex or not real pages).
-const sitemapExcluded = new Set(['/privacy-policy', '/404', '/account', '/thank-you', '/shop', '/checkout'])
+// Routes excluded from the sitemap (noindex, redirects, or not real pages).
+const sitemapExcluded = new Set([
+  '/privacy-policy',
+  '/404',
+  '/account',
+  '/thank-you',
+  '/shop',
+  '/checkout',
+  '/order-confirmation',
+])
 
 function escapeXml(s) {
   return String(s)
@@ -68,7 +88,8 @@ function buildSitemap(routes) {
     .filter((r) => !sitemapExcluded.has(r))
     .map((r) => {
       const loc = new URL(r === '/' ? '/' : r, site.url).href
-      return `  <url>\n    <loc>${escapeXml(loc)}</loc>\n    <lastmod>${today}</lastmod>\n  </url>`
+      const lastmod = lastmodOverrides.get(r) || today
+      return `  <url>\n    <loc>${escapeXml(loc)}</loc>\n    <lastmod>${lastmod}</lastmod>\n  </url>`
     })
     .join('\n')
   return `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${urls}\n</urlset>\n`

@@ -1,5 +1,5 @@
 import { lazy, Suspense } from 'react'
-import { Route, Routes } from 'react-router-dom'
+import { Navigate, Route, Routes } from 'react-router-dom'
 import Layout from './components/Layout.jsx'
 import ScrollToTop from './components/ScrollToTop.jsx'
 import { AdminRoute } from './components/auth/Guards.jsx'
@@ -64,7 +64,7 @@ export default function App() {
           <Route element={<Layout />}>
             <Route path="/"                    element={<Home />} />
             <Route path="/our-cakes"           element={<OurCakes />} />
-            <Route path="/cakes"               element={<OurCakes />} />
+            <Route path="/cakes"               element={<Navigate to="/our-cakes" replace />} />
             <Route path="/collections"         element={<Collections />} />
             <Route path="/collections/:slug"   element={<CollectionDetail />} />
             <Route path="/cakes/:slug"         element={<CakeDetail />} />
