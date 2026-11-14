@@ -49,10 +49,11 @@ We believe in beautiful presentation, exceptional flavour and the little details
             <Reveal>
               <div className="overflow-hidden rounded-2xl shadow-[0_30px_60px_-30px_rgba(55,42,74,0.3)]">
                 <OptimizedImage
-                  seed="story-purplebee"
-                  paletteKey="painterly"
-                  alt="Studio illustration — development placeholder"
+                  src="/images/cakes/founder-story.webp"
+                  alt="The founder enjoying a slice of Purple Bee cake"
                   aspect="4 / 5"
+                  width={600}
+                  height={750}
                 />
               </div>
             </Reveal>
