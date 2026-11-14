@@ -32,6 +32,7 @@ const staticRoutes = [
   '/contact',
   '/enquiry',
   '/cake-enquiry',
+  '/checkout',
   '/privacy',
   '/privacy-policy',
   '/faqs',
@@ -50,7 +51,7 @@ const articleRoutes = journal.map((a) => `/journal/${a.slug}`)
 const renderRoutes = [...staticRoutes, ...collectionRoutes, ...cakeRoutes, ...articleRoutes, '/404']
 
 // Routes excluded from the sitemap (noindex or not real pages).
-const sitemapExcluded = new Set(['/privacy-policy', '/404', '/account', '/thank-you', '/shop'])
+const sitemapExcluded = new Set(['/privacy-policy', '/404', '/account', '/thank-you', '/shop', '/checkout'])
 
 function escapeXml(s) {
   return String(s)
