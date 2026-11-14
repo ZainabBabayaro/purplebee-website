@@ -18,6 +18,51 @@ function formatDate(iso) {
   })
 }
 
+// Render inline markdown-style links inside journal text: [label](/path).
+// Internal paths use React Router; external URLs use a regular anchor.
+function LinkedText({ text, className = '' }) {
+  if (!text) return null
+  const parts = []
+  const regex = /\[([^\]]+)\]\(([^)]+)\)/g
+  let lastIndex = 0
+  let match
+  while ((match = regex.exec(text)) !== null) {
+    if (match.index > lastIndex) {
+      parts.push(<span key={`text-${lastIndex}`}>{text.slice(lastIndex, match.index)}</span>)
+    }
+    const label = match[1]
+    const href = match[2]
+    if (/^https?:\/\//i.test(href)) {
+      parts.push(
+        <a
+          key={`link-${match.index}`}
+          href={href}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="underline decoration-plum-300 underline-offset-2 transition-colors hover:text-plum-700"
+        >
+          {label}
+        </a>
+      )
+    } else {
+      parts.push(
+        <Link
+          key={`link-${match.index}`}
+          to={href}
+          className="underline decoration-plum-300 underline-offset-2 transition-colors hover:text-plum-700"
+        >
+          {label}
+        </Link>
+      )
+    }
+    lastIndex = match.index + match[0].length
+  }
+  if (lastIndex < text.length) {
+    parts.push(<span key={`text-${lastIndex}`}>{text.slice(lastIndex)}</span>)
+  }
+  return <span className={className}>{parts}</span>
+}
+
 function slugify(text) {
   return text.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '')
 }
@@ -106,7 +151,7 @@ function Block({ block }) {
           id={slugify(block.text)}
           className="mt-12 mb-4 scroll-mt-28 font-display text-2xl font-medium leading-snug text-ink md:text-3xl"
         >
-          {block.text}
+          <LinkedText text={block.text} />
         </h2>
       )
     case 'h3':
@@ -115,20 +160,20 @@ function Block({ block }) {
           id={slugify(block.text)}
           className="mt-8 mb-3 scroll-mt-28 font-display text-xl font-medium text-ink"
         >
-          {block.text}
+          <LinkedText text={block.text} />
         </h3>
       )
     case 'p':
       return (
         <p className="my-5 text-pretty text-lg leading-[1.8] text-stone">
-          {block.text}
+          <LinkedText text={block.text} />
         </p>
       )
     case 'pullquote':
       return (
         <blockquote className="my-10 border-l-4 border-plum-300 bg-plum-50 py-6 pl-7 pr-5 rounded-r-xl">
           <p className="font-display text-xl font-medium leading-snug text-plum-800 md:text-2xl">
-            {block.text}
+            <LinkedText text={block.text} />
           </p>
         </blockquote>
       )
@@ -138,7 +183,7 @@ function Block({ block }) {
           <span className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-honey-500 text-[0.7rem] font-bold text-ivory">
             ✦
           </span>
-          <p className="text-pretty leading-relaxed text-ink">{block.text}</p>
+          <p className="text-pretty leading-relaxed text-ink"><LinkedText text={block.text} /></p>
         </aside>
       )
     case 'list':
@@ -177,6 +222,23 @@ function Block({ block }) {
               ))}
             </tbody>
           </table>
+        </div>
+      )
+    case 'cta':
+      return (
+        <div className="my-10 rounded-2xl border border-line bg-cream/40 p-6 md:p-8">
+          <p className="text-pretty text-lg leading-relaxed text-ink">
+            <LinkedText text={block.text} />
+          </p>
+          {block.to && block.label && (
+            <Link
+              to={block.to}
+              className="mt-5 inline-flex items-center gap-2 rounded-full bg-plum-600 px-5 py-2.5 text-sm font-medium text-ivory transition-colors hover:bg-plum-700"
+            >
+              {block.label}
+              <ArrowRight size={16} strokeWidth={1.8} />
+            </Link>
+          )}
         </div>
       )
     case 'divider':

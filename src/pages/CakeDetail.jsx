@@ -319,7 +319,12 @@ export default function CakeDetail() {
             <Reveal delay={120}>
               {/* Collection + product type tags */}
               <div className="flex flex-wrap items-center gap-2">
-                <span className="eyebrow">{cake.collectionName}</span>
+                <Link
+                  to={`/collections/${cake.collectionSlug || cake.collectionSlugs?.[0]}`}
+                  className="eyebrow underline decoration-plum-300 underline-offset-4 transition-colors hover:text-plum-700"
+                >
+                  {cake.collectionName}
+                </Link>
                 <span className="text-stone-light">·</span>
                 <ProductTypeTag productType={cake.productType} />
                 {purchaseType === 'quotation' && (

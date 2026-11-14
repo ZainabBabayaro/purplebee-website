@@ -107,7 +107,13 @@ export const journal = [
       },
       {
         type: 'tip',
-        text: 'Tell your cake designer your exact guest count and whether the cake is the main dessert. They will recommend a size that looks right for the design as well as feeding everyone comfortably.',
+        text: 'Tell your [cake designer](/cake-enquiry) your exact guest count and whether the cake is the main dessert. They will recommend a size that looks right for the design as well as feeding everyone comfortably.',
+      },
+      {
+        type: 'cta',
+        text: 'Once you have a sense of size, the next decision is flavour. Explore the combinations we use most often, or start a conversation about your celebration.',
+        to: '/signature-flavours',
+        label: 'Explore signature flavours',
       },
     ],
   },
@@ -159,6 +165,10 @@ export const journal = [
         text: 'Our most-requested flavour combinations',
       },
       {
+        type: 'p',
+        text: 'These are the combinations we return to again and again for [celebration cakes](/collections/celebration-cakes) and [wedding cakes](/collections/wedding-cakes) in Abuja. They are balanced, memorable and designed to work at scale.',
+      },
+      {
         type: 'list',
         items: [
           'Vanilla bean sponge with mascarpone and fresh strawberry — the one that works for everyone',
@@ -185,6 +195,12 @@ export const journal = [
         type: 'p',
         text: 'If you know guests have dietary needs, mention them early. Gluten-free sponges, dairy-free buttercreams and egg-free options are all possible — but they need to be built into the design from the start, not added as an afterthought. A separate small cake for guests with requirements is sometimes the most elegant solution at larger events.',
       },
+      {
+        type: 'cta',
+        text: 'Ready to choose a flavour? See the combinations available on our celebration cakes, or place an order directly from the store.',
+        to: '/store',
+        label: 'Browse the store',
+      },
     ],
   },
 
@@ -204,7 +220,7 @@ export const journal = [
     body: [
       {
         type: 'p',
-        text: 'Bespoke has been stretched. It now appears on everything from supermarket sandwich boxes to online cake configurators where you choose a size and a flavour from a dropdown. That is not bespoke — that is customisation, and the difference is worth understanding if you are deciding whether to commission one.',
+        text: 'Bespoke has been stretched. It now appears on everything from supermarket sandwich boxes to online cake configurators where you choose a size and a flavour from a dropdown. That is not bespoke — that is customisation, and the difference is worth understanding if you are deciding whether to commission a [bespoke cake](/collections/bespoke-cakes) in Abuja.',
       },
       {
         type: 'pullquote',
@@ -250,6 +266,12 @@ export const journal = [
         type: 'p',
         text: 'Commissioning a bespoke cake is an investment in something that is genuinely yours. It requires a little more from you — a conversation, some decisions, some trust — and it gives you something that could not have existed without you.',
       },
+      {
+        type: 'cta',
+        text: 'If you are considering a custom design, the best place to start is a conversation. Tell us about your occasion and we will guide you through the bespoke process.',
+        to: '/custom-cakes',
+        label: 'Learn about bespoke cakes',
+      },
     ],
   },
 
@@ -269,7 +291,7 @@ export const journal = [
     body: [
       {
         type: 'p',
-        text: 'Wedding cakes are made to order, which means the timeline is real — not a suggestion. A baker can only take on a certain number of cakes in a given week. The more notice you give, the more considered your design can be, and the less likely it is that your date has already gone.',
+        text: '[Wedding cakes](/collections/wedding-cakes) are made to order, which means the timeline is real — not a suggestion. A baker can only take on a certain number of cakes in a given week. The more notice you give, the more considered your design can be, and the less likely it is that your date has already gone.',
       },
       {
         type: 'h2',
@@ -336,6 +358,12 @@ export const journal = [
         type: 'p',
         text: 'You have enough to think about. Your cake should simply arrive, be set up, and be exactly what you discussed. If anything feels unclear in the days before, a quick message to your baker will settle it.',
       },
+      {
+        type: 'cta',
+        text: 'Planning your wedding cake? Get in touch as early as you can — popular dates fill quickly and the best designs take time.',
+        to: '/cake-enquiry',
+        label: 'Start your wedding cake enquiry',
+      },
     ],
   },
 
@@ -355,7 +383,7 @@ export const journal = [
     body: [
       {
         type: 'p',
-        text: 'Design directions in cakes follow broader culture more closely than most people expect. The same conversations happening in interiors, fashion and editorial — about restraint, about authenticity, about colour — eventually arrive on the cake table. Here are the directions that feel genuinely current.',
+        text: 'Design directions in cakes follow broader culture more closely than most people expect. The same conversations happening in interiors, fashion and editorial — about restraint, about authenticity, about colour — eventually arrive on the cake table. Here are the directions that feel genuinely current in our [cake collections](/collections) this year.',
       },
       {
         type: 'h2',
@@ -401,6 +429,12 @@ export const journal = [
         type: 'p',
         text: 'The most interesting cakes being made right now are designed in context — sized and styled for their table, their room, their day. A cake that fits its setting is always more beautiful than one that ignores it.',
       },
+      {
+        type: 'cta',
+        text: 'Interested in a bespoke direction for your celebration? Browse our collections or commission a one-off design made just for your day.',
+        to: '/collections',
+        label: 'Browse collections',
+      },
     ],
   },
 
@@ -420,7 +454,7 @@ export const journal = [
     body: [
       {
         type: 'p',
-        text: 'The brief is the beginning of the design. A useful brief does not mean knowing exactly what you want — it means knowing enough about the occasion, the people and the feeling of the day to give a designer something solid to work from.',
+        text: 'The brief is the beginning of the design. A useful brief does not mean knowing exactly what you want — it means knowing enough about the occasion, the people and the feeling of the day to give your [cake designer](/cake-enquiry) something solid to work from.',
       },
       {
         type: 'h2',
@@ -467,6 +501,12 @@ export const journal = [
       {
         type: 'p',
         text: 'You do not need to have decided on the flavour, the exact size, or the precise decoration before your first conversation. These are things you will work out together. What you need to bring is a clear picture of the occasion and the people — everything else grows from there.',
+      },
+      {
+        type: 'cta',
+        text: 'Have your brief ready? Send it through and we will come back to you with next steps and a personalised quote.',
+        to: '/cake-enquiry',
+        label: 'Submit your brief',
       },
     ],
   },
@@ -535,6 +575,12 @@ export const journal = [
         type: 'p',
         text: 'Cut cake keeps well wrapped in cling film in the fridge for two to three days. Let it come to room temperature for 30 minutes before eating — cold cake is denser and less flavourful than cake at room temperature. Sponge cake also freezes well: wrap individual slices tightly and freeze for up to three months.',
       },
+      {
+        type: 'cta',
+        text: 'Looking for a cake that travels well? Our individual cake slices and loaf cakes are made to be enjoyed at home or given as gifts.',
+        to: '/collections/slices-and-loaves',
+        label: 'Shop slices and loaves',
+      },
     ],
   },
 
@@ -595,6 +641,12 @@ export const journal = [
       {
         type: 'tip',
         text: 'If you are drawn to a colour but unsure whether it will work for your occasion, bring a piece of fabric or a flower in that colour to the design conversation. Seeing it in the context of the day makes the decision much easier.',
+      },
+      {
+        type: 'cta',
+        text: 'Colour is one of the first things we discuss on a [bespoke commission](/custom-cakes). Share your ideas and we will help you find the direction that feels right for your day.',
+        to: '/cake-enquiry',
+        label: 'Start a bespoke enquiry',
       },
     ],
   },
