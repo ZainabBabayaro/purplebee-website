@@ -9,7 +9,7 @@ export default function Privacy() {
     <>
       <SEO
         title="Privacy Policy"
-        description="Privacy policy for the Purple Bee Cakes website."
+        description="Privacy policy for Purple Bee Cakes — how we collect, use and protect your information when you browse our website or submit a cake enquiry."
         canonicalPath="/privacy"
       />
       <PageHero

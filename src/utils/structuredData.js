@@ -5,6 +5,15 @@
 // ============================================================================
 import { site } from '../data/site.js'
 
+// Ensure image URLs used in structured data are absolute. Relative paths are
+// not reliably resolved by all search-engine crawlers.
+function absoluteImageUrl(image) {
+  if (!image) return `${site.url}/og-image.svg`
+  if (/^https?:\/\//i.test(image)) return image
+  const path = String(image).startsWith('/') ? image : `/${image}`
+  return new URL(path, site.url).href
+}
+
 export function organizationLd() {
   return {
     '@context': 'https://schema.org',
@@ -55,7 +64,7 @@ export function breadcrumbLd(trail = []) {
 }
 
 export function cakeProductLd(cake) {
-  const image = cake.images?.[0]?.url || cake.image || `${site.url}/og-image.svg`
+  const image = absoluteImageUrl(cake.images?.[0]?.url || cake.image)
   const price = Number(cake.price)
   const hasValidPrice = Number.isFinite(price) && price > 0
   const purchaseType = cake.purchaseType || (cake.productType === 'cake' ? 'configurable' : 'simple')
@@ -88,11 +97,13 @@ export function cakeProductLd(cake) {
 }
 
 export function articleLd(article) {
+  const image = absoluteImageUrl(article.image)
   return {
     '@context': 'https://schema.org',
     '@type': 'Article',
     headline: article.title,
     description: article.excerpt,
+    image,
     datePublished: article.date,
     keywords: (article.tags || []).join(', '),
     articleSection: article.categoryLabel || article.category,
@@ -102,7 +113,10 @@ export function articleLd(article) {
       name: site.name,
       logo: { '@type': 'ImageObject', url: `${site.url}/og-image.svg` },
     },
-    mainEntityOfPage: `${site.url}/journal/${article.slug}`,
+    mainEntityOfPage: {
+      '@type': 'WebPage',
+      '@id': `${site.url}/journal/${article.slug}`,
+    },
   }
 }
 

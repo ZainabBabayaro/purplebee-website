@@ -36,7 +36,7 @@ export default function Home() {
         />
       </Helmet>
       <SEO
-        title="Purplebee Cakes Abuja"
+        title="Cakes in Abuja"
         description="Purple Bee Cakes crafts beautifully designed celebration, wedding and bespoke cakes in Abuja — thoughtful design, exceptional flavour, for the moments that matter."
         canonicalPath="/"
         structured={[]}

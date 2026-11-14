@@ -296,6 +296,7 @@ export default function JournalArticle() {
         description={article.excerpt}
         canonicalPath={`/journal/${slug}`}
         type="article"
+        imageAlt={`${article.title} — editorial illustration`}
         structured={structuredData}
       />
 

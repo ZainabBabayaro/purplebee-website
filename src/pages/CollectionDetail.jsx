@@ -128,10 +128,11 @@ export default function CollectionDetail() {
   return (
     <>
       <SEO
-        title={collection.name}
-        description={`${collection.name} — ${collection.subtitle}. ${collection.description}`}
+        title={collection.seoTitle || collection.name}
+        description={collection.seoDescription || `${collection.name} — ${collection.subtitle}. ${collection.description}`}
         canonicalPath={`/collections/${slug}`}
         image={collection.bannerImage || undefined}
+        imageAlt={`${collection.name} collection banner`}
         structured={[breadcrumbLd([
           { name: 'Home', path: '/' },
           { name: 'Collections', path: '/collections' },

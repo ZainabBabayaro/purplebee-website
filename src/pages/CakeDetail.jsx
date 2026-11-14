@@ -238,11 +238,12 @@ export default function CakeDetail() {
   return (
     <>
       <SEO
-        title={cake.name}
-        description={cake.summary}
+        title={`${cake.name} | ${cake.collectionName}`}
+        description={`${cake.summary} Discover ${cake.name} and more ${cake.collectionName.toLowerCase()} from Purple Bee Cakes in Abuja.`}
         canonicalPath={productPath}
         image={productMainImage(cake) || undefined}
-        type="article"
+        imageAlt={`${cake.name} — ${cake.summary}`}
+        type="product"
         structured={[
           cakeProductLd(cake),
           breadcrumbLd([

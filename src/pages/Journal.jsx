@@ -153,8 +153,8 @@ export default function Journal() {
   return (
     <>
       <SEO
-        title="Blog"
-        description="Guides and notes from the Purple Bee Cakes studio — practical advice on flavours, planning timelines, design directions, and what to expect when commissioning a bespoke cake."
+        title="Cake Design Blog"
+        description="Guides and notes from the Purple Bee Cakes studio — practical advice on cake flavours, planning timelines, design directions, and commissioning a bespoke cake in Abuja."
         canonicalPath="/journal"
         structured={[breadcrumbLd([
           { name: 'Home', path: '/' },

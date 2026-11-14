@@ -134,8 +134,8 @@ export default function Store() {
   return (
     <>
       <SEO
-        title="Store"
-        description="Order bespoke cakes from Purple Bee Cakes — browse designs, choose your size and flavour, and place your order online."
+        title="Order Cakes Online Abuja"
+        description="Order celebration cakes, wedding cakes, cake slices and loaf cakes from Purple Bee Cakes in Abuja. Browse designs, choose your flavour and size, and place your order online."
         canonicalPath="/store"
         structured={[breadcrumbLd([
           { name: 'Home', path: '/' },

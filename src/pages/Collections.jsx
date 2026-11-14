@@ -12,8 +12,8 @@ export default function Collections() {
   return (
     <>
       <SEO
-        title="Collections"
-        description="Browse all Purple Bee Cakes collections — bespoke cakes, signature designs, celebration cakes, wedding cakes, cake slices and loaf cakes."
+        title="Cake Collections Abuja"
+        description="Browse all Purple Bee Cakes collections in Abuja — bespoke cakes, signature designs, celebration cakes, wedding cakes, cake slices and loaf cakes."
         canonicalPath="/collections"
         structured={[breadcrumbLd([{ name: 'Home', path: '/' }, { name: 'Collections', path: '/collections' }])]}
       />

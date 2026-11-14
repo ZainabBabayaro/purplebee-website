@@ -27,8 +27,8 @@ export default function OurStory() {
   return (
     <>
       <SEO
-        title="Our Story"
-        description="The story, values and approach behind Purple Bee Cakes — a bespoke cake design studio focused on thoughtful design, flavour made from scratch and meticulous detail."
+        title="About Purple Bee Cakes"
+        description="The story, values and approach behind Purple Bee Cakes — a bespoke cake design studio in Abuja focused on thoughtful design, flavour made from scratch and meticulous detail."
         canonicalPath="/our-story"
         structured={[
           breadcrumbLd([{ name: 'Home', path: '/' }, { name: 'Our Story', path: '/our-story' }]),
