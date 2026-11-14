@@ -11,23 +11,23 @@
 export const testimonials = [
   {
     quote:
-      'A beautifully made cake that became the centre of our day — the design felt considered down to the smallest detail and it tasted as good as it looked.',
-    author: 'Sample testimonial — replace before launch',
+      'The cake was soo beautiful. I felt guilty for destroying art.',
+    author: 'Bukola',
     context: 'Celebration cake',
     development: true,
   },
   {
     quote:
-      'The whole process felt personal. We talked through what we wanted, and the cake that arrived was exactly right — calm, elegant and entirely ours.',
-    author: 'Sample testimonial — replace before launch',
+      'The cakes are soo nice. I\’m a very good customer and I always recommend people because it\’s one of the best cakes I\’ve tasted by farr',
+    author: 'Faidat B.',
     context: 'Wedding cake',
     development: true,
   },
   {
     quote:
-      'Thoughtful, skilful and genuinely lovely to work with. The cake was the talking point of the evening for all the right reasons.',
-    author: 'Sample testimonial — replace before launch',
-    context: 'Milestone birthday',
+      'I love your hospitality, trust in your customers and above all, the taste of your cake is wow! Good packaging thumbs up.',
+    author: 'Abimbola ',
+    context: 'Celebration birthday',
     development: true,
   },
 ]
