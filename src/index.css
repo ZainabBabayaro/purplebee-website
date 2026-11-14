@@ -10,17 +10,17 @@
   --font-display: "Fraunces", Georgia, "Times New Roman", serif;
   --font-sans: "Inter", ui-sans-serif, system-ui, -apple-system, sans-serif;
 
-  /* Brand purple — a refined iris accent, used deliberately not everywhere */
-  --color-plum-50: #f6f2f9;
-  --color-plum-100: #ece3f1;
-  --color-plum-200: #d9c8e3;
-  --color-plum-300: #bda5cd;
-  --color-plum-400: #9d7eb2;
-  --color-plum-500: #7e5f96;
-  --color-plum-600: #6a4e8f;
-  --color-plum-700: #563f74;
-  --color-plum-800: #433259;
-  --color-plum-900: #372a4a;
+  /* Brand purple — official Purple Bee Cakes palette */
+  --color-plum-50: #efdfec;   /* Soft Lilac */
+  --color-plum-100: #e7d2e4;
+  --color-plum-200: #d3b9d9;   /* Lilac */
+  --color-plum-300: #c5a3cc;
+  --color-plum-400: #a97aaf;
+  --color-plum-500: #8c4f94;
+  --color-plum-600: #6c2a7c;   /* Purple */
+  --color-plum-700: #5c236b;
+  --color-plum-800: #4a1c56;
+  --color-plum-900: #361543;
 
   /* Warm neutrals — ivory grounds the whole site */
   --color-ivory: #fbf7f1;
