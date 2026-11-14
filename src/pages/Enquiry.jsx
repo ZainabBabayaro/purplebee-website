@@ -9,6 +9,7 @@ import { flavourOptions, servingGuides } from '../data/cakes.js'
 import { dataApi } from '../services/db.js'
 import { compressImage } from '../utils/files.js'
 import { enquiryNotificationMail } from '../utils/mail.js'
+import { trackGenerateLead } from '../utils/analytics.js'
 
 const occasions = [
   { value: 'Birthday', label: 'Birthday' },
@@ -148,6 +149,7 @@ export default function Enquiry() {
       }
       setStatus('done')
       setSubmitted(true)
+      trackGenerateLead('general_enquiry')
     } catch (err) {
       submittedRef.current = false
       setStatus('idle')

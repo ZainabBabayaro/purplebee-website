@@ -1,4 +1,5 @@
 import { createContext, useContext, useEffect, useState } from 'react'
+import { trackAddToCart } from '../utils/analytics.js'
 
 const CartContext = createContext(null)
 export const useCart = () => useContext(CartContext)
@@ -42,6 +43,7 @@ export function CartProvider({ children }) {
   const add = (product, qty = 1) => {
     const lineId = product.lineId || product.id
     const safeQty = Math.max(1, parseInt(qty, 10) || 1)
+    trackAddToCart(product, safeQty)
     setItems((prev) => {
       const existing = prev.find((i) => i.id === lineId)
       if (existing) {

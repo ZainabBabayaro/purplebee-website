@@ -4,8 +4,10 @@ import { Mail, MapPin, Instagram, Facebook, Check, ArrowRight } from 'lucide-rea
 import SEO, { breadcrumbLd } from '../components/SEO.jsx'
 import PageHero from '../components/PageHero.jsx'
 import Reveal from '../components/Reveal.jsx'
+import TrackedWhatsAppLink from '../components/TrackedWhatsAppLink.jsx'
 import { Input, Textarea } from '../components/form/Inputs.jsx'
 import { site } from '../data/site.js'
+import { trackGenerateLead } from '../utils/analytics.js'
 
 const FORM_ENDPOINT = ''
 const socialIcons = { Instagram, Facebook }
@@ -48,6 +50,7 @@ export default function Contact() {
         await new Promise((r) => setTimeout(r, 600))
       }
       setSent(true)
+      trackGenerateLead('contact_form')
     } catch { /* fail silently — user sees no false success */ }
     finally { setBusy(false) }
   }
@@ -101,14 +104,9 @@ export default function Contact() {
                       <span className="mt-1 shrink-0 text-[#25D366]"><WhatsAppIcon /></span>
                       <div>
                         <p className="text-xs uppercase tracking-wide text-stone-light">WhatsApp</p>
-                        <a
-                          href={waUrl}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="text-ink hover:text-plum-600"
-                        >
+                        <TrackedWhatsAppLink href={waUrl} className="text-ink hover:text-plum-600">
                           Message us on WhatsApp
-                        </a>
+                        </TrackedWhatsAppLink>
                       </div>
                     </div>
                   )}
@@ -155,15 +153,13 @@ export default function Contact() {
                     <p className="mt-2 text-sm text-stone">
                       For questions, design inspiration or to start a conversation about your cake.
                     </p>
-                    <a
+                    <TrackedWhatsAppLink
                       href={waUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
                       className="mt-4 flex w-full items-center justify-center gap-2 rounded-full bg-[#25D366] px-5 py-2.5 text-sm font-semibold text-white hover:bg-[#1ebe5d] transition-colors"
                     >
                       <WhatsAppIcon />
                       Start a WhatsApp chat
-                    </a>
+                    </TrackedWhatsAppLink>
                   </div>
                 )}
               </Reveal>

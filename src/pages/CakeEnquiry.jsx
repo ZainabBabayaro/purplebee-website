@@ -4,12 +4,14 @@ import { Check, Upload, ArrowRight } from 'lucide-react'
 import SEO, { breadcrumbLd } from '../components/SEO.jsx'
 import PageHero from '../components/PageHero.jsx'
 import Reveal from '../components/Reveal.jsx'
+import TrackedWhatsAppLink from '../components/TrackedWhatsAppLink.jsx'
 import { Input, Textarea, Select } from '../components/form/Inputs.jsx'
 import { site } from '../data/site.js'
 import { flavourOptions, servingGuides } from '../data/cakes.js'
 import { dataApi } from '../services/db.js'
 import { compressImage } from '../utils/files.js'
 import { enquiryNotificationMail } from '../utils/mail.js'
+import { trackGenerateLead } from '../utils/analytics.js'
 
 const occasions = [
   { value: 'Birthday', label: 'Birthday' },
@@ -162,6 +164,7 @@ export default function CakeEnquiry() {
         console.error('[enquiry] Notification email failed:', notifyErr)
       }
       setSubmitted(true)
+      trackGenerateLead(productSlug ? 'product_quotation' : 'cake_enquiry')
     } catch (err) {
       submittedRef.current = false
       setServerErr(
@@ -349,14 +352,12 @@ export default function CakeEnquiry() {
                   <div className="rounded-2xl border border-line bg-cream/40 p-6">
                     <p className="font-medium text-ink">Prefer to chat first?</p>
                     <p className="mt-1 text-sm text-stone">Send us a message on WhatsApp and we will respond quickly.</p>
-                    <a
+                    <TrackedWhatsAppLink
                       href={`https://wa.me/${site.contact.whatsapp}?text=${encodeURIComponent(site.contact.whatsappMessage)}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
                       className="mt-4 flex items-center gap-2 rounded-full bg-[#25D366] px-5 py-2.5 text-sm font-medium text-white hover:bg-[#1ebe5d] transition-colors w-full justify-center"
                     >
                       WhatsApp us
-                    </a>
+                    </TrackedWhatsAppLink>
                   </div>
                 )}
               </div>

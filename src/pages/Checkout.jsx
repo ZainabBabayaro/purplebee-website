@@ -11,6 +11,7 @@ import PlaceholderArt from '../components/PlaceholderArt.jsx'
 import { getPalette } from '../utils/images.js'
 import { site } from '../data/site.js'
 import { eventTypeOptions, celebrantGenderOptions } from '../data/cakes.js'
+import { trackBeginCheckout, trackPurchase } from '../utils/analytics.js'
 
 const PAYSTACK_PUBLIC_KEY = 'pk_live_b985e33142096821d0278cbcb768a549384c6d17'
 
@@ -79,6 +80,12 @@ export default function Checkout() {
   const [errors, setErrors] = useState({})
   const [serverErr, setServerErr] = useState('')
   const [busy, setBusy] = useState(false)
+
+  useEffect(() => {
+    if (items.length > 0) {
+      trackBeginCheckout(items, total)
+    }
+  }, [])
 
   const set = (k) => (e) => {
     setValues((v) => ({ ...v, [k]: e.target.value }))
@@ -180,6 +187,9 @@ export default function Checkout() {
         callback: async (response) => {
           // Verify server-side. The browser must never set a paid status.
           const { verified } = await verifyPayment(orderId, response.reference)
+          if (verified) {
+            trackPurchase(orderId, payableTotal, items)
+          }
           clear()
           navigate('/order-confirmation', {
             state: {

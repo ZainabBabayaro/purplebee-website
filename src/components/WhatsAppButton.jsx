@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { X } from 'lucide-react'
 import { site } from '../data/site.js'
+import TrackedWhatsAppLink from './TrackedWhatsAppLink.jsx'
 
 // ── WhatsApp SVG icon (official brand mark, no external dependency needed) ──
 function WhatsAppIcon({ size = 28 }) {
@@ -56,24 +57,20 @@ export default function WhatsAppButton() {
             <X size={14} strokeWidth={2} />
           </button>
         </div>
-        <a
+        <TrackedWhatsAppLink
           href={waUrl}
-          target="_blank"
-          rel="noopener noreferrer"
           className="mt-3 flex w-full items-center justify-center gap-2 rounded-full bg-[#25D366] px-4 py-2 text-sm font-semibold text-white hover:bg-[#1ebe5d] transition-colors"
         >
           <WhatsAppIcon size={16} />
           Start a chat
-        </a>
+        </TrackedWhatsAppLink>
         {/* speech bubble tail */}
         <div className="absolute -bottom-2 right-5 h-0 w-0 border-l-8 border-r-0 border-t-8 border-l-transparent border-t-white" />
       </div>
 
       {/* Main button */}
-      <a
+      <TrackedWhatsAppLink
         href={waUrl}
-        target="_blank"
-        rel="noopener noreferrer"
         onClick={(e) => {
           // On mobile open directly; on desktop show tooltip first
           if (window.innerWidth >= 768) {
@@ -85,7 +82,7 @@ export default function WhatsAppButton() {
         aria-label="Chat with Purple Bee Cakes on WhatsApp"
       >
         <WhatsAppIcon size={28} />
-      </a>
+      </TrackedWhatsAppLink>
     </div>
   )
 }

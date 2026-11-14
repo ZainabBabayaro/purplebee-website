@@ -6,6 +6,7 @@ import App from './App.jsx'
 import { AuthProvider } from './context/AuthContext.jsx'
 import { CartProvider } from './context/CartContext.jsx'
 import { loaderForPath } from './routes/pageLoaders.js'
+import './analytics-init.js'
 import './index.css'
 
 // Client entry. Prerendered pages hydrate the existing HTML (no flash); in dev,

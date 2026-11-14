@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { ArrowRight, ShoppingBag } from 'lucide-react'
 import SEO, { breadcrumbLd, cakeProductLd } from '../components/SEO.jsx'
@@ -11,6 +11,7 @@ import SimpleAddToCart from '../components/SimpleAddToCart.jsx'
 import ProductTypeTag from '../components/ProductTypeTag.jsx'
 import { Select } from '../components/form/Inputs.jsx'
 import { useProduct, useCatalogue } from '../services/catalogue.js'
+import { trackViewItem } from '../utils/analytics.js'
 import {
   flavourOptions,
   fillingOptions,
@@ -205,6 +206,10 @@ export default function CakeDetail() {
   const [activeImage, setActiveImage] = useState(0)
 
   const images = useMemo(() => (cake ? productImages(cake) : []), [cake])
+
+  useEffect(() => {
+    if (cake) trackViewItem(cake)
+  }, [cake?.slug])
 
   if (!cake && loading) {
     return (

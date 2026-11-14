@@ -44,6 +44,14 @@ export const site = {
 
   // Price guidance defaults. ⚠️ PLACEHOLDERS — confirm before launch.
   startingPrice: 'POA',
+
+  // Analytics IDs — fill these in before relying on conversion tracking.
+  // GA4 can also be configured entirely inside GTM; the field below is used
+  // for a direct gtag('config') call as a fallback.
+  analytics: {
+    ga4MeasurementId: '', // e.g. 'G-XXXXXXXXXX'
+    metaPixelId: '',      // e.g. '123456789012345'
+  },
 }
 
 // Content shown on the enquiry page to set expectations. Real business only.
