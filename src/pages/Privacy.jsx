@@ -11,7 +11,6 @@ export default function Privacy() {
         title="Privacy Policy"
         description="Privacy policy for the Purple Bee Cakes website."
         canonicalPath="/privacy"
-        noindex
       />
       <PageHero
         eyebrow="Legal"

@@ -4,5 +4,8 @@
 # Redirect legacy /shop to canonical store URL
 /shop /store 301
 
+# Redirect duplicate privacy URL to canonical
+/privacy-policy /privacy 301
+
 # SPA fallback (must be last)
 /*    /index.html    200
