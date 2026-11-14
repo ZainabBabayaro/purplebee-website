@@ -47,7 +47,7 @@ export default function OurCakes() {
       <PageHero
         eyebrow="The gallery"
         title="Our cakes."
-        intro="Explore our collection of carefully designed cakes — from timeless and elegant creations to expressive, artistic designs. Each cake is an opportunity to bring your celebration to life through colour, texture, flavour and detail."
+        intro="Explore our collection of carefully designed cakes. From timeless and elegant creations to expressive, artistic designs. Each cake is an opportunity to bring your celebration to life through colour, texture, flavour and detail."
         trail={[{ name: 'Home', to: '/' }, { name: 'Our Cakes', to: '/our-cakes' }]}
       />
 
