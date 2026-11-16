@@ -92,7 +92,7 @@ export default function OurCakes() {
                 const offset = i % 3 === 1 ? 'md:mt-12' : ''
                 return (
                   <Reveal key={cake.slug} delay={(i % 3) * 70} className={offset}>
-                    <Link to={`/cakes/${cake.slug}`} className="group block">
+                    <Link to={`/cakes/${cake.slug}/`} className="group block">
                       <div className="overflow-hidden rounded-xl bg-cream">
                         <OptimizedImage
                           src={productMainImage(cake)}

@@ -293,7 +293,7 @@ function ShareStrip({ title, slug }) {
 function RelatedCard({ article, index }) {
   return (
     <Reveal delay={index * 90}>
-      <Link to={`/journal/${article.slug}`} className="group flex flex-col">
+      <Link to={`/journal/${article.slug}/`} className="group flex flex-col">
         <div className="overflow-hidden rounded-xl bg-cream">
           <OptimizedImage
             seed={`journal-${article.slug}`}
@@ -347,7 +347,7 @@ export default function JournalArticle() {
       { name: 'Home', path: '/' },
       { name: 'Blog', path: '/journal/' },
       { name: article.categoryLabel, path: '/journal/' },
-      { name: article.title, path: `/journal/${slug}` },
+      { name: article.title, path: `/journal/${slug}/` },
     ]),
   ]
 

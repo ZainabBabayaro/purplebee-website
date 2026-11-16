@@ -162,7 +162,7 @@ function QuotationPurchase({ cake }) {
     : flavourOptions.map((f) => ({ value: f, label: f }))
 
   const [flavour, setFlavour] = useState('')
-  const enquiryLink = `/cake-enquiry?product=${encodeURIComponent(cake.slug)}${flavour ? /`&flavour=${encodeURIComponent(flavour)}` : ''}`
+  const enquiryLink = `/cake-enquiry/?product=${encodeURIComponent(cake.slug)}${flavour ? `&flavour=${encodeURIComponent(flavour)}` : ''}`
 
   return (
     <>
@@ -238,7 +238,7 @@ export default function CakeDetail() {
     .slice(0, 3)
   const relatedCakes = related.length ? related : products.filter((c) => c.slug !== cake.slug).slice(0, 3)
 
-  const productPath = `/cakes/${cake.slug}`
+  const productPath = `/cakes/${cake.slug}/`
 
   return (
     <>
@@ -325,7 +325,7 @@ export default function CakeDetail() {
               {/* Collection + product type tags */}
               <div className="flex flex-wrap items-center gap-2">
                 <Link
-                  to={`/collections/${cake.collectionSlug || cake.collectionSlugs?.[0]}`}
+                  to={`/collections/${cake.collectionSlug || cake.collectionSlugs?.[0]}/`}
                   className="eyebrow underline decoration-plum-300 underline-offset-4 transition-colors hover:text-plum-700"
                 >
                   {cake.collectionName}
@@ -386,7 +386,7 @@ export default function CakeDetail() {
           <div className="mt-10 grid grid-cols-2 gap-5 md:grid-cols-3 md:gap-8">
             {relatedCakes.map((c, i) => (
               <Reveal key={c.slug} delay={i * 90}>
-                <Link to={`/cakes/${c.slug}`} className="group block">
+                <Link to={`/cakes/${c.slug}/`} className="group block">
                   <div className="relative overflow-hidden rounded-xl bg-ivory">
                     <OptimizedImage
                       src={productMainImage(c)}

@@ -6,7 +6,7 @@ import OptimizedImage from './OptimizedImage.jsx'
 export default function CollectionCard({ collection, index = 0 }) {
   return (
     <Link
-      to={`/collections/${collection.slug}`}
+      to={`/collections/${collection.slug}/`}
       className="group block"
       aria-label={`View the ${collection.name} collection`}
     >

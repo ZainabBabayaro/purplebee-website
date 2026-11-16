@@ -29,7 +29,7 @@ export default function SignatureGallery() {
             const offset = i % 3 === 1 ? 'md:mt-16' : ''
             return (
               <Reveal key={cake.slug} delay={(i % 3) * 90} className={offset}>
-                <Link to={`/cakes/${cake.slug}`} className="group block">
+                <Link to={`/cakes/${cake.slug}/`} className="group block">
                   <div className="overflow-hidden rounded-xl bg-ivory">
                     <OptimizedImage
                       src={cake.image}

@@ -37,6 +37,6 @@ export function AdminRoute({ children }) {
   const { user, isAdmin, loading } = useAuth()
   const mounted = useMounted()
   if (!mounted || loading) return null
-  if (!user || !isAdmin) return <Navigate to="/admin" replace />
+  if (!user || !isAdmin) return <Navigate to="/admin/" replace />
   return children
 }

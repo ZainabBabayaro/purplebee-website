@@ -34,7 +34,7 @@ export default function Collections() {
             <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-3 md:gap-10">
               {visibleCollections.map((c, i) => (
                 <Reveal key={c.slug} delay={(i % 2) * 100}>
-                  <Link to={`/collections/${c.slug}`} className="group block">
+                  <Link to={`/collections/${c.slug}/`} className="group block">
                     <div className="relative overflow-hidden rounded-2xl">
                       <OptimizedImage
                         src={c.bannerImage}

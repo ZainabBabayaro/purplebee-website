@@ -74,7 +74,8 @@ export const routeLoaders = [
 
 // Return the loader for a pathname, or the NotFound loader for unknown paths.
 export function loaderForPath(pathname) {
-  const clean = pathname.replace(/\/+$/, '') || '/'
+  // Normalise to trailing-slash routes while preserving the homepage.
+  const clean = pathname === '/' ? '/' : pathname.replace(/\/+$/, '') + '/'
   const match = routeLoaders.find((route) => matchesRoute(route.path, clean))
   return match ? match.loader : pageLoaders.NotFound
 }

@@ -27,7 +27,7 @@ function ProductCard({ cake, onCustomise }) {
       <div className="group flex flex-col rounded-2xl border border-line bg-ivory overflow-hidden transition-shadow hover:shadow-lg">
 
         {/* Image — links to product page */}
-        <Link to={`/cakes/${cake.slug}`} className="relative block overflow-hidden bg-cream">
+        <Link to={`/cakes/${cake.slug}/`} className="relative block overflow-hidden bg-cream">
           <OptimizedImage
             src={productMainImage(cake)}
             seed={`cake-${cake.slug}`}
@@ -51,7 +51,7 @@ function ProductCard({ cake, onCustomise }) {
 
         {/* Details */}
         <div className="flex flex-1 flex-col p-5">
-          <Link to={`/cakes/${cake.slug}`}>
+          <Link to={`/cakes/${cake.slug}/`}>
             <h3 className="font-display text-xl font-medium text-ink transition-colors hover:text-plum-600">
               {cake.name}
             </h3>
@@ -73,7 +73,7 @@ function ProductCard({ cake, onCustomise }) {
             {/* Branch: quotation CTA, configurable opens customiser, simple adds directly */}
             {purchaseType === 'quotation' ? (
               <Link
-                to={`/cake-enquiry?product=${encodeURIComponent(cake.slug)}`}
+                to={`/cake-enquiry/?product=${encodeURIComponent(cake.slug)}`}
                 className="flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-full bg-plum-600 px-3 py-1.5 text-xs font-medium text-ivory transition-colors hover:bg-plum-700"
               >
                 Enquire
@@ -136,7 +136,7 @@ export default function CollectionDetail() {
         structured={[breadcrumbLd([
           { name: 'Home', path: '/' },
           { name: 'Collections', path: '/collections/' },
-          { name: collection.name, path: `/collections/${slug}` },
+          { name: collection.name, path: `/collections/${slug}/` },
         ])]}
       />
 
@@ -147,7 +147,7 @@ export default function CollectionDetail() {
         trail={[
           { name: 'Home', to: '/' },
           { name: 'Collections', to: '/collections/' },
-          { name: collection.name, to: `/collections/${slug}` },
+          { name: collection.name, to: `/collections/${slug}/` },
         ]}
       >
         {collection.occasions.length > 0 && (

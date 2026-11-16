@@ -4,7 +4,7 @@ import OptimizedImage from './OptimizedImage.jsx'
 // Cake gallery card. Links to the individual cake page.
 export default function CakeCard({ cake, aspect = '4 / 5', className = '' }) {
   return (
-    <Link to={`/cakes/${cake.slug}`} className={`group block ${className}`}>
+    <Link to={`/cakes/${cake.slug}/`} className={`group block ${className}`}>
       <div className="overflow-hidden rounded-xl bg-cream">
         <OptimizedImage
           src={cake.image}

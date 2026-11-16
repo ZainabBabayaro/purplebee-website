@@ -156,7 +156,7 @@ export default function AdminBlog() {
                         {/* Edit */}
                         {post.source !== 'static' && (
                           <Link
-                            to={`/admin/blog/${post.slug}`}
+                            to={`/admin/blog/${post.slug}/`}
                             className="flex h-7 w-7 items-center justify-center rounded-full border border-plum-700 text-plum-300 hover:text-ivory"
                             title="Edit"
                           >

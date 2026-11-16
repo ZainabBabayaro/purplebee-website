@@ -37,7 +37,7 @@ const StoreCard = memo(function StoreCard({ product, index, onCustomise }) {
 
   return (
     <div className="group flex flex-col rounded-2xl border border-line bg-ivory overflow-hidden transition-shadow hover:shadow-lg">
-      <Link to={`/cakes/${product.slug}`} className="relative block overflow-hidden bg-cream aspect-[4/4]">
+      <Link to={`/cakes/${product.slug}/`} className="relative block overflow-hidden bg-cream aspect-[4/4]">
         <OptimizedImage
           src={image}
           alt={product.name}
@@ -68,7 +68,7 @@ const StoreCard = memo(function StoreCard({ product, index, onCustomise }) {
       {/* Details */}
       <div className="flex flex-1 flex-col p-5">
         <span className="text-[0.7rem] uppercase tracking-[0.18em] text-plum-600">{product.collectionName}</span>
-        <Link to={`/cakes/${product.slug}`}>
+        <Link to={`/cakes/${product.slug}/`}>
           <h2 className="mt-1 font-display text-xl font-medium text-ink transition-colors hover:text-plum-600">{product.name}</h2>
         </Link>
         <p className="mt-1.5 flex-1 text-sm leading-snug text-stone">{product.summary}</p>
@@ -86,7 +86,7 @@ const StoreCard = memo(function StoreCard({ product, index, onCustomise }) {
           </span>
           {purchaseType === 'quotation' ? (
             <Link
-              to={`/cake-enquiry?product=${encodeURIComponent(product.slug)}`}
+              to={`/cake-enquiry/?product=${encodeURIComponent(product.slug)}`}
               className="flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-full bg-plum-600 px-3 py-1.5 text-xs font-medium text-ivory transition-colors hover:bg-plum-700"
             >
               Enquire

@@ -21,7 +21,7 @@ function ArticleCard({ article, large = false, index = 0 }) {
   const palette = PALETTE_MAP[article.paletteKey] || 'garden'
   return (
     <Reveal delay={index * 80}>
-      <Link to={`/journal/${article.slug}`} className="group flex flex-col">
+      <Link to={`/journal/${article.slug}/`} className="group flex flex-col">
         {/* Image */}
         <div className="overflow-hidden rounded-2xl bg-cream">
           <OptimizedImage
@@ -74,7 +74,7 @@ function FeaturedHero({ article }) {
   const palette = PALETTE_MAP[article.paletteKey] || 'garden'
   return (
     <Reveal>
-      <Link to={`/journal/${article.slug}`} className="group grid items-stretch gap-0 overflow-hidden rounded-3xl bg-ink md:grid-cols-2">
+      <Link to={`/journal/${article.slug}/`} className="group grid items-stretch gap-0 overflow-hidden rounded-3xl bg-ink md:grid-cols-2">
         {/* Image side */}
         <div className="relative overflow-hidden">
           <OptimizedImage
@@ -296,7 +296,7 @@ export default function Journal() {
                     {posts.map((a) => (
                       <li key={a.slug}>
                         <Link
-                          to={`/journal/${a.slug}`}
+                          to={`/journal/${a.slug}/`}
                           className="group flex items-start gap-3 text-sm"
                         >
                           <span className="mt-0.5 h-1.5 w-1.5 shrink-0 rounded-full bg-plum-300 transition-colors group-hover:bg-plum-600" />
