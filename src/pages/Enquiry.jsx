@@ -167,7 +167,7 @@ export default function Enquiry() {
         <SEO
           title="Enquiry"
           description="Enquire about a bespoke cake from Purple Bee Cakes."
-          canonicalPath="/enquiry"
+          canonicalPath="/enquiry/"
           noindex
         />
         <section className="bg-ivory pt-32 pb-20 md:pt-40">
@@ -224,14 +224,14 @@ export default function Enquiry() {
       <SEO
         title="Bespoke Cake Enquiry"
         description="Enquire about a bespoke cake from Purple Bee Cakes in Abuja. Tell us about your occasion, the feel you are after and the cake you have in mind."
-        canonicalPath="/enquiry"
-        structured={[breadcrumbLd([{ name: 'Home', path: '/' }, { name: 'Enquire', path: '/enquiry' }])]}
+        canonicalPath="/enquiry/"
+        structured={[breadcrumbLd([{ name: 'Home', path: '/' }, { name: 'Enquire', path: '/enquiry/' }])]}
       />
       <PageHero
         eyebrow="Bespoke enquiry"
         title="Enquire about a cake"
         intro="Tell us about your celebration, the feel you are after and the cake you have in mind. The more we know, the better we can reply."
-        trail={[{ name: 'Home', to: '/' }, { name: 'Enquire', to: '/enquiry' }]}
+        trail={[{ name: 'Home', to: '/' }, { name: 'Enquire', to: '/enquiry/' }]}
       />
 
       <section className="section-y bg-ivory pt-0">

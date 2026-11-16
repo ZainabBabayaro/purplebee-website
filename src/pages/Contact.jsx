@@ -64,15 +64,15 @@ export default function Contact() {
       <SEO
         title="Contact Purple Bee Cakes | Custom Cakes in Abuja"
         description="Get in touch with Purple Bee Cakes in Abuja — by email, WhatsApp or our contact form. We are happy to answer questions and help you start your cake order."
-        canonicalPath="/contact"
-        structured={[breadcrumbLd([{ name: 'Home', path: '/' }, { name: 'Contact', path: '/contact' }])]}
+        canonicalPath="/contact/"
+        structured={[breadcrumbLd([{ name: 'Home', path: '/' }, { name: 'Contact', path: '/contact/' }])]}
       />
 
       <PageHero
         eyebrow="Get in touch"
         title="Contact us."
         intro="Whether you have a question about an order, want to discuss a bespoke commission or simply need some guidance — we are here and happy to help."
-        trail={[{ name: 'Home', to: '/' }, { name: 'Contact', to: '/contact' }]}
+        trail={[{ name: 'Home', to: '/' }, { name: 'Contact', to: '/contact/' }]}
       />
 
       <section className="section-y bg-ivory pt-0">
@@ -190,7 +190,7 @@ export default function Contact() {
                     <h2 className="font-display text-2xl font-medium text-ink">Send a message</h2>
                     <p className="mt-2 text-sm text-stone">
                       For a full cake enquiry, the{' '}
-                      <Link to="/cake-enquiry" className="text-plum-600 underline">cake enquiry form</Link>
+                      <Link to="/cake-enquiry/" className="text-plum-600 underline">cake enquiry form</Link>
                       {' '}covers everything we need.
                     </p>
                     <div className="mt-6 space-y-5">
@@ -221,7 +221,7 @@ export default function Contact() {
             <p className="mt-5 text-pretty leading-relaxed text-stone">
               Start your enquiry and we will take care of everything from there.
             </p>
-            <Link to="/cake-enquiry" className="btn btn-primary mt-8">
+            <Link to="/cake-enquiry/" className="btn btn-primary mt-8">
               Start your cake enquiry
               <ArrowRight size={16} strokeWidth={1.8} />
             </Link>

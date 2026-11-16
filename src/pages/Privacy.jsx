@@ -10,13 +10,13 @@ export default function Privacy() {
       <SEO
         title="Privacy Policy"
         description="Privacy policy for Purple Bee Cakes — how we collect, use and protect your information when you browse our website or submit a cake enquiry."
-        canonicalPath="/privacy"
+        canonicalPath="/privacy/"
       />
       <PageHero
         eyebrow="Legal"
         title="Privacy Policy"
         intro="A starting-point privacy policy. Please review and finalise before launch."
-        trail={[{ name: 'Home', to: '/' }, { name: 'Privacy Policy', to: '/privacy' }]}
+        trail={[{ name: 'Home', to: '/' }, { name: 'Privacy Policy', to: '/privacy/' }]}
       />
 
       <section className="section-y bg-ivory pt-0">

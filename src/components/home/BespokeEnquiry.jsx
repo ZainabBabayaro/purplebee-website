@@ -54,7 +54,7 @@ Whether you have a clear design in mind or simply know the feeling you want to c
               {enquiryInfo.leadTime}
             </p>
             <Link
-              to="/enquiry"
+              to="/enquiry/"
               className="btn shrink-0 bg-ivory text-plum-700 hover:bg-plum-50"
             >
              Create Your Bespoke Cake

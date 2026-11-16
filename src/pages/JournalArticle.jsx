@@ -18,7 +18,7 @@ function formatDate(iso) {
   })
 }
 
-// Render inline markdown-style links inside journal text: [label](/path).
+// Render inline markdown-style links inside journal text: [label](/path/).
 // Internal paths use React Router; external URLs use a regular anchor.
 function LinkedText({ text, className = '' }) {
   if (!text) return null
@@ -334,7 +334,7 @@ export default function JournalArticle() {
     return (
       <div className="bg-ivory px-5 pt-40 pb-20 text-center">
         <h1 className="font-display text-3xl text-ink">Article not found</h1>
-        <Link to="/journal" className="btn btn-outline mt-8">Back to the blog</Link>
+        <Link to="/journal/" className="btn btn-outline mt-8">Back to the blog</Link>
       </div>
     )
   }
@@ -345,8 +345,8 @@ export default function JournalArticle() {
     articleLd(article),
     breadcrumbLd([
       { name: 'Home', path: '/' },
-      { name: 'Blog', path: '/journal' },
-      { name: article.categoryLabel, path: '/journal' },
+      { name: 'Blog', path: '/journal/' },
+      { name: article.categoryLabel, path: '/journal/' },
       { name: article.title, path: `/journal/${slug}` },
     ]),
   ]
@@ -393,8 +393,8 @@ export default function JournalArticle() {
             <Breadcrumbs
               trail={[
                 { name: 'Home', to: '/' },
-                { name: 'Blog', to: '/journal' },
-                { name: article.categoryLabel, to: '/journal' },
+                { name: 'Blog', to: '/journal/' },
+                { name: article.categoryLabel, to: '/journal/' },
               ]}
               className="mb-8"
             />
@@ -419,7 +419,7 @@ export default function JournalArticle() {
                       {article.tags.map((tag) => (
                         <Link
                           key={tag}
-                          to="/journal"
+                          to="/journal/"
                           state={{ tag }}
                           className="flex items-center gap-1 rounded-full border border-line bg-cream/50 px-2.5 py-0.5 text-[0.65rem] font-medium uppercase tracking-wide text-stone hover:border-plum-300 hover:text-plum-600"
                         >
@@ -451,7 +451,7 @@ export default function JournalArticle() {
 
               <div className="mt-8">
                 <Link
-                  to="/journal"
+                  to="/journal/"
                   className="inline-flex items-center gap-2 text-sm font-medium text-plum-600 hover:text-plum-700"
                 >
                   <ArrowLeft size={16} strokeWidth={1.8} />
@@ -476,7 +476,7 @@ export default function JournalArticle() {
                   <p className="mt-2 text-sm leading-relaxed text-plum-200">
                     Tell us about your occasion — we'll design something around your day.
                   </p>
-                  <Link to="/enquiry" className="btn mt-5 w-full bg-ivory text-plum-700 hover:bg-plum-50">
+                  <Link to="/enquiry/" className="btn mt-5 w-full bg-ivory text-plum-700 hover:bg-plum-50">
                     Start an enquiry
                   </Link>
                 </div>
@@ -495,7 +495,7 @@ export default function JournalArticle() {
                 Continue reading
               </h2>
               <Link
-                to="/journal"
+                to="/journal/"
                 className="link-underline hidden items-center gap-2 text-sm font-medium text-plum-600 sm:inline-flex"
               >
                 All articles <ArrowRight size={15} strokeWidth={1.8} />
@@ -515,7 +515,7 @@ export default function JournalArticle() {
         eyebrow="Planning a celebration?"
         title="Let's design your cake"
         body="Every cake is made to order, designed around your occasion. Tell us about your day and we'll take it from there."
-        secondary={{ label: 'Browse the blog', to: '/journal' }}
+        secondary={{ label: 'Browse the blog', to: '/journal/' }}
       />
     </>
   )

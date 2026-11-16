@@ -180,7 +180,7 @@ export default function CakeEnquiry() {
   if (submitted) {
     return (
       <>
-        <SEO title="Enquiry received | Purple Bee Cakes" canonicalPath="/cake-enquiry" noindex />
+        <SEO title="Enquiry received | Purple Bee Cakes" canonicalPath="/cake-enquiry/" noindex />
         <section className="bg-ivory pt-32 pb-20 md:pt-40">
           <div className="mx-auto max-w-2xl px-5 text-center md:px-8">
             <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-plum-100">
@@ -211,10 +211,10 @@ export default function CakeEnquiry() {
       <SEO
         title="Cake Enquiry | Order a Custom Cake | Purple Bee Cakes Abuja"
         description="Start your cake enquiry with Purple Bee Cakes. Tell us about your occasion, vision and preferences — we will design something made entirely for your celebration."
-        canonicalPath="/cake-enquiry"
+        canonicalPath="/cake-enquiry/"
         structured={[breadcrumbLd([
           { name: 'Home', path: '/' },
-          { name: 'Cake Enquiry', path: '/cake-enquiry' },
+          { name: 'Cake Enquiry', path: '/cake-enquiry/' },
         ])]}
       />
 
@@ -222,7 +222,7 @@ export default function CakeEnquiry() {
         eyebrow="Cake enquiry"
         title="Let's start your cake."
         intro="Tell us about your celebration, the cake you have in mind and what matters most. The more detail you share, the better we can design something that is truly right for your occasion."
-        trail={[{ name: 'Home', to: '/' }, { name: 'Cake Enquiry', to: '/cake-enquiry' }]}
+        trail={[{ name: 'Home', to: '/' }, { name: 'Cake Enquiry', to: '/cake-enquiry/' }]}
       />
 
       <section className="section-y bg-ivory pt-0">

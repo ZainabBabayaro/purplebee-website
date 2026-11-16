@@ -3,5 +3,5 @@
 import { Navigate } from 'react-router-dom'
 
 export default function Shop() {
-  return <Navigate to="/store" replace />
+  return <Navigate to="/store/" replace />
 }

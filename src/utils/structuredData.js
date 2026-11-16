@@ -4,6 +4,7 @@
 // Import from here instead of from SEO.jsx.
 // ============================================================================
 import { site } from '../data/site.js'
+import { canonicalPath } from './urls.js'
 
 // Ensure image URLs used in structured data are absolute. Relative paths are
 // not reliably resolved by all search-engine crawlers.
@@ -58,7 +59,7 @@ export function breadcrumbLd(trail = []) {
       '@type': 'ListItem',
       position: i + 1,
       name: item.name,
-      item: new URL(item.path || '/', site.url).href,
+      item: new URL(canonicalPath(item.path) || '/', site.url).href,
     })),
   }
 }
@@ -77,14 +78,14 @@ export function cakeProductLd(cake) {
     description: cake.summary || cake.description,
     brand: { '@type': 'Brand', name: site.name },
     category: cake.occasion ? `${cake.occasion} cake` : 'Cake',
-    url: `${site.url}/cakes/${cake.slug}`,
+    url: `${site.url}${canonicalPath(`/cakes/${cake.slug}`)}`,
     image,
   }
 
   if (hasValidPrice && !isQuotation) {
     product.offers = {
       '@type': 'Offer',
-      url: `${site.url}/cakes/${cake.slug}`,
+      url: `${site.url}${canonicalPath(`/cakes/${cake.slug}`)}`,
       priceCurrency: 'NGN',
       price: String(price),
       availability: cake.available !== false ? 'https://schema.org/InStock' : 'https://schema.org/OutOfStock',
@@ -115,7 +116,7 @@ export function articleLd(article) {
     },
     mainEntityOfPage: {
       '@type': 'WebPage',
-      '@id': `${site.url}/journal/${article.slug}`,
+      '@id': `${site.url}${canonicalPath(`/journal/${article.slug}`)}`,
     },
   }
 }

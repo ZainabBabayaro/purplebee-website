@@ -25,7 +25,7 @@ export default function FeaturedCollections() {
           </Reveal>
           <Reveal delay={120}>
             <Link
-              to="/collections"
+              to="/collections/"
               className="btn btn-primary shrink-0"
             >
               Explore collections

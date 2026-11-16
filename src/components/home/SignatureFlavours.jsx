@@ -74,7 +74,7 @@ function FlavorCard({ flavour, index }) {
           </p>
 
           <Link
-            to="/store"
+            to="/store/"
             className="mt-7 inline-flex items-center gap-2 text-sm font-medium text-plum-600 transition-gap hover:gap-3"
             aria-label={`Order the ${flavour.name} cake`}
           >
@@ -116,7 +116,7 @@ export default function SignatureFlavours() {
 
         {/* CTA */}
         <Reveal delay={120} className="mt-14 text-center">
-          <Link to="/store" className="btn btn-primary">
+          <Link to="/store/" className="btn btn-primary">
             Explore Our Signature Flavours
             <ArrowRight size={17} strokeWidth={1.8} />
           </Link>

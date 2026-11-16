@@ -56,7 +56,7 @@ export default function CartDrawer() {
           <div className="flex flex-1 flex-col items-center justify-center px-6 text-center">
             <ShoppingBag size={40} strokeWidth={1.2} className="text-plum-200 mb-4" />
             <p className="text-stone">Your basket is empty.</p>
-            <Link to="/store" onClick={() => setOpen(false)} className="btn btn-outline mt-6">
+            <Link to="/store/" onClick={() => setOpen(false)} className="btn btn-outline mt-6">
               Browse the store
             </Link>
           </div>
@@ -148,7 +148,7 @@ export default function CartDrawer() {
                 Final pricing confirmed before payment. Delivery calculated at checkout.
               </p>
               <Link
-                to="/checkout"
+                to="/checkout/"
                 onClick={() => setOpen(false)}
                 className="btn btn-primary mt-4 w-full"
               >

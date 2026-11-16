@@ -89,7 +89,7 @@ function FlavorCard({ flavour, onOrder }) {
               Order this flavour
             </button>
             <Link
-              to="/cake-enquiry"
+              to="/cake-enquiry/"
               className="btn btn-outline flex-1 text-center"
             >
               Custom order
@@ -109,17 +109,17 @@ export default function SignatureFlavours() {
       <SEO
         title="Signature Cake Flavours in Abuja | Purple Bee Cakes"
         description="Discover our signature cake flavours — Snickers, Lemon Blueberry and Vanilla. Beautifully crafted cakes that taste as exceptional as they look. Order online or enquire today."
-        canonicalPath="/signature-flavours"
+        canonicalPath="/signature-flavours/"
         structured={[breadcrumbLd([
           { name: 'Home', path: '/' },
-          { name: 'Signature Flavours', path: '/signature-flavours' },
+          { name: 'Signature Flavours', path: '/signature-flavours/' },
         ])]}
       />
 
       <PageHero
         eyebrow="The Signature Flavour Collection"
         title="Not just another slice of cake."
-        trail={[{ name: 'Home', to: '/' }, { name: 'Signature Flavours', to: '/signature-flavours' }]}
+        trail={[{ name: 'Home', to: '/' }, { name: 'Signature Flavours', to: '/signature-flavours/' }]}
       >
         <div className="mt-6 max-w-2xl space-y-4 text-pretty leading-relaxed text-stone">
           <p>A beautiful cake should never disappoint once you cut into it.</p>
@@ -160,11 +160,11 @@ export default function SignatureFlavours() {
               For something bespoke, start a custom enquiry.
             </p>
             <div className="mt-8 flex flex-col items-center gap-4 sm:flex-row sm:justify-center">
-              <Link to="/shop" className="btn btn-primary">
+              <Link to="/shop/" className="btn btn-primary">
                 Shop all cakes
                 <ArrowRight size={16} strokeWidth={1.8} />
               </Link>
-              <Link to="/cake-enquiry" className="btn btn-outline">
+              <Link to="/cake-enquiry/" className="btn btn-outline">
                 Custom enquiry
               </Link>
             </div>

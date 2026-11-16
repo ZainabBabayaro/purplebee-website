@@ -37,10 +37,10 @@ export default function OurCakes() {
       <SEO
         title="Custom Birthday & Celebration Cakes in Abuja | Purple Bee Cakes"
         description="Explore custom birthday cakes, wedding cakes, anniversary and celebration cake designs in Abuja. Find a design you love and commission a cake made entirely for your occasion."
-        canonicalPath="/our-cakes"
+        canonicalPath="/our-cakes/"
         structured={[breadcrumbLd([
           { name: 'Home', path: '/' },
-          { name: 'Our Cakes', path: '/our-cakes' },
+          { name: 'Our Cakes', path: '/our-cakes/' },
         ])]}
       />
 
@@ -48,7 +48,7 @@ export default function OurCakes() {
         eyebrow="The gallery"
         title="Our cakes."
         intro="Explore our collection of carefully designed cakes. From timeless and elegant creations to expressive, artistic designs. Each cake is an opportunity to bring your celebration to life through colour, texture, flavour and detail."
-        trail={[{ name: 'Home', to: '/' }, { name: 'Our Cakes', to: '/our-cakes' }]}
+        trail={[{ name: 'Home', to: '/' }, { name: 'Our Cakes', to: '/our-cakes/' }]}
       />
 
       <section className="section-y bg-ivory pt-0">
@@ -131,11 +131,11 @@ export default function OurCakes() {
               If you have a specific vision in mind, we can design a cake entirely around your occasion, palette and preferences. Tell us what you are imagining and we will bring it to life.
             </p>
             <div className="mt-9 flex flex-col items-center gap-4 sm:flex-row sm:justify-center">
-              <Link to="/cake-enquiry" className="btn bg-ivory text-plum-700 hover:bg-plum-50">
+              <Link to="/cake-enquiry/" className="btn bg-ivory text-plum-700 hover:bg-plum-50">
                 Start a cake enquiry
                 <ArrowRight size={16} strokeWidth={1.8} />
               </Link>
-              <Link to="/shop" className="btn border border-plum-600 text-ivory hover:bg-plum-800">
+              <Link to="/shop/" className="btn border border-plum-600 text-ivory hover:bg-plum-800">
                 Shop our cakes
               </Link>
             </div>

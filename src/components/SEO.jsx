@@ -1,6 +1,7 @@
 import { Helmet } from 'react-helmet-async'
 import { site } from '../data/site.js'
 import { organizationLd, bakeryLd, websiteLd } from '../utils/structuredData.js'
+import { canonicalPath } from '../utils/urls.js'
 
 // Re-export all structured data helpers from their own file so any page can
 // import both SEO and the builders from the same path as before.
@@ -29,14 +30,14 @@ function absoluteImageUrl(image) {
 export default function SEO({
   title,
   description,
-  canonicalPath = '',
+  canonicalPath: canonicalPathProp = '',
   image,
   imageAlt,
   type = 'website',
   structured = [],
   noindex = false,
 }) {
-  const canonical = new URL(canonicalPath || '/', site.url).href
+  const canonical = new URL(canonicalPath(canonicalPathProp) || '/', site.url).href
   const fullTitle = title ? `${title} — ${site.name}` : `${site.name} — ${site.tagline}`
   const ogImage = absoluteImageUrl(image)
 

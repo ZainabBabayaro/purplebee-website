@@ -72,7 +72,7 @@ export default function WhyPurpleBee() {
             "A mix of Art and Indulgence"
           </blockquote>
           <Link
-            to="/store"
+            to="/store/"
             className="btn shrink-0 bg-ivory text-plum-700 hover:bg-plum-50"
           >
             Shop our cakes

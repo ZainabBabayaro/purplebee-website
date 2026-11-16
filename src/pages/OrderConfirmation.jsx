@@ -10,7 +10,7 @@ export default function OrderConfirmation() {
 
   return (
     <>
-      <SEO title="Order placed" canonicalPath="/order-confirmation" noindex />
+      <SEO title="Order placed" canonicalPath="/order-confirmation/" noindex />
       <section className="flex min-h-[80vh] items-center justify-center bg-ivory px-5 pt-24 pb-16">
         <div className="mx-auto max-w-lg text-center">
           <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-plum-100">
@@ -38,8 +38,8 @@ export default function OrderConfirmation() {
           </div>
 
           <div className="mt-10 flex flex-col items-center justify-center gap-4 sm:flex-row">
-            <Link to="/account" className="btn btn-primary">Track your order</Link>
-            <Link to="/store" className="btn btn-outline">Back to store</Link>
+            <Link to="/account/" className="btn btn-primary">Track your order</Link>
+            <Link to="/store/" className="btn btn-outline">Back to store</Link>
           </div>
         </div>
       </section>

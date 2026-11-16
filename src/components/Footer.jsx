@@ -29,14 +29,14 @@ const socialIconMap = {
 }
 
 const footerLinks = [
-  { label: 'Our Cakes',          to: '/our-cakes' },
-  { label: 'Shop',               to: '/store' },
-  { label: 'Signature Flavours', to: '/signature-flavours' },
-  { label: 'Custom Cakes',       to: '/custom-cakes' },
-  { label: 'Journal',            to: '/journal' },
-  { label: 'Our Story',          to: '/our-story' },
-  { label: 'Contact',            to: '/contact' },
-  { label: 'FAQs',               to: '/faqs' },
+  { label: 'Our Cakes',          to: '/our-cakes/' },
+  { label: 'Shop',               to: '/store/' },
+  { label: 'Signature Flavours', to: '/signature-flavours/' },
+  { label: 'Custom Cakes',       to: '/custom-cakes/' },
+  { label: 'Journal',            to: '/journal/' },
+  { label: 'Our Story',          to: '/our-story/' },
+  { label: 'Contact',            to: '/contact/' },
+  { label: 'FAQs',               to: '/faqs/' },
 ]
 
 export default function Footer() {
@@ -104,15 +104,15 @@ export default function Footer() {
           <div className="md:col-span-3">
             <p className="eyebrow text-plum-300">Order</p>
             <ul className="mt-5 space-y-3 text-sm">
-              <li><Link to="/cake-enquiry" className="text-plum-100 hover:text-ivory">Cake Enquiry</Link></li>
-              <li><Link to="/store"        className="text-plum-100 hover:text-ivory">Shop Online</Link></li>
-              <li><Link to="/checkout"     className="text-plum-100 hover:text-ivory">Checkout</Link></li>
-              <li><Link to="/account"      className="text-plum-100 hover:text-ivory">My Account</Link></li>
+              <li><Link to="/cake-enquiry/" className="text-plum-100 hover:text-ivory">Cake Enquiry</Link></li>
+              <li><Link to="/store/"        className="text-plum-100 hover:text-ivory">Shop Online</Link></li>
+              <li><Link to="/checkout/"     className="text-plum-100 hover:text-ivory">Checkout</Link></li>
+              <li><Link to="/account/"      className="text-plum-100 hover:text-ivory">My Account</Link></li>
             </ul>
             <p className="eyebrow text-plum-300 mt-8">Legal</p>
             <ul className="mt-5 space-y-3 text-sm">
-              <li><Link to="/privacy"      className="text-plum-100 hover:text-ivory">Privacy Policy</Link></li>
-              <li><Link to="/faqs"         className="text-plum-100 hover:text-ivory">FAQs</Link></li>
+              <li><Link to="/privacy/"      className="text-plum-100 hover:text-ivory">Privacy Policy</Link></li>
+              <li><Link to="/faqs/"         className="text-plum-100 hover:text-ivory">FAQs</Link></li>
             </ul>
           </div>
 

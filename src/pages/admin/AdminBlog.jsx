@@ -84,7 +84,7 @@ export default function AdminBlog() {
           </p>
         </div>
         <button
-          onClick={() => navigate('/admin/blog/new')}
+          onClick={() => navigate('/admin/blog/new/')}
           className="flex items-center gap-2 rounded-full bg-plum-500 px-4 py-2 text-sm font-medium text-ivory hover:bg-plum-400"
         >
           <Plus size={16} strokeWidth={2} />
@@ -100,7 +100,7 @@ export default function AdminBlog() {
         <div className="rounded-2xl border border-plum-800 bg-plum-900 py-16 text-center">
           <p className="text-plum-400">No articles yet.</p>
           <button
-            onClick={() => navigate('/admin/blog/new')}
+            onClick={() => navigate('/admin/blog/new/')}
             className="mt-4 rounded-full bg-plum-500 px-5 py-2 text-sm font-medium text-ivory hover:bg-plum-400"
           >
             Write your first article

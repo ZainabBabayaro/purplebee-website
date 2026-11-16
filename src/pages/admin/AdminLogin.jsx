@@ -16,7 +16,7 @@ export default function AdminLogin() {
   // Already authenticated admin — redirect straight in (after render, not during).
   useEffect(() => {
     if (!loading && user && isAdmin) {
-      navigate('/admin/dashboard', { replace: true })
+      navigate('/admin/dashboard/', { replace: true })
     }
   }, [loading, user, isAdmin, navigate])
 

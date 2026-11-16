@@ -4,13 +4,13 @@ import { useAuth } from '../../context/useAuth.js'
 import { LogoLockupLight } from '../../components/Logo.jsx'
 
 const links = [
-  { to: '/admin/dashboard', label: 'Dashboard',  Icon: LayoutDashboard },
-  { to: '/admin/orders',    label: 'Orders',      Icon: ShoppingBag },
-  { to: '/admin/inventory', label: 'Inventory',   Icon: Package },
-  { to: '/admin/collections', label: 'Collections', Icon: Layers },
-  { to: '/admin/enquiries', label: 'Enquiries',   Icon: Mail },
-  { to: '/admin/blog',      label: 'Blog',        Icon: BookOpen },
-  { to: '/admin/comments',  label: 'Comments',    Icon: MessageSquare },
+  { to: '/admin/dashboard/', label: 'Dashboard',  Icon: LayoutDashboard },
+  { to: '/admin/orders/',    label: 'Orders',      Icon: ShoppingBag },
+  { to: '/admin/inventory/', label: 'Inventory',   Icon: Package },
+  { to: '/admin/collections/', label: 'Collections', Icon: Layers },
+  { to: '/admin/enquiries/', label: 'Enquiries',   Icon: Mail },
+  { to: '/admin/blog/',      label: 'Blog',        Icon: BookOpen },
+  { to: '/admin/comments/',  label: 'Comments',    Icon: MessageSquare },
 ]
 
 export default function AdminLayout() {

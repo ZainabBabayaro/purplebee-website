@@ -58,10 +58,10 @@ export default function CustomCakes() {
       <SEO
         title="Custom Bespoke Cakes in Abuja | Purple Bee Cakes"
         description="Commission a bespoke cake designed entirely around your occasion. Purple Bee Cakes creates custom celebration, wedding and corporate cakes in Abuja — thoughtfully designed, made to order."
-        canonicalPath="/custom-cakes"
+        canonicalPath="/custom-cakes/"
         structured={[breadcrumbLd([
           { name: 'Home', path: '/' },
-          { name: 'Custom Cakes', path: '/custom-cakes' },
+          { name: 'Custom Cakes', path: '/custom-cakes/' },
         ])]}
       />
 
@@ -69,7 +69,7 @@ export default function CustomCakes() {
         eyebrow="Bespoke commissions"
         title="A cake made entirely for you."
         intro="Every bespoke cake we make begins with a conversation. Tell us about your occasion, share your vision and we will design something that belongs completely to your day."
-        trail={[{ name: 'Home', to: '/' }, { name: 'Custom Cakes', to: '/custom-cakes' }]}
+        trail={[{ name: 'Home', to: '/' }, { name: 'Custom Cakes', to: '/custom-cakes/' }]}
       />
 
       {/* Why bespoke */}
@@ -179,7 +179,7 @@ export default function CustomCakes() {
                   Start your enquiry and we will be in touch within 48 hours to discuss your occasion.
                 </p>
               </div>
-              <Link to="/cake-enquiry" className="btn shrink-0 bg-ivory text-plum-700 hover:bg-plum-50">
+              <Link to="/cake-enquiry/" className="btn shrink-0 bg-ivory text-plum-700 hover:bg-plum-50">
                 Start your enquiry
                 <ArrowRight size={16} strokeWidth={1.8} />
               </Link>

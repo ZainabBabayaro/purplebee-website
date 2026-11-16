@@ -83,7 +83,7 @@ export default function AdminDashboard() {
                   <Layers size={16} strokeWidth={1.6} className="text-plum-300" />
                   <p className="text-xs uppercase tracking-wide text-plum-400">Inventory by type</p>
                 </div>
-                <Link to="/admin/inventory" className="text-xs text-plum-400 hover:text-ivory">Manage →</Link>
+                <Link to="/admin/inventory/" className="text-xs text-plum-400 hover:text-ivory">Manage →</Link>
               </div>
               <div className="flex flex-wrap gap-3">
                 <div className="rounded-xl bg-plum-700/50 px-4 py-2.5 text-center">
@@ -106,7 +106,7 @@ export default function AdminDashboard() {
           <div className="mt-10">
             <div className="mb-4 flex items-center justify-between">
               <h2 className="font-display text-xl text-ivory">Recent orders</h2>
-              <Link to="/admin/orders" className="flex items-center gap-1 text-sm text-plum-400 hover:text-ivory">
+              <Link to="/admin/orders/" className="flex items-center gap-1 text-sm text-plum-400 hover:text-ivory">
                 View all <ChevronRight size={15} />
               </Link>
             </div>

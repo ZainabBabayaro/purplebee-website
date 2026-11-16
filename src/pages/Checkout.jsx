@@ -164,7 +164,7 @@ export default function Checkout() {
       if (!window.PaystackPop) {
         // Order is saved as pending payment; the customer can pay later.
         clear()
-        navigate('/order-confirmation', {
+        navigate('/order-confirmation/', {
           state: { orderId, name: values.name, paymentPending: true },
         })
         return
@@ -191,7 +191,7 @@ export default function Checkout() {
             trackPurchase(orderId, payableTotal, items)
           }
           clear()
-          navigate('/order-confirmation', {
+          navigate('/order-confirmation/', {
             state: {
               orderId,
               name: values.name,
@@ -220,16 +220,16 @@ export default function Checkout() {
   if (items.length === 0) {
     return (
       <section className="bg-ivory pt-32 pb-20 text-center">
-        <SEO title="Checkout" canonicalPath="/checkout" noindex />
+        <SEO title="Checkout" canonicalPath="/checkout/" noindex />
         <h1 className="font-display text-3xl text-ink">Your basket is empty</h1>
-        <Link to="/store" className="btn btn-primary mt-8">Browse the store</Link>
+        <Link to="/store/" className="btn btn-primary mt-8">Browse the store</Link>
       </section>
     )
   }
 
   return (
     <>
-      <SEO title="Checkout" canonicalPath="/checkout" noindex />
+      <SEO title="Checkout" canonicalPath="/checkout/" noindex />
 
       <section className="bg-ivory pt-32 pb-20 md:pt-40">
         <div className="mx-auto max-w-7xl px-5 md:px-8">

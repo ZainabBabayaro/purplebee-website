@@ -29,9 +29,9 @@ export default function OurStory() {
       <SEO
         title="About Purple Bee Cakes"
         description="The story, values and approach behind Purple Bee Cakes — a bespoke cake design studio in Abuja focused on thoughtful design, flavour made from scratch and meticulous detail."
-        canonicalPath="/our-story"
+        canonicalPath="/our-story/"
         structured={[
-          breadcrumbLd([{ name: 'Home', path: '/' }, { name: 'Our Story', path: '/our-story' }]),
+          breadcrumbLd([{ name: 'Home', path: '/' }, { name: 'Our Story', path: '/our-story/' }]),
         ]}
       />
       <PageHero
@@ -39,7 +39,7 @@ export default function OurStory() {
         title="Our story"
         intro="Purple Bee Cakes was built around a simple belief: cake should be an experience, not just another item on the celebration table.
 We believe in beautiful presentation, exceptional flavour and the little details that transform something familiar into something special."
-        trail={[{ name: 'Home', to: '/' }, { name: 'Our Story', to: '/our-story' }]}
+        trail={[{ name: 'Home', to: '/' }, { name: 'Our Story', to: '/our-story/' }]}
       />
 
       {/* Philosophy image + text */}
@@ -144,7 +144,7 @@ We believe in beautiful presentation, exceptional flavour and the little details
       <CTASection
         eyebrow="Let's talk"
         title="Tell us about your celebration"
-        secondary={{ label: 'See the cakes', to: '/our-cakes' }}
+        secondary={{ label: 'See the cakes', to: '/our-cakes/' }}
       />
     </>
   )

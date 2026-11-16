@@ -16,7 +16,7 @@ export default function ThankYou() {
     <>
       <SEO
         title={isOrder ? 'Order confirmed | Purple Bee Cakes' : 'Enquiry received | Purple Bee Cakes'}
-        canonicalPath="/thank-you"
+        canonicalPath="/thank-you/"
         noindex
       />
 
@@ -42,8 +42,8 @@ export default function ThankYou() {
                 </strong>
               </div>
               <div className="mt-10 flex flex-col items-center gap-4 sm:flex-row sm:justify-center">
-                <Link to="/account" className="btn btn-primary">Track your order</Link>
-                <Link to="/shop" className="btn btn-outline">Back to store</Link>
+                <Link to="/account/" className="btn btn-primary">Track your order</Link>
+                <Link to="/shop/" className="btn btn-outline">Back to store</Link>
               </div>
             </>
           ) : (
@@ -56,7 +56,7 @@ export default function ThankYou() {
               </p>
               <div className="mt-10 flex flex-col items-center gap-4 sm:flex-row sm:justify-center">
                 <Link to="/" className="btn btn-primary">Back to home</Link>
-                <Link to="/our-cakes" className="btn btn-outline">Browse our cakes</Link>
+                <Link to="/our-cakes/" className="btn btn-outline">Browse our cakes</Link>
               </div>
             </>
           )}

@@ -19,44 +19,45 @@ import { collections } from './src/data/collections.js'
 import { cakes } from './src/data/cakes.js'
 import { journal } from './src/data/journal.js'
 import { site } from './src/data/site.js'
+import { canonicalPath } from './src/utils/urls.js'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const distDir = path.resolve(__dirname, 'dist')
 
 const staticRoutes = [
   '/',
-  '/our-cakes',
-  '/collections',
-  '/our-story',
-  '/journal',
-  '/contact',
-  '/enquiry',
-  '/cake-enquiry',
-  '/checkout',
-  '/privacy',
-  '/privacy-policy',
-  '/faqs',
-  '/signature-flavours',
-  '/custom-cakes',
-  '/store',
-  '/shop',
-  '/account',
-  '/thank-you',
-  '/order-confirmation',
+  '/our-cakes/',
+  '/collections/',
+  '/our-story/',
+  '/journal/',
+  '/contact/',
+  '/enquiry/',
+  '/cake-enquiry/',
+  '/checkout/',
+  '/privacy/',
+  '/privacy-policy/',
+  '/faqs/',
+  '/signature-flavours/',
+  '/custom-cakes/',
+  '/store/',
+  '/shop/',
+  '/account/',
+  '/thank-you/',
+  '/order-confirmation/',
 ]
-const collectionRoutes = collections.map((c) => `/collections/${c.slug}`)
+const collectionRoutes = collections.map((c) => `/collections/${c.slug}/`)
 
 // Legacy products that should not be surfaced in the sitemap.
 const excludedCakeSlugs = new Set(['linen', 'alabaster'])
 const cakeRoutes = cakes
   .filter((c) => !excludedCakeSlugs.has(c.slug))
-  .map((c) => `/cakes/${c.slug}`)
+  .map((c) => `/cakes/${c.slug}/`)
 
-const articleRoutes = journal.map((a) => `/journal/${a.slug}`)
+const articleRoutes = journal.map((a) => `/journal/${a.slug}/`)
 
 // Map of URL → lastmod override (articles use their publish date).
 const lastmodOverrides = new Map(
-  journal.map((a) => [`/journal/${a.slug}`, a.date])
+  journal.map((a) => [`/journal/${a.slug}/`, a.date])
 )
 
 // Routes to render to HTML. /404 is written to 404.html for hosts that serve it.
@@ -64,13 +65,13 @@ const renderRoutes = [...staticRoutes, ...collectionRoutes, ...cakeRoutes, ...ar
 
 // Routes excluded from the sitemap (noindex, redirects, or not real pages).
 const sitemapExcluded = new Set([
-  '/privacy-policy',
+  '/privacy-policy/',
   '/404',
-  '/account',
-  '/thank-you',
-  '/shop',
-  '/checkout',
-  '/order-confirmation',
+  '/account/',
+  '/thank-you/',
+  '/shop/',
+  '/checkout/',
+  '/order-confirmation/',
 ])
 
 function escapeXml(s) {
@@ -87,7 +88,7 @@ function buildSitemap(routes) {
   const urls = routes
     .filter((r) => !sitemapExcluded.has(r))
     .map((r) => {
-      const loc = new URL(r === '/' ? '/' : r, site.url).href
+      const loc = new URL(canonicalPath(r), site.url).href
       const lastmod = lastmodOverrides.get(r) || today
       return `  <url>\n    <loc>${escapeXml(loc)}</loc>\n    <lastmod>${lastmod}</lastmod>\n  </url>`
     })

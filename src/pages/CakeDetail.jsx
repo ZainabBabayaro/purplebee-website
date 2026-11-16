@@ -112,7 +112,7 @@ function FullCakePurchase({ cake, onCustomise }) {
           <ShoppingBag size={16} strokeWidth={1.8} />
           Customise &amp; add to basket
         </button>
-        <Link to="/cake-enquiry" className="btn btn-outline">
+        <Link to="/cake-enquiry/" className="btn btn-outline">
           Enquire about this cake
           <ArrowRight size={16} strokeWidth={1.8} />
         </Link>
@@ -162,7 +162,7 @@ function QuotationPurchase({ cake }) {
     : flavourOptions.map((f) => ({ value: f, label: f }))
 
   const [flavour, setFlavour] = useState('')
-  const enquiryLink = `/cake-enquiry?product=${encodeURIComponent(cake.slug)}${flavour ? `&flavour=${encodeURIComponent(flavour)}` : ''}`
+  const enquiryLink = `/cake-enquiry?product=${encodeURIComponent(cake.slug)}${flavour ? /`&flavour=${encodeURIComponent(flavour)}` : ''}`
 
   return (
     <>
@@ -189,7 +189,7 @@ function QuotationPurchase({ cake }) {
           Request a quote
           <ArrowRight size={16} strokeWidth={1.8} />
         </Link>
-        <Link to="/collections" className="btn btn-outline">
+        <Link to="/collections/" className="btn btn-outline">
           Browse collections
         </Link>
       </div>
@@ -223,7 +223,7 @@ export default function CakeDetail() {
     return (
       <div className="px-5 pt-40 pb-20 text-center">
         <h1 className="font-display text-3xl text-ink">Product not found</h1>
-        <Link to="/our-cakes" className="btn btn-outline mt-8">Back to the gallery</Link>
+        <Link to="/our-cakes/" className="btn btn-outline mt-8">Back to the gallery</Link>
       </div>
     )
   }
@@ -253,7 +253,7 @@ export default function CakeDetail() {
           cakeProductLd(cake),
           breadcrumbLd([
             { name: 'Home', path: '/' },
-            { name: 'Our Cakes', path: '/our-cakes' },
+            { name: 'Our Cakes', path: '/our-cakes/' },
             { name: cake.name, path: productPath },
           ]),
         ]}
@@ -265,7 +265,7 @@ export default function CakeDetail() {
             className="mb-8"
             trail={[
               { name: 'Home', to: '/' },
-              { name: 'Our Cakes', to: '/our-cakes' },
+              { name: 'Our Cakes', to: '/our-cakes/' },
               { name: cake.name, to: productPath },
             ]}
           />
@@ -379,7 +379,7 @@ export default function CakeDetail() {
         <div className="mx-auto max-w-7xl px-5 md:px-8">
           <div className="flex items-center justify-between">
             <h2 className="font-display text-3xl font-medium text-ink md:text-4xl">More to explore</h2>
-            <Link to="/our-cakes" className="link-underline inline-flex items-center gap-2 text-sm font-medium text-plum-600">
+            <Link to="/our-cakes/" className="link-underline inline-flex items-center gap-2 text-sm font-medium text-plum-600">
               All cakes <ArrowRight size={16} strokeWidth={1.8} />
             </Link>
           </div>

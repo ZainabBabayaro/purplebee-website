@@ -155,10 +155,10 @@ export default function Journal() {
       <SEO
         title="Cake Design Blog"
         description="Guides and notes from the Purple Bee Cakes studio — practical advice on cake flavours, planning timelines, design directions, and commissioning a bespoke cake in Abuja."
-        canonicalPath="/journal"
+        canonicalPath="/journal/"
         structured={[breadcrumbLd([
           { name: 'Home', path: '/' },
-          { name: 'Blog', path: '/journal' },
+          { name: 'Blog', path: '/journal/' },
         ])]}
       />
 
@@ -318,7 +318,7 @@ export default function Journal() {
                   <p className="mt-2 text-sm leading-relaxed text-plum-200">
                     Tell us about your occasion and we'll design something around your day.
                   </p>
-                  <Link to="/enquiry" className="btn mt-5 w-full bg-ivory text-plum-700 hover:bg-plum-50">
+                  <Link to="/enquiry/" className="btn mt-5 w-full bg-ivory text-plum-700 hover:bg-plum-50">
                     Enquire now
                   </Link>
                 </div>

@@ -148,7 +148,7 @@ function OrderHistory({ uid }) {
       <div className="py-8 text-center text-stone">
         <Package size={36} strokeWidth={1.3} className="mx-auto mb-3 text-plum-200" />
         <p>No orders yet.</p>
-        <Link to="/store" className="btn btn-outline mt-5">Browse the store</Link>
+        <Link to="/store/" className="btn btn-outline mt-5">Browse the store</Link>
       </div>
     )
 
@@ -184,7 +184,7 @@ export default function Account() {
 
   if (loading) return (
     <section className="bg-ivory pt-32 pb-20 md:pt-40">
-      <SEO title="My Account" description="Sign in or create an account to track your Purple Bee Cakes orders." canonicalPath="/account" noindex />
+      <SEO title="My Account" description="Sign in or create an account to track your Purple Bee Cakes orders." canonicalPath="/account/" noindex />
       <div className="mx-auto max-w-xl px-5 md:px-8">
         <h1 className="font-display text-3xl font-medium text-ink">My account</h1>
       </div>
@@ -193,7 +193,7 @@ export default function Account() {
 
   return (
     <>
-      <SEO title="My Account" description="Sign in or create an account to track your Purple Bee Cakes orders." canonicalPath="/account" noindex />
+      <SEO title="My Account" description="Sign in or create an account to track your Purple Bee Cakes orders." canonicalPath="/account/" noindex />
 
       <section className="bg-ivory pt-32 pb-20 md:pt-40">
         <div className="mx-auto max-w-xl px-5 md:px-8">
@@ -227,7 +227,7 @@ export default function Account() {
               </div>
 
               <div className="mt-8 space-y-3">
-                <Link to="/store" className="flex items-center justify-between rounded-xl border border-line bg-cream/30 px-5 py-4 text-ink hover:border-plum-300">
+                <Link to="/store/" className="flex items-center justify-between rounded-xl border border-line bg-cream/30 px-5 py-4 text-ink hover:border-plum-300">
                   <span className="font-medium">Browse the store</span>
                   <ChevronRight size={18} strokeWidth={1.6} className="text-stone" />
                 </Link>

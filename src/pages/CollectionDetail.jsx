@@ -118,7 +118,7 @@ export default function CollectionDetail() {
     return (
       <div className="px-5 pt-40 pb-20 text-center">
         <h1 className="font-display text-3xl text-ink">Collection not found</h1>
-        <Link to="/store" className="btn btn-outline mt-8">Browse all cakes</Link>
+        <Link to="/store/" className="btn btn-outline mt-8">Browse all cakes</Link>
       </div>
     )
   }
@@ -135,7 +135,7 @@ export default function CollectionDetail() {
         imageAlt={`${collection.name} collection banner`}
         structured={[breadcrumbLd([
           { name: 'Home', path: '/' },
-          { name: 'Collections', path: '/collections' },
+          { name: 'Collections', path: '/collections/' },
           { name: collection.name, path: `/collections/${slug}` },
         ])]}
       />
@@ -146,7 +146,7 @@ export default function CollectionDetail() {
         intro={collection.description}
         trail={[
           { name: 'Home', to: '/' },
-          { name: 'Collections', to: '/collections' },
+          { name: 'Collections', to: '/collections/' },
           { name: collection.name, to: `/collections/${slug}` },
         ]}
       >
@@ -183,7 +183,7 @@ export default function CollectionDetail() {
           {collectionProducts.length === 0 ? (
             <div className="py-20 text-center">
               <p className="text-stone">No products in this collection yet.</p>
-              <Link to="/store" className="btn btn-outline mt-6">Browse all cakes</Link>
+              <Link to="/store/" className="btn btn-outline mt-6">Browse all cakes</Link>
             </div>
           ) : (
             <>
@@ -191,7 +191,7 @@ export default function CollectionDetail() {
                 <p className="text-sm text-stone">
                   {collectionProducts.length} product{collectionProducts.length !== 1 ? 's' : ''}
                 </p>
-                <Link to="/store" className="inline-flex items-center gap-1.5 text-sm font-medium text-plum-600 hover:text-plum-700">
+                <Link to="/store/" className="inline-flex items-center gap-1.5 text-sm font-medium text-plum-600 hover:text-plum-700">
                   Explore all <ArrowRight size={15} strokeWidth={1.8} />
                 </Link>
               </div>
@@ -214,7 +214,7 @@ export default function CollectionDetail() {
         eyebrow="Something more personal?"
         title="Let's design your cake"
         body="Tell us about your occasion and what draws you to this collection. We will create something made just for your day."
-        secondary={{ label: 'Explore all cakes', to: '/store' }}
+        secondary={{ label: 'Explore all cakes', to: '/store/' }}
       />
 
       {customising && (

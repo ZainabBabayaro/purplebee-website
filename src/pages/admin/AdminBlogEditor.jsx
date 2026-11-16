@@ -307,7 +307,7 @@ export default function AdminBlogEditor() {
         await dataApi.updatePost(editSlug, post)
       }
       setSaved(true)
-      setTimeout(() => navigate('/admin/blog'), 800)
+      setTimeout(() => navigate('/admin/blog/'), 800)
     } catch (e) {
       setErr(e.message || 'Save failed.')
     } finally {
@@ -321,7 +321,7 @@ export default function AdminBlogEditor() {
       <div className="mb-8 flex flex-wrap items-center justify-between gap-4">
         <div className="flex items-center gap-4">
           <button
-            onClick={() => navigate('/admin/blog')}
+            onClick={() => navigate('/admin/blog/')}
             className="flex items-center gap-2 text-sm text-plum-400 hover:text-ivory"
           >
             <ArrowLeft size={16} strokeWidth={2} /> All articles

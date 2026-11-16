@@ -101,7 +101,7 @@ export default function OrderingExperience() {
           <p className="max-w-md text-pretty text-stone">
             Ready to begin? Browse our collections, choose your cake and place your order.
           </p>
-          <Link to="/our-cakes" className="btn btn-primary">
+          <Link to="/our-cakes/" className="btn btn-primary">
             Start Your Order
             <ArrowRight size={17} strokeWidth={1.8} />
           </Link>

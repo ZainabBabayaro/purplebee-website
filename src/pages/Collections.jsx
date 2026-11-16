@@ -14,14 +14,14 @@ export default function Collections() {
       <SEO
         title="Cake Collections Abuja"
         description="Browse all Purple Bee Cakes collections in Abuja — bespoke cakes, signature designs, celebration cakes, wedding cakes, cake slices and loaf cakes."
-        canonicalPath="/collections"
-        structured={[breadcrumbLd([{ name: 'Home', path: '/' }, { name: 'Collections', path: '/collections' }])]}
+        canonicalPath="/collections/"
+        structured={[breadcrumbLd([{ name: 'Home', path: '/' }, { name: 'Collections', path: '/collections/' }])]}
       />
       <PageHero
         eyebrow="What we make"
         title="Our collections"
         intro="Browse by collection or explore everything we offer. Click any collection to see all the designs inside and add them to your basket."
-        trail={[{ name: 'Home', to: '/' }, { name: 'Collections', to: '/collections' }]}
+        trail={[{ name: 'Home', to: '/' }, { name: 'Collections', to: '/collections/' }]}
       />
 
       <section className="section-y bg-ivory pt-0">

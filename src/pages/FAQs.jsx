@@ -112,10 +112,10 @@ export default function FAQs() {
       <SEO
         title="Frequently Asked Questions | Purple Bee Cakes Abuja"
         description="Everything you need to know about ordering a cake from Purple Bee Cakes — flavours, sizes, delivery, bespoke commissions, payment and more."
-        canonicalPath="/faqs"
+        canonicalPath="/faqs/"
         structured={[breadcrumbLd([
           { name: 'Home', path: '/' },
-          { name: 'FAQs', path: '/faqs' },
+          { name: 'FAQs', path: '/faqs/' },
         ])]}
       />
 
@@ -123,7 +123,7 @@ export default function FAQs() {
         eyebrow="FAQ"
         title="Frequently asked questions."
         intro="Everything you need to know before placing your order. If your question isn't answered here, get in touch and we'll help."
-        trail={[{ name: 'Home', to: '/' }, { name: 'FAQs', to: '/faqs' }]}
+        trail={[{ name: 'Home', to: '/' }, { name: 'FAQs', to: '/faqs/' }]}
       />
 
       <section className="section-y bg-ivory pt-0">
@@ -171,10 +171,10 @@ export default function FAQs() {
               We are happy to help. Send us a message or start a WhatsApp conversation and we will get back to you promptly.
             </p>
             <div className="mt-7 flex flex-col items-center gap-3 sm:flex-row sm:justify-center">
-              <Link to="/contact" className="btn bg-ivory text-plum-700 hover:bg-plum-50">
+              <Link to="/contact/" className="btn bg-ivory text-plum-700 hover:bg-plum-50">
                 Contact us
               </Link>
-              <Link to="/cake-enquiry" className="btn border border-plum-600 text-ivory hover:bg-plum-800">
+              <Link to="/cake-enquiry/" className="btn border border-plum-600 text-ivory hover:bg-plum-800">
                 Start an enquiry
                 <ArrowRight size={16} strokeWidth={1.8} />
               </Link>

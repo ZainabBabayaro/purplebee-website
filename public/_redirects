@@ -1,14 +1,25 @@
+# Redirect apex domains to preferred HTTPS www domain.
+# These rules only apply if the apex domains are served by the same Cloudflare
+# Pages project as the www domain. If they are not, configure the redirects in
+# the Cloudflare dashboard instead (Page Rules or DNS redirects).
+https://purplebeecakes.com/* https://www.purplebeecakes.com/:splat 301
+http://purplebeecakes.com/* https://www.purplebeecakes.com/:splat 301
+
 # Redirect product alias to canonical cake URL
-/product/:slug /cakes/:slug 301
+/product/:slug /cakes/:slug/ 301
+/product/:slug/ /cakes/:slug/ 301
 
 # Redirect legacy /shop to canonical store URL
-/shop /store 301
+/shop /store/ 301
+/shop/ /store/ 301
 
 # Redirect duplicate /cakes to canonical /our-cakes
-/cakes /our-cakes 301
+/cakes /our-cakes/ 301
+/cakes/ /our-cakes/ 301
 
 # Redirect duplicate privacy URL to canonical
-/privacy-policy /privacy 301
+/privacy-policy /privacy/ 301
+/privacy-policy/ /privacy/ 301
 
 # SPA fallback (must be last)
 /*    /index.html    200

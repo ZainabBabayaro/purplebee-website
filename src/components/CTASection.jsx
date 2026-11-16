@@ -6,7 +6,7 @@ export default function CTASection({
   eyebrow = 'Enquire',
   title = "Let's make something memorable.",
   body = 'Tell us about your celebration, the feel you are after and the cake you have in mind. We will take it from there.',
-  primary = { label: 'Enquire about a cake', to: '/enquiry' },
+  primary = { label: 'Enquire about a cake', to: '/enquiry/' },
   secondary,
 }) {
   return (

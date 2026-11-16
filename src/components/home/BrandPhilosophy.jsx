@@ -36,9 +36,9 @@ export default function BrandPhilosophy() {
 
           {/* ── Text ── */}
           <Reveal className="order-2 md:order-1">
-            <p className="eyebrow">The Purplebee Cake Experirnce</p>
+            <p className="eyebrow">The Purplebee Cake Experience</p>
             <h2 className="mt-5 font-display text-4xl font-medium leading-tight text-ink md:text-5xl">
-                   Let's make your celebration unforgetable 
+                   Let's make your celebration unforgettable 
             </h2>
             <div className="mt-6 space-y-5 text-pretty leading-relaxed text-stone">
               <p>
@@ -57,7 +57,7 @@ export default function BrandPhilosophy() {
             </blockquote>
 
             <div className="mt-9">
-              <Link to="/store" className="btn btn-primary">
+              <Link to="/store/" className="btn btn-primary">
                 Find Your Perfect Cake
                 <ArrowRight size={17} strokeWidth={1.8} />
               </Link>

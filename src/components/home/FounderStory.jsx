@@ -34,22 +34,31 @@ export default function FounderStory() {
             </h2>
             <div className="mt-6 space-y-5 text-pretty leading-relaxed text-stone">
               <p>
-                Every studio has a point of view, and Purple Bee Cakes is no
-                different. This is where the founder's story will live — how the
-                studio began, what drives the work, and the philosophy that runs
-                through every cake.
+              Purple Bee Cakes is a business built on a love for cake making, creativity and the joy of creating something that becomes part of people's most meaningful moments.
+
+Over the years, that love has grown into a commitment to creating cakes that bring together beautiful design and exceptional flavour.
+
+
+
+
               </p>
               <p>
-                A short introduction, an authentic photograph and a few words on
-                approach will sit here, so customers can connect with the person
-                making their cake.
+For me, cake making is about more than following a recipe or recreating a photograph. It's about understanding what makes a cake enjoyable, what makes a design memorable and how the two can work together.
+
+              </p>
+              <p>
+                I want Purple Bee Cakes to be known for cakes that people look forward to eating just as much as they look forward to showing them off.
+
+              </p>
+              <p>
+               Every cake we create is an opportunity to deliver on that promise.
               </p>
             </div>
 
             
 
             <Link
-              to="/our-story"
+              to="/our-story/"
               className="link-underline mt-8 inline-flex items-center gap-2 text-sm font-medium text-plum-600"
             >
               Read the full story

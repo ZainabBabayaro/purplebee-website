@@ -1,5 +1,5 @@
 import { lazy, Suspense } from 'react'
-import { Navigate, Route, Routes } from 'react-router-dom'
+import { Navigate, Route, Routes, useParams } from 'react-router-dom'
 import Layout from './components/Layout.jsx'
 import ScrollToTop from './components/ScrollToTop.jsx'
 import { AdminRoute } from './components/auth/Guards.jsx'
@@ -54,6 +54,11 @@ function PageLoader() {
   )
 }
 
+function ProductRedirect() {
+  const { slug } = useParams()
+  return <Navigate to={`/cakes/${slug}/`} replace />
+}
+
 export default function App() {
   return (
     <>
@@ -62,48 +67,48 @@ export default function App() {
         <Routes>
           {/* ---- Public site ---- */}
           <Route element={<Layout />}>
-            <Route path="/"                    element={<Home />} />
-            <Route path="/our-cakes"           element={<OurCakes />} />
-            <Route path="/cakes"               element={<Navigate to="/our-cakes" replace />} />
-            <Route path="/collections"         element={<Collections />} />
-            <Route path="/collections/:slug"   element={<CollectionDetail />} />
-            <Route path="/cakes/:slug"         element={<CakeDetail />} />
-            <Route path="/product/:slug"       element={<CakeDetail />} />
-            <Route path="/our-story"           element={<OurStory />} />
-            <Route path="/journal"             element={<Journal />} />
-            <Route path="/journal/:slug"       element={<JournalArticle />} />
-            <Route path="/contact"             element={<Contact />} />
-            <Route path="/enquiry"             element={<Enquiry />} />
-            <Route path="/cake-enquiry"        element={<CakeEnquiry />} />
-            <Route path="/privacy"             element={<Privacy />} />
-            <Route path="/privacy-policy"      element={<Privacy />} />
-            <Route path="/faqs"                element={<FAQs />} />
-            <Route path="/signature-flavours"  element={<SignatureFlavours />} />
-            <Route path="/custom-cakes"        element={<CustomCakes />} />
-            <Route path="/store"               element={<Store />} />
-            <Route path="/shop"                element={<Shop />} />
-            <Route path="/checkout"            element={<Checkout />} />
-            <Route path="/order-confirmation"  element={<OrderConfirmation />} />
-            <Route path="/thank-you"           element={<ThankYou />} />
-            <Route path="/account"             element={<Account />} />
-            <Route path="*"                    element={<NotFound />} />
+            <Route path="/"                     element={<Home />} />
+            <Route path="/our-cakes/"           element={<OurCakes />} />
+            <Route path="/cakes"                element={<Navigate to="/our-cakes/" replace />} />
+            <Route path="/collections/"         element={<Collections />} />
+            <Route path="/collections/:slug/"   element={<CollectionDetail />} />
+            <Route path="/cakes/:slug/"         element={<CakeDetail />} />
+            <Route path="/product/:slug"        element={<ProductRedirect />} />
+            <Route path="/our-story/"           element={<OurStory />} />
+            <Route path="/journal/"             element={<Journal />} />
+            <Route path="/journal/:slug/"       element={<JournalArticle />} />
+            <Route path="/contact/"             element={<Contact />} />
+            <Route path="/enquiry/"             element={<Enquiry />} />
+            <Route path="/cake-enquiry/"        element={<CakeEnquiry />} />
+            <Route path="/privacy/"             element={<Privacy />} />
+            <Route path="/privacy-policy"       element={<Navigate to="/privacy/" replace />} />
+            <Route path="/faqs/"                element={<FAQs />} />
+            <Route path="/signature-flavours/"  element={<SignatureFlavours />} />
+            <Route path="/custom-cakes/"        element={<CustomCakes />} />
+            <Route path="/store/"               element={<Store />} />
+            <Route path="/shop"                 element={<Navigate to="/store/" replace />} />
+            <Route path="/checkout/"            element={<Checkout />} />
+            <Route path="/order-confirmation/"  element={<OrderConfirmation />} />
+            <Route path="/thank-you/"           element={<ThankYou />} />
+            <Route path="/account/"             element={<Account />} />
+            <Route path="*"                     element={<NotFound />} />
           </Route>
 
           {/* ---- Admin ---- */}
-          <Route path="/admin" element={<AdminLogin />} />
+          <Route path="/admin/" element={<AdminLogin />} />
           <Route
-            path="/admin"
+            path="/admin/"
             element={<AdminRoute><AdminLayout /></AdminRoute>}
           >
-            <Route path="dashboard"  element={<AdminDashboard />} />
-            <Route path="orders"     element={<AdminOrders />} />
-            <Route path="inventory"  element={<AdminInventory />} />
-            <Route path="collections" element={<AdminCollections />} />
-            <Route path="enquiries"  element={<AdminEnquiries />} />
-            <Route path="blog"       element={<AdminBlog />} />
-            <Route path="blog/new"   element={<AdminBlogEditor />} />
-            <Route path="blog/:slug" element={<AdminBlogEditor />} />
-            <Route path="comments"   element={<AdminComments />} />
+            <Route path="dashboard/"  element={<AdminDashboard />} />
+            <Route path="orders/"     element={<AdminOrders />} />
+            <Route path="inventory/"  element={<AdminInventory />} />
+            <Route path="collections/" element={<AdminCollections />} />
+            <Route path="enquiries/"  element={<AdminEnquiries />} />
+            <Route path="blog/"       element={<AdminBlog />} />
+            <Route path="blog/new/"   element={<AdminBlogEditor />} />
+            <Route path="blog/:slug/" element={<AdminBlogEditor />} />
+            <Route path="comments/"   element={<AdminComments />} />
           </Route>
         </Routes>
       </Suspense>

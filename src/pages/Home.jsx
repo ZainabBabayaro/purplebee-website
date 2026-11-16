@@ -51,7 +51,7 @@ export default function Home() {
       <BespokeEnquiry />
       <FounderStory />
       <CTASection
-        secondary={{ label: 'Explore the cakes', to: '/store' }}
+        secondary={{ label: 'Explore the cakes', to: '/store/' }}
       />
     </>
   )

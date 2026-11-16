@@ -58,7 +58,7 @@ export default function SignatureGallery() {
         </div>
 
         <Reveal className="mt-14 flex justify-center">
-          <Link to="/our-cakes" className="btn btn-outline">
+          <Link to="/our-cakes/" className="btn btn-outline">
             View the full gallery
             <ArrowRight size={16} strokeWidth={1.8} />
           </Link>

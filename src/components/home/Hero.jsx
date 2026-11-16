@@ -49,12 +49,12 @@ export default function Hero() {
           </Reveal>
           <Reveal delay={240}>
             <div className="mt-9 flex flex-col gap-4 sm:flex-row sm:items-center">
-              <Link to="/enquiry" className="btn btn-primary">
+              <Link to="/enquiry/" className="btn btn-primary">
               Order a Cake
                 
                 <ArrowRight size={17} strokeWidth={1.8} />
               </Link>
-              <Link to="/our-cakes" className="btn btn-ghost">
+              <Link to="/our-cakes/" className="btn btn-ghost">
                Explore our cakes
               </Link>
             </div>

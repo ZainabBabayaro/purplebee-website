@@ -26,7 +26,7 @@ export function ProtectedRoute({ children }) {
   // During SSR / before hydration, render nothing so server and client match.
   if (!mounted || loading) return null
   if (!user) {
-    return <Navigate to="/account" state={{ from: location.pathname }} replace />
+    return <Navigate to="/account/" state={{ from: location.pathname }} replace />
   }
   return children
 }
