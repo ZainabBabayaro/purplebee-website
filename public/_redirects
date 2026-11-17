@@ -21,5 +21,13 @@ http://purplebeecakes.com/* https://www.purplebeecakes.com/:splat 301
 /privacy-policy /privacy/ 301
 /privacy-policy/ /privacy/ 301
 
+# Redirect legacy/obsolete collection URLs to the most relevant current collections
+/collections/cake-slices /collections/slices-and-loaves/ 301
+/collections/cake-slices/ /collections/slices-and-loaves/ 301
+/collections/painterly-colour /collections/celebration-cakes/ 301
+/collections/painterly-colour/ /collections/celebration-cakes/ 301
+/collections/modern-sculptural /collections/wedding-cakes/ 301
+/collections/modern-sculptural/ /collections/wedding-cakes/ 301
+
 # SPA fallback (must be last)
 /*    /index.html    200

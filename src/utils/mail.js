@@ -28,7 +28,7 @@ export function enquiryNotificationMail(enquiry) {
         <p><strong>Message:</strong></p>
         <p>${message || 'No message provided.'}</p>
         <hr>
-        <p>View it in the admin: <a href="https://purplebeecakes.com/admin/enquiries">/admin/enquiries</a></p>
+        <p>View it in the admin: <a href="https://www.purplebeecakes.com/admin/enquiries/">/admin/enquiries/</a></p>
       `,
     },
   }

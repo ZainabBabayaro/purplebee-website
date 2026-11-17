@@ -212,6 +212,7 @@ export default function CakeEnquiry() {
         title="Cake Enquiry | Order a Custom Cake | Purple Bee Cakes Abuja"
         description="Start your cake enquiry with Purple Bee Cakes. Tell us about your occasion, vision and preferences — we will design something made entirely for your celebration."
         canonicalPath="/cake-enquiry/"
+        noindex
         structured={[breadcrumbLd([
           { name: 'Home', path: '/' },
           { name: 'Cake Enquiry', path: '/cake-enquiry/' },

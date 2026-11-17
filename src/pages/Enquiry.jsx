@@ -225,6 +225,7 @@ export default function Enquiry() {
         title="Bespoke Cake Enquiry"
         description="Enquire about a bespoke cake from Purple Bee Cakes in Abuja. Tell us about your occasion, the feel you are after and the cake you have in mind."
         canonicalPath="/enquiry/"
+        noindex
         structured={[breadcrumbLd([{ name: 'Home', path: '/' }, { name: 'Enquire', path: '/enquiry/' }])]}
       />
       <PageHero

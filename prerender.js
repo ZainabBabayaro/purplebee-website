@@ -72,6 +72,8 @@ const sitemapExcluded = new Set([
   '/shop/',
   '/checkout/',
   '/order-confirmation/',
+  '/enquiry/',
+  '/cake-enquiry/',
 ])
 
 function escapeXml(s) {
