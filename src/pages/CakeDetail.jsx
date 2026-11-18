@@ -202,7 +202,7 @@ function QuotationPurchase({ cake }) {
 export default function CakeDetail() {
   const { slug } = useParams()
   const { product: cake, loading } = useProduct(slug)
-  const { products } = useCatalogue()
+  const { visibleProducts } = useCatalogue()
   const [customising, setCustomising] = useState(false)
   const [activeImage, setActiveImage] = useState(0)
 
@@ -226,13 +226,13 @@ export default function CakeDetail() {
 
   const purchaseType = purchaseTypeFor(cake)
   const hasVariants = Array.isArray(cake.variants) && cake.variants.length > 0
-  const related = products
+  const related = visibleProducts
     .filter((c) => c.slug !== cake.slug && (
       c.collectionSlugs?.includes(cake.collectionSlugs?.[0]) ||
       c.collectionSlug === cake.collectionSlug
     ))
     .slice(0, 3)
-  const relatedCakes = related.length ? related : products.filter((c) => c.slug !== cake.slug).slice(0, 3)
+  const relatedCakes = related.length ? related : visibleProducts.filter((c) => c.slug !== cake.slug).slice(0, 3)
 
   const productPath = `/cakes/${cake.slug}/`
 

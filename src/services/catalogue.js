@@ -34,7 +34,7 @@ export function productsForCollection(products, collection, { includeHidden = fa
   if (!collection) return []
   const explicit = collection.productIds || []
   const list = products.filter((p) => {
-    if (!includeHidden && p.active === false) return false
+    if (!includeHidden && (p.active === false || p.archived === true)) return false
     const slugs = p.collectionSlugs || []
     return slugs.includes(collection.slug) || explicit.includes(p.id) || explicit.includes(p.slug)
   })
@@ -74,7 +74,7 @@ export function useCatalogue({ includeHidden = false } = {}) {
   }, [])
 
   const visibleProducts = useMemo(
-    () => products.filter((p) => includeHidden || p.active !== false),
+    () => products.filter((p) => includeHidden || (p.active !== false && p.archived !== true)),
     [products, includeHidden],
   )
   const visibleCollections = useMemo(

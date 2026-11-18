@@ -7,7 +7,10 @@ import Reveal from '../Reveal.jsx'
 // Signature gallery — an editorial, staggered grid of selected cake designs.
 export default function SignatureGallery() {
   // A curated selection for the homepage; the full set lives on Our Cakes.
-  const selected = cakes.slice(0, 6)
+  // Exclude inactive or archived products so deleted items never appear here.
+  const selected = cakes
+    .filter((c) => c.active !== false && c.archived !== true)
+    .slice(0, 6)
 
   return (
     <section className="section-y bg-cream/60">

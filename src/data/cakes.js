@@ -358,33 +358,6 @@ const rawCakes = [
     paletteKey: 'sculptural',
     featured: false,
   },
-  // Keeping linen/alabaster as legacy entries — they redirect to the new slugs above
-  {
-    slug: 'linen',
-    name: 'Linen',
-    productType: 'cake-slice',
-    image: '',
-    collectionSlug: 'slices-and-loaves',
-    collectionName: 'Slices & Loaves',
-    occasion: 'Celebration',
-    summary: 'A textured natural-white surface with a softly draped feel.',
-    description: 'Linen is finished so the surface reads like folded cloth — natural, soft and full of quiet texture. Available as individual slices for gifting or tasting.',
-    paletteKey: 'quiet',
-    featured: false,
-  },
-  {
-    slug: 'alabaster',
-    name: 'Alabaster',
-    productType: 'cake-loaf',
-    image: '',
-    collectionSlug: 'slices-and-loaves',
-    collectionName: 'Slices & Loaves',
-    occasion: 'Celebration',
-    summary: 'A stencilled, low-relief pattern across a pale, calm ground.',
-    description: 'Alabaster takes a subtle repeat pattern and lays it low across the surface. Available as an elegantly flavoured loaf cake for gifting or everyday enjoyment.',
-    paletteKey: 'quiet',
-    featured: false,
-  },
 ]
 
 // ── Store pricing & availability ──────────────────────────────────────────────
@@ -404,9 +377,6 @@ const storeMeta = {
   // Loaves — starting at ₦8,000 as per brief
   'vanilla-loaf':        { price: 8000,  stock: 20 },
   'chocolate-loaf':      { price: 8000,  stock: 20 },
-  // Legacy
-  linen:                 { price: 8000,  stock: 20 },
-  alabaster:             { price: 8000,  stock: 20 },
 }
 
 function buildCakeList() {
