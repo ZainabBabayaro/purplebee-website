@@ -10,6 +10,7 @@ import {
   cakes, buildTierVariants, purchaseTypeOptions, productTypeLabel,
   productImages, productMainImage,
 } from '../../data/cakes.js'
+import { appendSlugHistory } from '../../utils/slugHistory.js'
 
 function money(n) { return `₦${Number(n).toLocaleString('en-NG', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` }
 
@@ -340,10 +341,19 @@ function ProductEditor({ initial, collections, existingIds, onClose, onSaved }) 
       fillings: draft.fillings.split('\n').map((s) => s.trim()).filter(Boolean),
     }
 
+    const finalSlug = slug || productId
+    const previousSlug = initial?.slug
+    const slugHistory = appendSlugHistory({
+      previousSlug,
+      currentSlug: finalSlug,
+      existingHistory: initial?.slugHistory,
+    })
+
     const payload = {
       id: productId,
-      slug: slug || productId,
+      slug: finalSlug,
       name,
+      slugHistory,
       productType: draft.productType,
       purchaseType: effectivePurchaseType,
       price,

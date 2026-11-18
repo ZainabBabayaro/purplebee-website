@@ -11,6 +11,7 @@ import SimpleAddToCart from '../components/SimpleAddToCart.jsx'
 import ProductTypeTag from '../components/ProductTypeTag.jsx'
 import { useCollection, useCatalogue, productsForCollection } from '../services/catalogue.js'
 import { productPriceFrom, productMainImage, purchaseTypeFor } from '../data/cakes.js'
+import NotFound from './NotFound.jsx'
 
 function money(n) {
   return `₦${Number(n).toLocaleString('en-NG', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
@@ -114,13 +115,8 @@ export default function CollectionDetail() {
     )
   }
 
-  if (!collection) {
-    return (
-      <div className="px-5 pt-40 pb-20 text-center">
-        <h1 className="font-display text-3xl text-ink">Collection not found</h1>
-        <Link to="/store/" className="btn btn-outline mt-8">Browse all cakes</Link>
-      </div>
-    )
+  if (!collection || collection.visible === false || collection.published === false) {
+    return <NotFound />
   }
 
   const collectionProducts = productsForCollection(products, collection)

@@ -15,14 +15,20 @@ import fs from 'node:fs'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 
-import { collections } from './src/data/collections.js'
-import { cakes } from './src/data/cakes.js'
 import { journal } from './src/data/journal.js'
 import { site } from './src/data/site.js'
 import { canonicalPath } from './src/utils/urls.js'
+import { buildRedirectsFile } from './src/utils/buildRedirects.js'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const distDir = path.resolve(__dirname, 'dist')
+
+// Dynamically imported so we can set __BUILD_CATALOGUE__ on globalThis BEFORE
+// any component imports src/data/cakes.js or src/data/collections.js.
+async function loadCatalogue() {
+  const { buildCatalogue } = await import('./src/utils/buildCatalogue.js')
+  return buildCatalogue()
+}
 
 const staticRoutes = [
   '/',
@@ -45,23 +51,9 @@ const staticRoutes = [
   '/thank-you/',
   '/order-confirmation/',
 ]
-const collectionRoutes = collections.map((c) => `/collections/${c.slug}/`)
-
-// Legacy products that should not be surfaced in the sitemap.
-const excludedCakeSlugs = new Set(['linen', 'alabaster'])
-const cakeRoutes = cakes
-  .filter((c) => !excludedCakeSlugs.has(c.slug))
-  .map((c) => `/cakes/${c.slug}/`)
-
-const articleRoutes = journal.map((a) => `/journal/${a.slug}/`)
 
 // Map of URL → lastmod override (articles use their publish date).
-const lastmodOverrides = new Map(
-  journal.map((a) => [`/journal/${a.slug}/`, a.date])
-)
-
-// Routes to render to HTML. /404 is written to 404.html for hosts that serve it.
-const renderRoutes = [...staticRoutes, ...collectionRoutes, ...cakeRoutes, ...articleRoutes, '/404']
+let lastmodOverrides = new Map()
 
 // Routes excluded from the sitemap (noindex, redirects, or not real pages).
 const sitemapExcluded = new Set([
@@ -75,6 +67,30 @@ const sitemapExcluded = new Set([
   '/enquiry/',
   '/cake-enquiry/',
 ])
+
+// Legacy product slugs that must never be surfaced in the sitemap or
+// prerendered, regardless of their Firestore active flag. Use the admin
+// archive feature for ordinary discontinued products.
+const HIDDEN_PRODUCT_SLUGS = new Set(['linen', 'alabaster'])
+
+async function loadRoutes() {
+  const { products, collections, source } = await loadCatalogue()
+
+  const activeCollections = collections.filter((c) => c.visible !== false && c.published !== false)
+  const activeProducts = products
+    .filter((p) => p.active !== false && p.archived !== true && !HIDDEN_PRODUCT_SLUGS.has(p.slug))
+
+  const collectionRoutes = activeCollections.map((c) => `/collections/${c.slug}/`)
+  const cakeRoutes = activeProducts.map((c) => `/cakes/${c.slug}/`)
+  const articleRoutes = journal.map((a) => `/journal/${a.slug}/`)
+
+  lastmodOverrides = new Map(journal.map((a) => [`/journal/${a.slug}/`, a.date]))
+
+  // Routes to render to HTML. /404 is written to 404.html for hosts that serve it.
+  const renderRoutes = [...staticRoutes, ...collectionRoutes, ...cakeRoutes, ...articleRoutes, '/404']
+
+  return { products, collections, activeProducts, activeCollections, renderRoutes, source }
+}
 
 function escapeXml(s) {
   return String(s)
@@ -156,9 +172,17 @@ async function main() {
     throw new Error('dist/index.html not found — run `vite build` before prerendering.')
   }
 
+  const { products, collections, activeProducts, activeCollections, renderRoutes, source } = await loadRoutes()
+
+  // Make the fetched catalogue available to SSR before any component modules
+  // are loaded. This lets src/data/cakes.js and src/data/collections.js
+  // render Firestore-only products and collections during prerendering.
+  globalThis.__BUILD_CATALOGUE__ = { products, collections }
+
   const template = fs.readFileSync(path.join(distDir, 'index.html'), 'utf-8')
 
   console.log('\n✦ Prerendering static pages…\n')
+  console.log(`  Catalogue source: ${source} (${activeProducts.length} active products, ${activeCollections.length} active collections)\n`)
 
   // Use Vite in middleware mode to transform/resolve source for SSR.
   const vite = await createServer({
@@ -194,6 +218,12 @@ async function main() {
     const sitemap = buildSitemap(renderRoutes)
     fs.writeFileSync(path.join(distDir, 'sitemap.xml'), sitemap)
     console.log(`  ✓ sitemap.xml (${renderRoutes.length - sitemapExcluded.size} URLs)`)
+
+    // Redirects
+    // Generate redirects from the full catalogue, including archived items, so
+    // renamed-but-later-archived products still redirect to their final URL.
+    const redirectResult = await buildRedirectsFile({ products, collections, distDir })
+    console.log(`  ✓ _redirects (${redirectResult.productRules.length + redirectResult.collectionRules.length} generated, ${redirectResult.manualRules.length} manual)`)
   } finally {
     await vite.close()
   }

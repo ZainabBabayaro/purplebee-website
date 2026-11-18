@@ -11,6 +11,7 @@ import { cakes } from '../data/cakes.js'
 import { normalizeProduct, isProductAvailable } from '../data/cakes.js'
 import { collections as staticCollections, normalizeCollection } from '../data/collections.js'
 import { ADMIN_EMAILS } from '../config/firebase.js'
+import { normalizeSlugHistory } from '../utils/slugHistory.js'
 
 const KEYS = {
   inv: 'pb_inventory_v2',
@@ -56,6 +57,7 @@ function seedInventory() {
       id: c.slug,
       slug: c.slug,
       name: c.name,
+      slugHistory: normalizeSlugHistory(c.slugHistory),
       productType: c.productType || 'cake',
       purchaseType: c.purchaseType || (c.productType === 'cake' ? 'configurable' : 'simple'),
       paletteKey: c.paletteKey,
@@ -87,7 +89,11 @@ function seedInventory() {
 function seedCollections() {
   let list = read(KEYS.collections, null)
   if (!list) {
-    list = staticCollections.map((c) => ({ ...c, id: c.slug }))
+    list = staticCollections.map((c) => ({
+      ...c,
+      id: c.slug,
+      slugHistory: normalizeSlugHistory(c.slugHistory),
+    }))
     write(KEYS.collections, list)
   }
   return list
@@ -106,6 +112,7 @@ export const localdb = {
       ...product,
       id,
       slug: product.slug || id,
+      slugHistory: normalizeSlugHistory(product.slugHistory),
       stock: product.stock ?? 0,
       active: product.active !== false,
       available: product.available !== false,
@@ -129,7 +136,11 @@ export const localdb = {
   async updateProduct(id, patch) {
     const inv = seedInventory()
     const p = inv.find((x) => x.id === id)
-    if (p) Object.assign(p, patch, { updatedAt: new Date().toISOString() })
+    if (p) {
+      const payload = { ...patch, updatedAt: new Date().toISOString() }
+      if (payload.slugHistory) payload.slugHistory = normalizeSlugHistory(payload.slugHistory)
+      Object.assign(p, payload)
+    }
     write(KEYS.inv, inv)
   },
   async deleteProduct(id) {
@@ -162,6 +173,7 @@ export const localdb = {
       ...collection,
       id,
       slug: collection.slug || id,
+      slugHistory: normalizeSlugHistory(collection.slugHistory),
       productIds: collection.productIds || [],
       visible: collection.visible !== false,
       published: collection.published !== false,
@@ -174,7 +186,11 @@ export const localdb = {
   async updateCollection(id, patch) {
     const list = seedCollections()
     const c = list.find((x) => x.id === id)
-    if (c) Object.assign(c, patch, { updatedAt: new Date().toISOString() })
+    if (c) {
+      const payload = { ...patch, updatedAt: new Date().toISOString() }
+      if (payload.slugHistory) payload.slugHistory = normalizeSlugHistory(payload.slugHistory)
+      Object.assign(c, payload)
+    }
     write(KEYS.collections, list)
   },
   async deleteCollection(id) {

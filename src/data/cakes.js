@@ -409,28 +409,67 @@ const storeMeta = {
   alabaster:             { price: 8000,  stock: 20 },
 }
 
-export const cakes = rawCakes.map((c) => {
-  const basePrice = storeMeta[c.slug]?.price ?? 50000
-  const image = c.image || ''
-  return {
-    ...c,
-    id: c.slug,
-    price: basePrice,
-    stock: storeMeta[c.slug]?.stock ?? 10,
-    active: true,
-    available: true,
-    trackStock: true,
-    displayOrder: 0,
-    image,
-    images: image ? [{ url: image, alt: c.name, order: 0 }] : [],
-    collectionSlugs: c.collectionSlug ? [c.collectionSlug] : [],
-    // purchaseType is derived at runtime from collection membership; we do not
-    // store a default here so that changing a product's collection updates its
-    // behaviour without a separate migration.
-    // Tiered cakes expose size variations; single-tier cakes use servingGuides.
-    variants: c.tiered ? buildTierVariants(basePrice) : [],
+function buildCakeList() {
+  // During the static build, prerender.js fetches the live Firestore catalogue
+  // and stores it on globalThis so SSR can render products that only exist in
+  // the database. In the browser we always use the static seed/fallback.
+  const buildProducts = typeof window === 'undefined' && globalThis.__BUILD_CATALOGUE__?.products
+  if (buildProducts?.length) {
+    return buildProducts.map((c) => {
+      const basePrice = c.price ?? storeMeta[c.slug]?.price ?? 50000
+      const image = c.image || c.imageUrl || ''
+      return {
+        ...c,
+        id: c.id || c.slug,
+        slug: c.slug || c.id,
+        price: basePrice,
+        stock: c.stock ?? storeMeta[c.slug]?.stock ?? 10,
+        active: c.active !== false,
+        available: c.available !== false,
+        trackStock: c.trackStock !== false,
+        displayOrder: Number(c.displayOrder) || 0,
+        image,
+        imageUrl: image,
+        images: Array.isArray(c.images) && c.images.length
+          ? c.images
+          : image
+            ? [{ url: image, alt: c.name, order: 0 }]
+            : [],
+        collectionSlugs: Array.isArray(c.collectionSlugs)
+          ? c.collectionSlugs
+          : c.collectionSlug
+            ? [c.collectionSlug]
+            : [],
+        variants: c.tiered ? buildTierVariants(basePrice) : (c.variants || []),
+      }
+    })
   }
-})
+
+  return rawCakes.map((c) => {
+    const basePrice = storeMeta[c.slug]?.price ?? 50000
+    const image = c.image || ''
+    return {
+      ...c,
+      id: c.slug,
+      price: basePrice,
+      stock: storeMeta[c.slug]?.stock ?? 10,
+      active: true,
+      available: true,
+      trackStock: true,
+      displayOrder: 0,
+      image,
+      images: image ? [{ url: image, alt: c.name, order: 0 }] : [],
+      collectionSlugs: c.collectionSlug ? [c.collectionSlug] : [],
+      // purchaseType is derived at runtime from collection membership; we do not
+      // store a default here so that changing a product's collection updates its
+      // behaviour without a separate migration.
+      // Tiered cakes expose size variations; single-tier cakes use servingGuides.
+      variants: c.tiered ? buildTierVariants(basePrice) : [],
+    }
+  })
+}
+
+export const cakes = buildCakeList()
 
 export const getCakeBySlug    = (slug) => cakes.find((c) => c.slug === slug)
 export const getFeaturedCakes = ()     => cakes.filter((c) => c.featured)

@@ -12,6 +12,7 @@ import ProductTypeTag from '../components/ProductTypeTag.jsx'
 import { Select } from '../components/form/Inputs.jsx'
 import { useProduct, useCatalogue } from '../services/catalogue.js'
 import { trackViewItem } from '../utils/analytics.js'
+import NotFound from './NotFound.jsx'
 import {
   flavourOptions,
   fillingOptions,
@@ -219,13 +220,8 @@ export default function CakeDetail() {
     )
   }
 
-  if (!cake) {
-    return (
-      <div className="px-5 pt-40 pb-20 text-center">
-        <h1 className="font-display text-3xl text-ink">Product not found</h1>
-        <Link to="/our-cakes/" className="btn btn-outline mt-8">Back to the gallery</Link>
-      </div>
-    )
+  if (!cake || cake.active === false || cake.archived === true) {
+    return <NotFound />
   }
 
   const purchaseType = purchaseTypeFor(cake)

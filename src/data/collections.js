@@ -6,7 +6,7 @@
 // used for prerendering and as a graceful fallback if the backend is empty.
 // ============================================================================
 
-export const collections = [
+const staticCollections = [
   {
     slug: 'celebration-cakes',
     name: 'Celebration Cakes',
@@ -110,6 +110,24 @@ export const collections = [
     productIds: [],
   },
 ]
+
+function buildCollectionList() {
+  const buildCollections = typeof window === 'undefined' && globalThis.__BUILD_CATALOGUE__?.collections
+  if (buildCollections?.length) {
+    return buildCollections.map((c) => ({
+      ...c,
+      id: c.id || c.slug,
+      slug: c.slug || c.id,
+      visible: c.visible !== false,
+      published: c.published !== false,
+      productIds: Array.isArray(c.productIds) ? c.productIds : [],
+      displayOrder: Number(c.displayOrder) || 0,
+    }))
+  }
+  return staticCollections
+}
+
+export const collections = buildCollectionList()
 
 export const getCollectionBySlug = (slug) =>
   collections.find((c) => c.slug === slug)

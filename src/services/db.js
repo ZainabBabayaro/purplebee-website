@@ -16,6 +16,7 @@ import {
   normalizeProduct,
   isProductAvailable,
 } from '../data/cakes.js'
+import { normalizeSlugHistory } from '../utils/slugHistory.js'
 
 // Re-export for convenience.
 export { isFirebaseConfigured }
@@ -225,6 +226,7 @@ async function fbAddProduct(product) {
     ...product,
     id,
     slug: product.slug || id,
+    slugHistory: normalizeSlugHistory(product.slugHistory),
     stock: product.stock ?? 0,
     active: product.active !== false,
     available: product.available !== false,
@@ -238,7 +240,11 @@ async function fbAddProduct(product) {
 async function fbUpdateProduct(id, patch) {
   const { db } = await getFirebase()
   const { doc, updateDoc } = await import('firebase/firestore')
-  await updateDoc(doc(db, 'inventory', id), { ...patch, updatedAt: new Date().toISOString() })
+  const payload = { ...patch, updatedAt: new Date().toISOString() }
+  if (payload.slugHistory) {
+    payload.slugHistory = normalizeSlugHistory(payload.slugHistory)
+  }
+  await updateDoc(doc(db, 'inventory', id), payload)
 }
 
 async function fbDeleteProduct(id) {
@@ -359,6 +365,7 @@ async function fbAddCollection(collection) {
     ...collection,
     id,
     slug: collection.slug || id,
+    slugHistory: normalizeSlugHistory(collection.slugHistory),
     visible: collection.visible !== false,
     published: collection.published !== false,
     productIds: Array.isArray(collection.productIds) ? collection.productIds : [],
@@ -372,7 +379,11 @@ async function fbAddCollection(collection) {
 async function fbUpdateCollection(id, patch) {
   const { db } = await getFirebase()
   const { doc, updateDoc } = await import('firebase/firestore')
-  await updateDoc(doc(db, 'collections', id), { ...patch, updatedAt: new Date().toISOString() })
+  const payload = { ...patch, updatedAt: new Date().toISOString() }
+  if (payload.slugHistory) {
+    payload.slugHistory = normalizeSlugHistory(payload.slugHistory)
+  }
+  await updateDoc(doc(db, 'collections', id), payload)
 }
 
 async function fbDeleteCollection(id) {

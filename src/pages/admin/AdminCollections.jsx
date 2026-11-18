@@ -7,6 +7,7 @@ import { dataApi } from '../../services/db.js'
 import PlaceholderArt from '../../components/PlaceholderArt.jsx'
 import { getPalette } from '../../utils/images.js'
 import { productMainImage, normalizeProduct } from '../../data/cakes.js'
+import { appendSlugHistory } from '../../utils/slugHistory.js'
 
 const PALETTES = ['garden', 'painterly', 'quiet', 'sculptural']
 
@@ -124,10 +125,19 @@ function CollectionEditor({ initial, products, onClose, onSaved }) {
     if (!name) { setErr('Collection name is required.'); return }
     if (!collectionId) { setErr('Collection slug is required.'); return }
 
+    const finalSlug = slug || collectionId
+    const previousSlug = initial?.slug
+    const slugHistory = appendSlugHistory({
+      previousSlug,
+      currentSlug: finalSlug,
+      existingHistory: initial?.slugHistory,
+    })
+
     const payload = {
       id: collectionId,
-      slug: slug || collectionId,
+      slug: finalSlug,
       name,
+      slugHistory,
       subtitle: draft.subtitle,
       description: draft.description,
       intro: draft.intro,

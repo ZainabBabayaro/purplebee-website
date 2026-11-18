@@ -60,4 +60,27 @@ export function initFirebase() {
   return initPromise
 }
 
+// Build-time initialisation for Node SSR/prerender. Does not set up auth or
+// analytics because they are not needed (and not supported) in a Node context.
+let buildInitialised = false
+let buildInitPromise = null
+
+export function initFirebaseForBuild() {
+  if (buildInitialised) return Promise.resolve()
+  if (buildInitPromise) return buildInitPromise
+
+  buildInitPromise = (async () => {
+    const [{ initializeApp }, { getFirestore }] = await Promise.all([
+      import('firebase/app'),
+      import('firebase/firestore'),
+    ])
+
+    app = initializeApp(firebaseConfig, 'build')
+    db = getFirestore(app)
+    buildInitialised = true
+  })()
+
+  return buildInitPromise
+}
+
 export { firebaseConfig }
