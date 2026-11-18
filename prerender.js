@@ -23,6 +23,28 @@ import { buildRedirectsFile } from './src/utils/buildRedirects.js'
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const distDir = path.resolve(__dirname, 'dist')
 
+// Load .env into process.env before any Firebase-dependent module is imported.
+// Vite handles env vars during the build/SSR transform, but this script also
+// imports buildCatalogue.js directly in Node, which reads process.env.
+function loadEnv() {
+  const envPath = path.resolve(__dirname, '.env')
+  if (!fs.existsSync(envPath)) return
+  const content = fs.readFileSync(envPath, 'utf-8')
+  for (const line of content.split('\n')) {
+    const trimmed = line.trim()
+    if (!trimmed || trimmed.startsWith('#')) continue
+    const eq = trimmed.indexOf('=')
+    if (eq === -1) continue
+    const key = trimmed.slice(0, eq).trim()
+    let value = trimmed.slice(eq + 1).trim()
+    if ((value.startsWith('"') && value.endsWith('"')) || (value.startsWith("'") && value.endsWith("'"))) {
+      value = value.slice(1, -1)
+    }
+    if (key && process.env[key] === undefined) process.env[key] = value
+  }
+}
+loadEnv()
+
 // Dynamically imported so we can set __BUILD_CATALOGUE__ on globalThis BEFORE
 // any component imports src/data/cakes.js or src/data/collections.js.
 async function loadCatalogue() {

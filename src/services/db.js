@@ -149,7 +149,16 @@ const local = localdb
 // ---- Firestore REST helpers ------------------------------------------------
 // Public inventory/collection reads use the Firestore REST API so guests can
 // browse without signing in. Writes still go through the Firebase SDK + rules.
-const FIRESTORE_PROJECT = 'purplebeecakes01'
+const FIRESTORE_PROJECT =
+  (typeof import.meta !== 'undefined' && import.meta.env?.VITE_FIREBASE_PROJECT_ID) ||
+  (typeof process !== 'undefined' && process.env?.VITE_FIREBASE_PROJECT_ID)
+
+if (!FIRESTORE_PROJECT) {
+  throw new Error(
+    'Missing VITE_FIREBASE_PROJECT_ID. ' +
+    'Ensure it is set in .env (local) or in Cloudflare Pages (production).'
+  )
+}
 
 function parseFirestoreValue(v) {
   if (!v || typeof v !== 'object') return null

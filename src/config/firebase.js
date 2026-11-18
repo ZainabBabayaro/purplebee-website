@@ -6,16 +6,37 @@
 // JS bundle so the homepage loads fast.
 // ============================================================================
 
-const firebaseConfig = {
+// Reads environment variables from Vite (import.meta.env) during build/client
+// and from process.env when this module is loaded directly by Node (prerender).
+function env(key, fallback) {
+  try {
+    const vite = typeof import.meta !== 'undefined' ? import.meta.env : undefined
+    if (vite && vite[key] !== undefined) return vite[key]
+  } catch {}
+  if (typeof process !== 'undefined' && process.env && process.env[key] !== undefined) {
+    return process.env[key]
+  }
+  return fallback
+}
 
-  apiKey: "AIzaSyDbKz_wX4OWf-MpL6wqFJF6BeQeWBVlwvM",
-  authDomain: "purplebeecakes01.firebaseapp.com",
-  projectId: "purplebeecakes01",
-  storageBucket: "purplebeecakes01.firebasestorage.app",
-  messagingSenderId: "754389835205",
-  appId: "1:754389835205:web:4b7747d2f98094df55bfac",
-  measurementId: "G-1B80EYYGTP"
-};
+const firebaseConfig = {
+  apiKey: env('VITE_FIREBASE_API_KEY'),
+  authDomain: env('VITE_FIREBASE_AUTH_DOMAIN'),
+  projectId: env('VITE_FIREBASE_PROJECT_ID'),
+  storageBucket: env('VITE_FIREBASE_STORAGE_BUCKET'),
+  messagingSenderId: env('VITE_FIREBASE_MESSAGING_SENDER_ID'),
+  appId: env('VITE_FIREBASE_APP_ID'),
+  measurementId: env('VITE_FIREBASE_MEASUREMENT_ID'),
+}
+
+const requiredFirebaseKeys = ['apiKey', 'authDomain', 'projectId', 'storageBucket', 'messagingSenderId', 'appId']
+const missingFirebaseKeys = requiredFirebaseKeys.filter((k) => !firebaseConfig[k])
+if (missingFirebaseKeys.length) {
+  throw new Error(
+    `Missing Firebase configuration keys: ${missingFirebaseKeys.join(', ')}. ` +
+    `Ensure VITE_FIREBASE_* environment variables are set in .env (local) or in Cloudflare Pages (production).`
+  )
+}
 
 // Dev/UX admin allowlist (used by the local fallback and as a convenience in
 // the client). It does NOT grant any access on its own — Firestore rules are

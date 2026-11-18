@@ -13,7 +13,16 @@ import { site } from '../data/site.js'
 import { eventTypeOptions, celebrantGenderOptions } from '../data/cakes.js'
 import { trackBeginCheckout, trackPurchase } from '../utils/analytics.js'
 
-const PAYSTACK_PUBLIC_KEY = 'pk_live_b985e33142096821d0278cbcb768a549384c6d17'
+const PAYSTACK_PUBLIC_KEY =
+  (typeof import.meta !== 'undefined' && import.meta.env?.VITE_PAYSTACK_PUBLIC_KEY) ||
+  (typeof process !== 'undefined' && process.env?.VITE_PAYSTACK_PUBLIC_KEY)
+
+if (!PAYSTACK_PUBLIC_KEY) {
+  throw new Error(
+    'Missing VITE_PAYSTACK_PUBLIC_KEY. ' +
+    'Ensure it is set in .env (local) or in Cloudflare Pages (production).'
+  )
+}
 
 // Load Paystack script only when this page is visited — not on every page.
 function usePaystack() {
